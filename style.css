@@ -14,6 +14,10 @@ body {
     flex-grow: 1;
 }
 
+#container.move {
+    cursor: move;
+}
+
 #svg-container {
     display: inline;
 

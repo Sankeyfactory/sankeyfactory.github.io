@@ -91,14 +91,22 @@ window.onload = function () {
 };
 
 window.addEventListener("keydown", (event) => {
+    if (event.repeat) { return }
+
     if (event.code === "Space") {
         isSpaceDown = true;
+
+        document.getElementById("container").classList.add("move");
     }
 });
 
 window.addEventListener("keyup", (event) => {
+    if (event.repeat) { return }
+
     if (event.code === "Space") {
         isSpaceDown = false;
+
+        document.getElementById("container").classList.remove("move");
     }
 });
 
