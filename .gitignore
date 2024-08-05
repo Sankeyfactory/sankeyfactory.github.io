@@ -1,0 +1,6 @@
+# Editors
+.vscode
+
+node_modules
+
+dist/*.js

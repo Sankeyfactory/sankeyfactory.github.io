@@ -1,0 +1,9 @@
+{
+  "devDependencies": {
+    "esbuild": "^0.23.0"
+  },
+  "dependencies": {
+    "panzoom": "^9.4.3",
+    "typescript": "^5.5.4"
+  }
+}

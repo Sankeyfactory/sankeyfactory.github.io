@@ -41,5 +41,10 @@ div.help p {
 }
 
 path.link {
-    fill: #5B81BB7f;
+    fill: #5B81BB;
+    stroke: #8BAADA;
+    opacity: 0.5;
+
+    /* Twice the final result because outside part is clipped */
+    stroke-width: calc(1px * 2);
 }
