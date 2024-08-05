@@ -1,10 +1,17 @@
-let isSpaceDown = false;
 let draggedObject = null;
+let isHoldingAlt = false;
 
 let lastX = 0;
 let lastY = 0;
 
 let lastNode = null;
+
+let panContext = panzoom(document.getElementById("viewport"), {
+    zoomDoubleClickSpeed: 1, // disables double click zoom
+    beforeMouseDown: (_event) => {
+        return !isHoldingAlt;
+    }
+});
 
 class Point {
     constructor(x, y) {
@@ -66,36 +73,11 @@ class Link {
     }
 }
 
-// Don't use window.onLoad like this in production, because it can only listen to one function.
-window.onload = function () {
-    let beforePan = function (oldPan, newPan) {
-        if (isSpaceDown) {
-            return newPan;
-        }
-        else {
-            return oldPan;
-        }
-    }
-
-    // Expose to window namespace for testing purposes
-    window.panContext = svgPanZoom('#svg-container', {
-        zoomEnabled: true,
-        dblClickZoomEnabled: false,
-        controlIconsEnabled: false,
-        fit: true,
-        center: true,
-        beforePan: beforePan,
-    });
-
-    window.panContext.zoom(1);
-};
-
 window.addEventListener("keydown", (event) => {
     if (event.repeat) { return }
 
-    if (event.code === "Space") {
-        isSpaceDown = true;
-
+    if (event.key == "Alt") {
+        isHoldingAlt = true;
         document.getElementById("container").classList.add("move");
     }
 });
@@ -103,9 +85,8 @@ window.addEventListener("keydown", (event) => {
 window.addEventListener("keyup", (event) => {
     if (event.repeat) { return }
 
-    if (event.code === "Space") {
-        isSpaceDown = false;
-
+    if (event.key == "Alt") {
+        isHoldingAlt = false;
         document.getElementById("container").classList.remove("move");
     }
 });
@@ -121,7 +102,7 @@ window.addEventListener("keypress", (event) => {
         rect.setAttribute("y", "50");
 
         rect.onmousedown = (event) => {
-            if (isSpaceDown === false && event.buttons === 1) {
+            if (!isHoldingAlt && event.buttons === 1) {
                 draggedObject = rect;
 
                 lastX = event.screenX;
@@ -164,7 +145,7 @@ window.onmousemove = (event) => {
         let oldX = Number(draggedObject.getAttribute("x"));
         let oldY = Number(draggedObject.getAttribute("y"));
 
-        let zoomScale = window.panContext.getSizes().realZoom;
+        let zoomScale = panContext.getTransform().scale;
 
         draggedObject.setAttribute('x', oldX + (event.screenX - lastX) / zoomScale);
         draggedObject.setAttribute('y', oldY + (event.screenY - lastY) / zoomScale);
