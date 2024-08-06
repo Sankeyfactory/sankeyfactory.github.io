@@ -3,15 +3,18 @@ import { Rectangle } from "./Rectangle";
 import { SankeyNode } from "./SankeyNode";
 import { SvgPathBuilder } from "./SvgPathBuilder";
 
-export class SankeyLink {
+export class SankeyLink
+{
     constructor(
         private firstNode: SankeyNode,
         private secondNode: SankeyNode,
         private svgPath: SVGPathElement
     ) { }
 
-    public recalculate(): void {
-        if (this.firstNode == null || this.secondNode == null) {
+    public recalculate(): void
+    {
+        if (this.firstNode == null || this.secondNode == null)
+        {
             return;
         }
 
