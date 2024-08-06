@@ -9,13 +9,13 @@ async function main() {
         throw new Error("Couldn't find viewport");
     }
 
-    let draggedObject: SankeyNode | null = null;
+    let draggedObject: SankeyNode | undefined;
     let isHoldingAlt = false;
 
     let lastX = 0;
     let lastY = 0;
 
-    let lastNode: SankeyNode | null = null;
+    let lastNode: SankeyNode | undefined;
 
     let panContext = panzoom(viewport, {
         zoomDoubleClickSpeed: 1, // disables double click zoom
@@ -67,7 +67,7 @@ async function main() {
                 }
             }
 
-            if (lastNode != null) {
+            if (lastNode != undefined) {
                 let linkSvg = document.createElementNS("http://www.w3.org/2000/svg", 'path');
                 linkSvg.setAttribute("class", "link");
 
@@ -87,15 +87,15 @@ async function main() {
         }
     });
 
-    window.onmouseup = (event) => {
-        draggedObject = null;
+    window.onmouseup = () => {
+        draggedObject = undefined;
 
         lastX = 0;
         lastY = 0;
     }
 
     window.onmousemove = (event) => {
-        if (draggedObject != null) {
+        if (draggedObject != undefined) {
             let oldX = +draggedObject.svgRect.getAttribute("x")!;
             let oldY = +draggedObject.svgRect.getAttribute("y")!;
 

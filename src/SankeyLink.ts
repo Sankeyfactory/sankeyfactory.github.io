@@ -65,6 +65,8 @@ export class SankeyLink {
             .build();
 
         this.svgPath.setAttribute("d", svgPath);
+
+        // For cutting-out stroke on the outside of the shape.
         this.svgPath.style.clipPath = `view-box path("${svgPath}")`;
     }
 }
