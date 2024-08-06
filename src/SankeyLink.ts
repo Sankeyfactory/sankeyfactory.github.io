@@ -18,8 +18,8 @@ export class SankeyLink
             return;
         }
 
-        let first = Rectangle.fromSvgRect(this.firstNode.svgRect);
-        let second = Rectangle.fromSvgRect(this.secondNode.svgRect);
+        let first = new Rectangle(0, 0, 0, 0);
+        let second = new Rectangle(0, 0, 0, 0);
 
         let curve1 = new Curve();
 

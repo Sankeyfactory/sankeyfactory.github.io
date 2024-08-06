@@ -3,7 +3,7 @@ import { SankeyLink } from "./SankeyLink";
 export class SankeyNode
 {
     constructor(
-        public svgRect: SVGRectElement,
+        public nodeGroup: SVGGElement,
         public leftLink?: SankeyLink,
         public rightLink?: SankeyLink,
     ) { }

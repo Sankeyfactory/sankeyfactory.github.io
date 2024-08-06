@@ -36,8 +36,32 @@ body {
     height: 100%;
 }
 
-rect.machine {
+g.node rect.machine {
     fill: #5a81ba;
+}
+
+g.node rect.input-slot:nth-child(odd) {
+    fill: #456799;
+}
+
+g.node rect.input-slot:nth-child(even) {
+    fill: #8BAADA;
+}
+
+g.node rect.output-slot:nth-child(odd) {
+    fill: #8BAADA;
+}
+
+g.node rect.output-slot:nth-child(even) {
+    fill: #456799;
+}
+
+g.node rect.input-slot.missing {
+    fill: #FF6363;
+}
+
+g.node rect.output-slot.exceeding {
+    fill: #9CEF9A;
 }
 
 div.help {
