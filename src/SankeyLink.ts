@@ -1,48 +1,70 @@
-import { Point } from "./Point";
+import { Curve } from "./Curve";
 import { Rectangle } from "./Rectangle";
 import { SankeyNode } from "./SankeyNode";
+import { SvgPathBuilder } from "./SvgPathBuilder";
 
 export class SankeyLink {
     constructor(
-        public firstNode: SankeyNode,
-        public secondNode: SankeyNode,
-        public svgPath: SVGPathElement
+        private firstNode: SankeyNode,
+        private secondNode: SankeyNode,
+        private svgPath: SVGPathElement
     ) { }
 
-    recalculate() {
+    public recalculate(): void {
         if (this.firstNode == null || this.secondNode == null) {
             return;
         }
 
-        let first = new Rectangle(
-            +this.firstNode.svgRect.getAttribute("x")!,
-            +this.firstNode.svgRect.getAttribute("y")!,
-            +this.firstNode.svgRect.getAttribute("width")!,
-            +this.firstNode.svgRect.getAttribute("height")!,
-        );
+        let first = Rectangle.fromSvgRect(this.firstNode.svgRect);
+        let second = Rectangle.fromSvgRect(this.secondNode.svgRect);
 
-        let second = new Rectangle(
-            +this.secondNode.svgRect.getAttribute("x")!,
-            +this.secondNode.svgRect.getAttribute("y")!,
-            +this.secondNode.svgRect.getAttribute("width")!,
-            +this.secondNode.svgRect.getAttribute("height")!,
-        );
+        let curve1 = new Curve();
 
-        let c1p1 = new Point(first.x + first.width, first.y); // curve 1, point 1
-        let c1p4 = new Point(second.x, second.y); // curve 1, point 4
-        let c1p2 = new Point((c1p1.x + c1p4.x) / 2, first.y); // curve 1, point 2
-        let c1p3 = new Point((c1p1.x + c1p4.x) / 2, second.y); // curve 1, point 3
+        curve1.startPoint = {
+            x: first.x + first.width,
+            y: first.y
+        };
+        curve1.endPoint = {
+            x: second.x,
+            y: second.y
+        };
+        curve1.startDeviationPoint = {
+            x: (curve1.startPoint.x + curve1.endPoint.x) / 2,
+            y: first.y
+        };
+        curve1.endDeviationPoint = {
+            x: (curve1.startPoint.x + curve1.endPoint.x) / 2,
+            y: second.y
+        };
 
-        let curve1 = `M ${c1p1.x} ${c1p1.y} C ${c1p2.x} ${c1p2.y} ${c1p3.x} ${c1p3.y} ${c1p4.x} ${c1p4.y}`;
+        let curve2 = new Curve();
 
-        let c2p1 = new Point(c1p4.x, second.y); // curve 2, point 1
-        let c2p4 = new Point(first.x + first.width, first.y + first.height); // curve 2, point 4
-        let c2p2 = new Point((c2p1.x + c2p4.x) / 2, second.y + second.height); // curve 2, point 2
-        let c2p3 = new Point((c2p1.x + c2p4.x) / 2, first.y + first.height); // curve 2, point 3
+        curve2.startPoint = {
+            x: curve1.endPoint.x,
+            y: second.y
+        };
+        curve2.endPoint = {
+            x: first.x + first.width,
+            y: first.y + first.height
+        };
+        curve2.startDeviationPoint = {
+            x: (curve2.startPoint.x + curve2.endPoint.x) / 2,
+            y: second.y + second.height
+        };
+        curve2.endDeviationPoint = {
+            x: (curve2.startPoint.x + curve2.endPoint.x) / 2,
+            y: first.y + first.height
+        };
 
-        let curve2 = `C ${c2p2.x} ${c2p2.y} ${c2p3.x} ${c2p3.y} ${c2p4.x} ${c2p4.y}`;
+        let svgPath = new SvgPathBuilder()
+            .startAt(curve1.startPoint)
+            .curve(curve1)
+            .verticalLineTo(curve1.endPoint.y + second.height)
+            .curve(curve2)
+            .verticalLineTo(curve1.startPoint.y)
+            .build();
 
-        this.svgPath.setAttribute("d", `${curve1} V ${second.y + second.height} ${curve2} V ${first.y}`);
-        this.svgPath.style.clipPath = `view-box path("${curve1} V ${second.y + second.height} ${curve2} V ${first.y}")`;
+        this.svgPath.setAttribute("d", svgPath);
+        this.svgPath.style.clipPath = `view-box path("${svgPath}")`;
     }
 }
