@@ -56,12 +56,20 @@ g.node rect.output-slot:nth-child(even) {
     fill: #456799;
 }
 
-g.node rect.input-slot.missing {
+g.node g.input-slots:nth-child(odd) rect.input-slot.missing {
     fill: #FF6363;
 }
 
-g.node rect.output-slot.exceeding {
+g.node g.input-slots:nth-child(even) rect.input-slot.missing {
+    fill: #DC4B4B;
+}
+
+g.node g.output-slots:nth-child(odd) rect.output-slot.exceeding {
     fill: #9CEF9A;
+}
+
+g.node g.output-slots:nth-child(even) rect.output-slot.exceeding {
+    fill: #5DC982;
 }
 
 div.help {

@@ -55,7 +55,7 @@ async function main()
     {
         if (event.code === "KeyN")
         {
-            const node = new SankeyNode(100, new Point(50, 50), nodesGroup);
+            const node = new SankeyNode(nodesGroup, new Point(50, 50), [50, 50], [100]);
 
             node.nodeSvg.onmousedown = (event) =>
             {

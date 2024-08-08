@@ -3,19 +3,32 @@ import { SankeySlot } from "./Slots/SankeySlot";
 import { SlotsGroup } from "./SlotsGroup";
 import { SvgFactory } from "../SVG/SvgFactory";
 
+function sumOfNumbers(array: number[])
+{
+    let result = 0;
+
+    array.forEach(resourcesAmount =>
+    {
+        result += resourcesAmount;
+    });
+
+    return result;
+}
+
 export class SankeyNode
 {
     public nodeSvg: SVGElement;
     public nodeSvgGroup: SVGGElement;
-    public resourcesAmount: number;
 
     public static readonly nodeHeight = 240;
     public static readonly nodeWidth = 60;
 
-    constructor(resourcesAmount: number, position: Point, parentGroup: SVGGElement)
+    constructor(
+        parentGroup: SVGGElement,
+        position: Point,
+        inputResourcesAmount: number[],
+        outputResourcesAmount: number[],)
     {
-        this.resourcesAmount = resourcesAmount;
-
         this.nodeSvgGroup = SvgFactory.createSvgGroup(position, "node");
 
         this.nodeSvg = SvgFactory.createSvgRect({
@@ -25,13 +38,46 @@ export class SankeyNode
             y: 0
         }, "machine");
 
-        this.inputSlots = new SlotsGroup(this, "input", resourcesAmount);
-        this.outputSlots = new SlotsGroup(this, "output", resourcesAmount);
+        let totalInputResourcesAmount = sumOfNumbers(inputResourcesAmount);
+        let totalOutputResourcesAmount = sumOfNumbers(outputResourcesAmount);
+
+        let nextInputGroupY = 0;
+
+        inputResourcesAmount.forEach(resourcesAmount =>
+        {
+            let newGroup = new SlotsGroup(
+                this,
+                "input",
+                resourcesAmount,
+                totalInputResourcesAmount,
+                nextInputGroupY
+            );
+
+            this.inputSlotGroups.push(newGroup);
+
+            nextInputGroupY += newGroup.maxHeight;
+        });
+
+        let nextOutputGroupY = 0;
+
+        outputResourcesAmount.forEach(resourcesAmount =>
+        {
+            let newGroup = new SlotsGroup(
+                this,
+                "output",
+                resourcesAmount,
+                totalOutputResourcesAmount,
+                nextOutputGroupY);
+
+            this.outputSlotGroups.push(newGroup);
+
+            nextOutputGroupY += newGroup.maxHeight;
+        });
 
         this.nodeSvgGroup.appendChild(this.nodeSvg);
         parentGroup.appendChild(this.nodeSvgGroup);
     }
 
-    private inputSlots: SlotsGroup;
-    private outputSlots: SlotsGroup;
+    private inputSlotGroups: SlotsGroup[] = [];
+    private outputSlotGroups: SlotsGroup[] = [];
 }

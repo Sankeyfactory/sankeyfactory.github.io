@@ -15,19 +15,24 @@ export class SlotsGroup
     public resourcesAmount: number;
     public freeResourcesAmount: number;
 
-    constructor(node: SankeyNode, type: SlotsGroupType, resourcesAmount: number)
+    constructor(
+        node: SankeyNode,
+        type: SlotsGroupType,
+        resourcesAmount: number,
+        nodeResourcesAmount: number,
+        startY: number)
     {
         this.type = type;
         this.resourcesAmount = resourcesAmount;
         this.freeResourcesAmount = resourcesAmount;
 
         let nodeHeight = +(node.nodeSvg.getAttribute("height") ?? "0");
-        let nodeTotalResources = node.resourcesAmount;
+        let nodeTotalResources = nodeResourcesAmount;
         this.maxHeight = nodeHeight * (resourcesAmount / nodeTotalResources);
 
         let position = type === "input"
-            ? new Point(0, 0)
-            : new Point(SankeyNode.nodeWidth + SankeySlot.slotWidth, 0);
+            ? new Point(0, startY)
+            : new Point(SankeyNode.nodeWidth + SankeySlot.slotWidth, startY);
 
         let groupSvg = SvgFactory.createSvgGroup(position, `${type}-slots`);
 
