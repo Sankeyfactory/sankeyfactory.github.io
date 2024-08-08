@@ -1,5 +1,5 @@
 import { SankeySlot } from "./SankeySlot";
-import { SlotsGroup } from "./SlotsGroup";
+import { SlotsGroup } from "../SlotsGroup";
 
 export class OutputSankeySlot extends SankeySlot
 {

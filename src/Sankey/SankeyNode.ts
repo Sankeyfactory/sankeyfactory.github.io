@@ -1,7 +1,7 @@
-import { Point } from "./Point";
-import { SankeySlot } from "./SankeySlot";
+import { Point } from "../Point";
+import { SankeySlot } from "./Slots/SankeySlot";
 import { SlotsGroup } from "./SlotsGroup";
-import { SvgFactory } from "./SvgFactory";
+import { SvgFactory } from "../SVG/SvgFactory";
 
 export class SankeyNode
 {

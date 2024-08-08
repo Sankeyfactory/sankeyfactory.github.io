@@ -1,5 +1,5 @@
-import { Curve } from "./Curve";
-import { Point } from "./Point";
+import { Curve } from "../Curve";
+import { Point } from "../Point";
 
 export class SvgPathBuilder
 {

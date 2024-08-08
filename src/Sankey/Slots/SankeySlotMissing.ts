@@ -1,5 +1,5 @@
 import { InputSankeySlot } from "./InputSankeySlot";
-import { SlotsGroup } from "./SlotsGroup";
+import { SlotsGroup } from "../SlotsGroup";
 
 export class SankeySlotMissing extends InputSankeySlot
 {

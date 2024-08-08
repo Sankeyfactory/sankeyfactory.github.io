@@ -1,6 +1,6 @@
 import panzoom from "panzoom";
-import { SankeyNode } from "./SankeyNode";
-import { SankeyLink } from "./SankeyLink";
+import { SankeyNode } from "./Sankey/SankeyNode";
+import { SankeyLink } from "./Sankey/SankeyLink";
 import { Point } from "./Point";
 
 async function main()

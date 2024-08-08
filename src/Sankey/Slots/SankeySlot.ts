@@ -1,5 +1,5 @@
-import { Rectangle } from "./Rectangle";
-import { SvgFactory } from "./SvgFactory";
+import { Rectangle } from "../../Rectangle";
+import { SvgFactory } from "../../SVG/SvgFactory";
 
 export class SankeySlot
 {

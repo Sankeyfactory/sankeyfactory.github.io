@@ -1,9 +1,9 @@
-import { Point } from "./Point";
+import { Point } from "../Point";
 import { SankeyNode } from "./SankeyNode";
-import { SankeySlot } from "./SankeySlot";
-import { SankeySlotExceeding } from "./SankeySlotExceeding";
-import { SankeySlotMissing } from "./SankeySlotMissing";
-import { SvgFactory } from "./SvgFactory";
+import { SankeySlot } from "./Slots/SankeySlot";
+import { SankeySlotExceeding } from "./Slots/SankeySlotExceeding";
+import { SankeySlotMissing } from "./Slots/SankeySlotMissing";
+import { SvgFactory } from "../SVG/SvgFactory";
 
 type SlotsGroupType = "input" | "output";
 

@@ -1,7 +1,7 @@
-import { Curve } from "./Curve";
-import { Rectangle } from "./Rectangle";
+import { Curve } from "../Curve";
+import { Rectangle } from "../Rectangle";
 import { SankeyNode } from "./SankeyNode";
-import { SvgPathBuilder } from "./SvgPathBuilder";
+import { SvgPathBuilder } from "../SVG/SvgPathBuilder";
 
 export class SankeyLink
 {
