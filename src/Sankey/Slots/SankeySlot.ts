@@ -4,32 +4,40 @@ import { SlotsGroup } from "../SlotsGroup";
 
 export class SankeySlot
 {
-    public resourcesAmount: number = 0;
+    public resourcesAmount: number;
     public slotSvg: SVGElement;
 
     public static readonly slotWidth = 6;
 
-    constructor(slotsGroup: SlotsGroup,
+    constructor(
+        slotsGroup: SlotsGroup,
         slotsGroupSvg: SVGGElement,
-        resourcesAmount: number, ...classes: string[])
+        resourcesAmount: number,
+        ...classes: string[])
     {
-        let maxHeight = slotsGroup.maxHeight;
-        let freeResourcesAmount = slotsGroup.freeResourcesAmount;
-        let usedResourcesAmount = slotsGroup.resourcesAmount - freeResourcesAmount;
-
-        if (freeResourcesAmount < resourcesAmount)
-        {
-            resourcesAmount = freeResourcesAmount;
-        }
+        this.resourcesAmount = resourcesAmount;
 
         let dimensions: Rectangle = {
             width: SankeySlot.slotWidth,
-            height: maxHeight * (resourcesAmount / slotsGroup.resourcesAmount),
+            height: slotsGroup.maxHeight * (resourcesAmount / slotsGroup.resourcesAmount),
             x: 0,
-            y: maxHeight * (usedResourcesAmount / slotsGroup.resourcesAmount)
+            y: 0
         };
 
         this.slotSvg = SvgFactory.createSvgRect(dimensions, ...classes);
         slotsGroupSvg.appendChild(this.slotSvg);
+    }
+
+    public setYPosition(yPosition: number)
+    {
+        this.slotSvg.setAttribute("y", `${yPosition}`);
+    }
+
+    public setResourcesAmount(slotsGroup: SlotsGroup, resourcesAmount: number)
+    {
+        this.slotSvg.setAttribute(
+            "height",
+            `${slotsGroup.maxHeight * (resourcesAmount / slotsGroup.resourcesAmount)}`
+        );
     }
 }

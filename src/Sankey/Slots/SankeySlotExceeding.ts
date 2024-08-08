@@ -11,5 +11,11 @@ export class SankeySlotExceeding extends OutputSankeySlot
         super(slotsGroup, slotsGroupSvg, resourcesAmount);
 
         this.slotSvg.classList.add("exceeding");
+
+        this.slotSvg.onclick = (event) =>
+        {
+            // Just for testing.
+            slotsGroup.addSlot(20);
+        };
     }
 }
