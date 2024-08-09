@@ -1,6 +1,7 @@
 {
   "devDependencies": {
-    "esbuild": "^0.23.0"
+    "esbuild": "^0.23.0",
+    "gh-pages": "^6.1.1"
   },
   "dependencies": {
     "panzoom": "^9.4.3",
