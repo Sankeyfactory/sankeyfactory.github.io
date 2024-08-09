@@ -23,6 +23,7 @@ body {
 
 #container {
     flex-grow: 1;
+    position: relative;
 }
 
 #container.move {
@@ -98,4 +99,15 @@ path.link {
     stroke-width: calc(1px * 2);
 
     opacity: 0.5;
+}
+
+div.zoom-controls {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    padding: 8px;
+}
+
+div.zoom-controls p#ratio-display {
+    margin: 0;
 }

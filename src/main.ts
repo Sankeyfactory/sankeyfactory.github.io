@@ -8,6 +8,7 @@ async function main()
     let viewport: SVGElement | null = document.querySelector("#viewport");
     let nodesGroup = document.querySelector("g.nodes") as SVGGElement;
     let linksGroup = document.querySelector("g.links") as SVGGElement;
+    let zoomRatioDisplay = document.querySelector("p#ratio-display") as HTMLParagraphElement;
 
     if (viewport == null || nodesGroup == null || linksGroup == null)
     {
@@ -22,6 +23,12 @@ async function main()
         {
             return !isHoldingAlt;
         }
+    });
+
+    panContext.on('zoom', () =>
+    {
+        let zoomScale = panContext.getTransform()?.scale ?? 1.0;
+        zoomRatioDisplay.textContent = `Zoom: ${zoomScale.toPrecision(2)}x`;
     });
 
     MouseHandler.getInstance().setPanContext(panContext);
