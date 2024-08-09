@@ -10,14 +10,26 @@ export abstract class SvgFactory
         return result;
     }
 
-    public static createSvgRect(dimensions: Rectangle, ...classes: string[]): SVGElement
+    public static createSvgRect(dimensions: Rectangle, ...classes: string[]): SVGRectElement
     {
-        let result = this.createSvgElement("rect", ...classes);
+        let result = this.createSvgElement("rect", ...classes) as SVGRectElement;
 
         result.setAttribute("width", `${dimensions.width}`);
         result.setAttribute("height", `${dimensions.height}`);
         result.setAttribute("x", `${dimensions.x}`);
         result.setAttribute("y", `${dimensions.y}`);
+
+        return result;
+    }
+
+    public static createSvgLine(startPos: Point, endPos: Point, ...classes: string[]): SVGLineElement
+    {
+        let result = this.createSvgElement("line", ...classes) as SVGLineElement;
+
+        result.setAttribute("x1", `${startPos.x}`);
+        result.setAttribute("y1", `${startPos.y}`);
+        result.setAttribute("x2", `${endPos.x}`);
+        result.setAttribute("y2", `${endPos.y}`);
 
         return result;
     }

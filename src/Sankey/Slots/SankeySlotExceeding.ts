@@ -1,5 +1,6 @@
 import { OutputSankeySlot } from "./OutputSankeySlot";
 import { SlotsGroup } from "../SlotsGroup";
+import { MouseHandler } from "../../MouseHandler";
 
 export class SankeySlotExceeding extends OutputSankeySlot
 {
@@ -12,10 +13,12 @@ export class SankeySlotExceeding extends OutputSankeySlot
 
         this.slotSvg.classList.add("exceeding");
 
-        this.slotSvg.onclick = (event) =>
+        this.slotSvg.onmousedown = (event) =>
         {
-            // Just for testing.
-            slotsGroup.addSlot(20);
+            if (!event.altKey && event.buttons === 1)
+            {
+                MouseHandler.getInstance().outputSlotClicked(event, this);
+            }
         };
     }
 }

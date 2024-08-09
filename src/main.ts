@@ -1,7 +1,7 @@
 import panzoom from "panzoom";
 import { SankeyNode } from "./Sankey/SankeyNode";
-import { SankeyLink } from "./Sankey/SankeyLink";
 import { Point } from "./Point";
+import { MouseHandler } from "./MouseHandler";
 
 async function main()
 {
@@ -14,12 +14,7 @@ async function main()
         throw new Error("Svg container is broken");
     }
 
-    let draggedObject: SankeyNode | undefined;
     let isHoldingAlt = false;
-
-    let lastMousePos = new Point(0, 0);
-
-    let lastNode: SankeyNode | undefined;
 
     let panContext = panzoom(viewport, {
         zoomDoubleClickSpeed: 1, // disables double click zoom
@@ -29,6 +24,8 @@ async function main()
         }
     });
 
+    MouseHandler.getInstance().setPanContext(panContext);
+
     window.addEventListener("keydown", (event) =>
     {
         if (event.repeat) { return; }
@@ -37,6 +34,11 @@ async function main()
         {
             isHoldingAlt = true;
             document.querySelector("#container")!.classList.add("move");
+        }
+
+        if (event.key == "Escape")
+        {
+            MouseHandler.getInstance().cancelConnectingSlots();
         }
     });
 
@@ -61,10 +63,7 @@ async function main()
             {
                 if (!isHoldingAlt && event.buttons === 1)
                 {
-                    draggedObject = node;
-
-                    lastMousePos.x = event.screenX;
-                    lastMousePos.y = event.screenY;
+                    MouseHandler.getInstance().startDraggingNode(event, node);
                 }
             };
         }
@@ -72,50 +71,12 @@ async function main()
 
     window.onmouseup = () =>
     {
-        draggedObject = undefined;
-
-        lastMousePos.x = 0;
-        lastMousePos.y = 0;
+        MouseHandler.getInstance().handleMouseUp();
     };
 
     window.onmousemove = (event) =>
     {
-        if (draggedObject != undefined)
-        {
-            // TODO: Do something with this nightmare.
-            let previousPos: Point = {
-                x: parseFloat(draggedObject.nodeSvgGroup.getAttribute("transform")!
-                    .split("translate(")[1].split(",")[0]),
-                y: parseFloat(draggedObject.nodeSvgGroup.getAttribute("transform")!
-                    .split("translate(")[1].split(",")[1])
-            };
-
-            let zoomScale = panContext.getTransform().scale;
-
-            let mousePosDelta: Point = {
-                x: event.screenX - lastMousePos.x,
-                y: event.screenY - lastMousePos.y
-            };
-
-            // TODO: Refactor.
-            let translate = `translate(${previousPos.x + mousePosDelta.x / zoomScale}, `
-                + `${previousPos.y + mousePosDelta.y / zoomScale})`;
-
-            draggedObject.nodeSvgGroup.setAttribute("transform", translate);
-
-            // if (draggedObject.leftLink != undefined)
-            // {
-            //     draggedObject.leftLink.recalculate();
-            // }
-
-            // if (draggedObject.rightLink != undefined)
-            // {
-            //     draggedObject.rightLink.recalculate();
-            // }
-
-            lastMousePos.x = event.screenX;
-            lastMousePos.y = event.screenY;
-        }
+        MouseHandler.getInstance().handleMouseMove(event);
     };
 }
 

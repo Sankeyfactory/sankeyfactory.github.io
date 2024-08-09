@@ -64,6 +64,19 @@ g.node rect.output-slot.exceeding {
     fill: #9CEF9A;
 }
 
+g.node rect.input-slot.missing:hover {
+    fill: #cd4e4e;
+}
+
+g.node rect.output-slot.exceeding:hover {
+    fill: #74ce73;
+}
+
+line.link-hint {
+    stroke: white;
+    stroke-width: 2px;
+}
+
 div.help {
     display: grid;
     grid-template-columns: auto auto auto auto auto auto auto;

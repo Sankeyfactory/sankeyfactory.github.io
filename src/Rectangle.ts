@@ -7,7 +7,7 @@ export class Rectangle
         public height: number,
     ) { }
 
-    public static fromSvgRect(element: SVGRectElement): Rectangle
+    public static fromSvgRect(element: SVGElement): Rectangle
     {
         return new Rectangle(
             +element.getAttribute("x")!,

@@ -7,7 +7,7 @@ export class SankeySlot
     public resourcesAmount: number;
     public slotSvg: SVGElement;
 
-    public static readonly slotWidth = 6;
+    public static readonly slotWidth = 10;
 
     constructor(
         slotsGroup: SlotsGroup,

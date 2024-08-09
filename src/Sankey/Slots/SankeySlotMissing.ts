@@ -1,5 +1,6 @@
 import { InputSankeySlot } from "./InputSankeySlot";
 import { SlotsGroup } from "../SlotsGroup";
+import { MouseHandler } from "../../MouseHandler";
 
 export class SankeySlotMissing extends InputSankeySlot
 {
@@ -12,10 +13,12 @@ export class SankeySlotMissing extends InputSankeySlot
 
         this.slotSvg.classList.add("missing");
 
-        this.slotSvg.onclick = (event) =>
+        this.slotSvg.onmousedown = (event) =>
         {
-            // Just for testing.
-            slotsGroup.addSlot(30);
+            if (!event.altKey && event.buttons === 1)
+            {
+                MouseHandler.getInstance().inputSlotClicked(event, this);
+            }
         };
     }
 }
