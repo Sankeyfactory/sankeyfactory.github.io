@@ -1,0 +1,113 @@
+* {
+    color: white;
+
+    font-family: Roboto, sans-serif;
+}
+
+html {
+    height: 100%;
+}
+
+body {
+    height: 100%;
+
+    margin: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+
+    background-color: #272727;
+}
+
+#container {
+    flex-grow: 1;
+    position: relative;
+}
+
+#container.move {
+    cursor: move;
+}
+
+#svg-container {
+    display: inline;
+
+    width: 100%;
+    height: 100%;
+}
+
+g.node rect.machine {
+    fill: #5a81ba;
+}
+
+g.node rect.input-slot:nth-child(odd) {
+    fill: #456799;
+}
+
+g.node rect.input-slot:nth-child(even) {
+    fill: #8BAADA;
+}
+
+g.node rect.output-slot:nth-child(odd) {
+    fill: #8BAADA;
+}
+
+g.node rect.output-slot:nth-child(even) {
+    fill: #456799;
+}
+
+g.node rect.input-slot.missing {
+    fill: #FF6363;
+}
+
+g.node rect.output-slot.exceeding {
+    fill: #9CEF9A;
+}
+
+g.node rect.input-slot.missing:hover {
+    fill: #cd4e4e;
+}
+
+g.node rect.output-slot.exceeding:hover {
+    fill: #74ce73;
+}
+
+line.link-hint {
+    stroke: white;
+    stroke-width: 2px;
+}
+
+div.help {
+    display: grid;
+    grid-template-columns: auto auto auto auto auto auto auto;
+    gap: 1rem;
+}
+
+div.help p {
+    display: inline-block;
+
+    margin: 0;
+    padding: 8px;
+}
+
+path.link {
+    fill: #5B81BB;
+
+    stroke: #8BAADA;
+    /* Twice the final result because outside part is clipped */
+    stroke-width: calc(1px * 2);
+
+    opacity: 0.5;
+}
+
+div.zoom-controls {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    padding: 8px;
+}
+
+div.zoom-controls p#ratio-display {
+    margin: 0;
+}
