@@ -80,15 +80,15 @@ line.link-hint {
 
 div.help {
     display: grid;
-    grid-template-columns: auto auto auto auto auto auto auto;
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(min(250px, 49%), 1fr));
+    gap: 8px;
+    padding: 8px;
 }
 
 div.help p {
     display: inline-block;
 
     margin: 0;
-    padding: 8px;
 }
 
 path.link {
