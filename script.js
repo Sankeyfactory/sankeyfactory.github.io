@@ -1793,6 +1793,29 @@
       let zoomScale = panContext.getTransform()?.scale ?? 1;
       zoomRatioDisplay.textContent = `Zoom: ${zoomScale.toPrecision(2)}x`;
     });
+    function createNode() {
+      const node = new SankeyNode(nodesGroup, new Point(50, 50), [50, 50], [100]);
+      node.nodeSvg.onmousedown = (event) => {
+        if (!isHoldingAlt && event.buttons === 1) {
+          MouseHandler.getInstance().startDraggingNode(event, node);
+        }
+      };
+    }
+    ;
+    document.querySelector("div.button#create-node").onclick = createNode;
+    let isLocked = false;
+    let lockButton = document.querySelector("div.button#lock-viewport");
+    lockButton.onclick = () => {
+      if (isLocked) {
+        panContext.resume();
+        isLocked = false;
+        lockButton.innerText = "Lock";
+      } else {
+        panContext.pause();
+        isLocked = true;
+        lockButton.innerText = "Unlock";
+      }
+    };
     MouseHandler.getInstance().setPanContext(panContext);
     window.addEventListener("keydown", (event) => {
       if (event.repeat) {
@@ -1817,12 +1840,7 @@
     });
     window.addEventListener("keypress", (event) => {
       if (event.code === "KeyN") {
-        const node = new SankeyNode(nodesGroup, new Point(50, 50), [50, 50], [100]);
-        node.nodeSvg.onmousedown = (event2) => {
-          if (!isHoldingAlt && event2.buttons === 1) {
-            MouseHandler.getInstance().startDraggingNode(event2, node);
-          }
-        };
+        createNode();
       }
     });
     window.onmouseup = () => {
