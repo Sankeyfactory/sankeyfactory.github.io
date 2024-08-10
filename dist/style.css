@@ -101,13 +101,39 @@ path.link {
     opacity: 0.5;
 }
 
-div.zoom-controls {
+div#container div.controls {
     position: absolute;
     bottom: 0;
     right: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
     padding: 8px;
+}
+
+div.controls div.row {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    justify-content: end;
 }
 
 div.zoom-controls p#ratio-display {
     margin: 0;
+}
+
+div.controls div.button {
+    width: 56px;
+    height: 56px;
+    background-color: #4D5356;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+div.controls div.button:hover {
+    background-color: #464b4d;
 }

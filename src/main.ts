@@ -31,6 +31,40 @@ async function main()
         zoomRatioDisplay.textContent = `Zoom: ${zoomScale.toPrecision(2)}x`;
     });
 
+    function createNode() 
+    {
+        const node = new SankeyNode(nodesGroup, new Point(50, 50), [50, 50], [100]);
+
+        node.nodeSvg.onmousedown = (event) =>
+        {
+            if (!isHoldingAlt && event.buttons === 1)
+            {
+                MouseHandler.getInstance().startDraggingNode(event, node);
+            }
+        };
+    };
+
+    (document.querySelector("div.button#create-node") as HTMLDivElement).onclick = createNode;
+
+    let isLocked: boolean = false;
+    let lockButton = document.querySelector("div.button#lock-viewport") as HTMLDivElement;
+
+    lockButton.onclick = () =>
+    {
+        if (isLocked)
+        {
+            panContext.resume();
+            isLocked = false;
+            lockButton.innerText = "Lock";
+        }
+        else
+        {
+            panContext.pause();
+            isLocked = true;
+            lockButton.innerText = "Unlock";
+        }
+    };
+
     MouseHandler.getInstance().setPanContext(panContext);
 
     window.addEventListener("keydown", (event) =>
@@ -64,15 +98,7 @@ async function main()
     {
         if (event.code === "KeyN")
         {
-            const node = new SankeyNode(nodesGroup, new Point(50, 50), [50, 50], [100]);
-
-            node.nodeSvg.onmousedown = (event) =>
-            {
-                if (!isHoldingAlt && event.buttons === 1)
-                {
-                    MouseHandler.getInstance().startDraggingNode(event, node);
-                }
-            };
+            createNode();
         }
     });
 
