@@ -4,6 +4,8 @@
         "noEmit": true,
         "target": "ESNext",
         "module": "ESNext",
-        "moduleResolution": "Bundler"
+        "moduleResolution": "Bundler",
+        "resolveJsonModule": true,
+        "esModuleInterop": true,
     }
 }
