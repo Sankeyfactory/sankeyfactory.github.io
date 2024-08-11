@@ -1452,6 +1452,11 @@
       result.setAttribute("y2", `${endPos.y}`);
       return result;
     }
+    static createSvgPath(...classes) {
+      let result = this.createSvgElement("path", ...classes);
+      result.setAttribute("g", "");
+      return result;
+    }
     static createSvgElement(tag, ...classes) {
       let result = document.createElementNS("http://www.w3.org/2000/svg", tag);
       result.classList.add(...classes);
@@ -1463,9 +1468,12 @@
   var SankeySlot = class _SankeySlot {
     resourcesAmount;
     slotSvg;
+    connectedLink;
     static slotWidth = 10;
+    parentGroup;
     constructor(slotsGroup, slotsGroupSvg, resourcesAmount, ...classes) {
       this.resourcesAmount = resourcesAmount;
+      this.parentGroup = slotsGroup;
       let dimensions = {
         width: _SankeySlot.slotWidth,
         height: slotsGroup.maxHeight * (resourcesAmount / slotsGroup.resourcesAmount),
@@ -1501,6 +1509,121 @@
     }
   };
 
+  // src/Curve.ts
+  var Curve = class {
+    startPoint = { x: 0, y: 0 };
+    startDeviationPoint = { x: 0, y: 0 };
+    endDeviationPoint = { x: 0, y: 0 };
+    endPoint = { x: 0, y: 0 };
+  };
+
+  // src/Rectangle.ts
+  var Rectangle = class _Rectangle {
+    constructor(x, y, width, height) {
+      this.x = x;
+      this.y = y;
+      this.width = width;
+      this.height = height;
+    }
+    static fromSvgRect(element) {
+      return new _Rectangle(
+        +element.getAttribute("x"),
+        +element.getAttribute("y"),
+        +element.getAttribute("width"),
+        +element.getAttribute("height")
+      );
+    }
+    static fromSvgBounds(element, panContext) {
+      let zoomScale = panContext.getTransform().scale;
+      let bounds = element.getBoundingClientRect();
+      bounds = {
+        x: (bounds.x - panContext.getTransform().x) / zoomScale,
+        y: (bounds.y - panContext.getTransform().y) / zoomScale,
+        width: bounds.width / zoomScale,
+        height: bounds.height / zoomScale
+      };
+      return bounds;
+    }
+  };
+
+  // src/SVG/SvgPathBuilder.ts
+  var SvgPathBuilder = class {
+    path = "";
+    startAt(point) {
+      return this.pointAt(point);
+    }
+    pointAt(point) {
+      this.path += `M ${point.x} ${point.y} `;
+      return this;
+    }
+    // Start point will be ignored because that's how SVG works.
+    curve(curve) {
+      this.path += `C ${curve.startDeviationPoint.x} ${curve.startDeviationPoint.y} ${curve.endDeviationPoint.x} ${curve.endDeviationPoint.y} ${curve.endPoint.x} ${curve.endPoint.y} `;
+      return this;
+    }
+    verticalLineTo(y) {
+      this.path += `V ${y} `;
+      return this;
+    }
+    build() {
+      return this.path;
+    }
+  };
+
+  // src/Sankey/SankeyLink.ts
+  var SankeyLink = class {
+    constructor(firstSlot, secondSlot, panContext) {
+      this.firstSlot = firstSlot;
+      this.secondSlot = secondSlot;
+      this.panContext = panContext;
+      this.svgPath = SvgFactory.createSvgPath("link");
+      this.recalculate();
+      document.querySelector("#viewport")?.appendChild(this.svgPath);
+    }
+    svgPath;
+    recalculate() {
+      let first = Rectangle.fromSvgBounds(this.firstSlot.slotSvg, this.panContext);
+      let second = Rectangle.fromSvgBounds(this.secondSlot.slotSvg, this.panContext);
+      let curve1 = new Curve();
+      curve1.startPoint = {
+        x: first.x + first.width,
+        y: first.y
+      };
+      curve1.endPoint = {
+        x: second.x,
+        y: second.y
+      };
+      curve1.startDeviationPoint = {
+        x: (curve1.startPoint.x + curve1.endPoint.x) / 2,
+        y: first.y
+      };
+      curve1.endDeviationPoint = {
+        x: (curve1.startPoint.x + curve1.endPoint.x) / 2,
+        y: second.y
+      };
+      let curve2 = new Curve();
+      curve2.startPoint = {
+        x: curve1.endPoint.x,
+        y: second.y
+      };
+      curve2.endPoint = {
+        x: first.x + first.width,
+        y: first.y + first.height
+      };
+      curve2.startDeviationPoint = {
+        x: (curve2.startPoint.x + curve2.endPoint.x) / 2,
+        y: second.y + second.height
+      };
+      curve2.endDeviationPoint = {
+        x: (curve2.startPoint.x + curve2.endPoint.x) / 2,
+        y: first.y + first.height
+      };
+      let svgPath = new SvgPathBuilder().startAt(curve1.startPoint).curve(curve1).verticalLineTo(curve1.endPoint.y + second.height).curve(curve2).verticalLineTo(curve1.startPoint.y).build();
+      this.svgPath.setAttribute("d", svgPath);
+      this.svgPath.style.clipPath = `view-box path("${svgPath}")`;
+    }
+  };
+
   // src/MouseHandler.ts
   var MouseHandler = class _MouseHandler {
     static getInstance() {
@@ -1528,13 +1651,14 @@
         };
         let zoomScale = this.panContext.getTransform().scale;
         let mousePosDelta = {
-          x: event.screenX - this.lastMousePos.x,
-          y: event.screenY - this.lastMousePos.y
+          x: event.clientX - this.lastMousePos.x,
+          y: event.clientY - this.lastMousePos.y
         };
         let translate = `translate(${previousPos.x + mousePosDelta.x / zoomScale}, ${previousPos.y + mousePosDelta.y / zoomScale})`;
         this.draggedNode.nodeSvgGroup.setAttribute("transform", translate);
-        this.lastMousePos.x = event.screenX;
-        this.lastMousePos.y = event.screenY;
+        this.draggedNode.recalculateLinks();
+        this.lastMousePos.x = event.clientX;
+        this.lastMousePos.y = event.clientY;
       } else if (this.mouseStatus == _MouseHandler.MouseStatus.ConnectingInputSlot || this.mouseStatus == _MouseHandler.MouseStatus.ConnectingOutputSlot) {
         if (this.firstConnectingSlot == void 0) {
           throw Error("First connecting slot wasn't saved.");
@@ -1542,9 +1666,8 @@
         if (this.slotConnectingLine == void 0) {
           throw Error("Slot connecting line wasn't created.");
         }
-        let svg = document.querySelector("#viewport");
         const domPoint = new DOMPointReadOnly(event.clientX, event.clientY);
-        const svgMousePos = domPoint.matrixTransform(svg.getScreenCTM().inverse());
+        const svgMousePos = domPoint.matrixTransform(this.viewport.getScreenCTM().inverse());
         this.slotConnectingLine.setAttribute("x2", `${svgMousePos.x - 2}`);
         this.slotConnectingLine.setAttribute("y2", `${svgMousePos.y - 2}`);
       }
@@ -1563,19 +1686,43 @@
       this.slotConnectingLine = void 0;
       this.mouseStatus = _MouseHandler.MouseStatus.Free;
     }
-    inputSlotClicked(event, firstSlot) {
+    inputSlotClicked(event, targetSlot) {
       if (this.mouseStatus === _MouseHandler.MouseStatus.Free) {
         this.mouseStatus = _MouseHandler.MouseStatus.ConnectingInputSlot;
-        this.startConnectingSlot(event, firstSlot, true);
+        this.startConnectingSlot(event, targetSlot, true);
       } else if (this.mouseStatus === _MouseHandler.MouseStatus.ConnectingOutputSlot) {
+        if (this.panContext == void 0) {
+          throw Error("Pan context must be initialized before using mouse handlers");
+        }
+        if (this.firstConnectingSlot == void 0) {
+          throw Error("First connecting slot wasn't saved.");
+        }
+        let resourcesAmount = Math.min(targetSlot.resourcesAmount, this.firstConnectingSlot.resourcesAmount);
+        let newSlot1 = this.firstConnectingSlot.parentGroup.addSlot(resourcesAmount);
+        let newSlot2 = targetSlot.parentGroup.addSlot(resourcesAmount);
+        let link = new SankeyLink(newSlot1, newSlot2, this.panContext);
+        newSlot1.connectedLink = link;
+        newSlot2.connectedLink = link;
         this.cancelConnectingSlots();
       }
     }
-    outputSlotClicked(event, firstSlot) {
+    outputSlotClicked(event, targetSlot) {
       if (this.mouseStatus === _MouseHandler.MouseStatus.Free) {
         this.mouseStatus = _MouseHandler.MouseStatus.ConnectingOutputSlot;
-        this.startConnectingSlot(event, firstSlot, false);
+        this.startConnectingSlot(event, targetSlot, false);
       } else if (this.mouseStatus === _MouseHandler.MouseStatus.ConnectingInputSlot) {
+        if (this.panContext == void 0) {
+          throw Error("Pan context must be initialized before using mouse handlers");
+        }
+        if (this.firstConnectingSlot == void 0) {
+          throw Error("First connecting slot wasn't saved.");
+        }
+        let resourcesAmount = Math.min(targetSlot.resourcesAmount, this.firstConnectingSlot.resourcesAmount);
+        let newSlot1 = this.firstConnectingSlot.parentGroup.addSlot(resourcesAmount);
+        let newSlot2 = targetSlot.parentGroup.addSlot(resourcesAmount);
+        let link = new SankeyLink(newSlot1, newSlot2, this.panContext);
+        newSlot1.connectedLink = link;
+        newSlot2.connectedLink = link;
         this.cancelConnectingSlots();
       }
     }
@@ -1596,21 +1743,20 @@
         x: slotBounds.x + (isInput ? 0 : slotBounds.width),
         y: slotBounds.y + slotBounds.height / 2
       };
-      let viewport = document.querySelector("#viewport");
       const domPoint = new DOMPointReadOnly(event.clientX, event.clientY);
-      const svgMousePos = domPoint.matrixTransform(viewport.getScreenCTM().inverse());
+      const svgMousePos = domPoint.matrixTransform(this.viewport.getScreenCTM().inverse());
       this.slotConnectingLine = SvgFactory.createSvgLine(startPos, {
         x: svgMousePos.x - 2,
         y: svgMousePos.y - 2
       }, "link-hint");
-      viewport.appendChild(this.slotConnectingLine);
+      this.viewport.appendChild(this.slotConnectingLine);
     }
     startDraggingNode(event, node) {
       if (this.mouseStatus === _MouseHandler.MouseStatus.Free) {
         this.mouseStatus = _MouseHandler.MouseStatus.DraggingNode;
         this.draggedNode = node;
-        this.lastMousePos.x = event.screenX;
-        this.lastMousePos.y = event.screenY;
+        this.lastMousePos.x = event.clientX;
+        this.lastMousePos.y = event.clientY;
       }
     }
     constructor() {
@@ -1622,6 +1768,7 @@
     slotConnectingLine;
     mouseStatus = _MouseHandler.MouseStatus.Free;
     lastMousePos = new Point(0, 0);
+    viewport = document.querySelector("#viewport");
   };
   ((MouseHandler2) => {
     let MouseStatus;
@@ -1684,14 +1831,17 @@
     addSlot(resourcesAmount) {
       resourcesAmount = Math.min(resourcesAmount, this.lastSlot.resourcesAmount);
       this.lastSlot.resourcesAmount -= resourcesAmount;
+      let newSlot;
       if (this.type === "input") {
-        this.slots.push(new InputSankeySlot(this, this.groupSvg, resourcesAmount));
+        newSlot = new InputSankeySlot(this, this.groupSvg, resourcesAmount);
       } else if (this.type === "output") {
-        this.slots.push(new OutputSankeySlot(this, this.groupSvg, resourcesAmount));
+        newSlot = new OutputSankeySlot(this, this.groupSvg, resourcesAmount);
       } else {
         throw Error("Unexpected slots group type");
       }
+      this.slots.push(newSlot);
       this.updateSlotPositions();
+      return newSlot;
     }
     updateSlotPositions() {
       let freeResourcesAmount = this.resourcesAmount;
@@ -1712,6 +1862,13 @@
       } else {
         throw Error("Unexpected slots group type");
       }
+    }
+    recalculateLinks() {
+      this.slots.forEach((slot) => {
+        if (slot.connectedLink != void 0) {
+          slot.connectedLink.recalculate();
+        }
+      });
     }
     groupSvg;
     lastSlot;
@@ -1767,6 +1924,13 @@
       });
       this.nodeSvgGroup.appendChild(this.nodeSvg);
       parentGroup.appendChild(this.nodeSvgGroup);
+    }
+    recalculateLinks() {
+      let recalculateGroup = (group) => {
+        group.recalculateLinks();
+      };
+      this.inputSlotGroups.forEach(recalculateGroup);
+      this.outputSlotGroups.forEach(recalculateGroup);
     }
     inputSlotGroups = [];
     outputSlotGroups = [];
