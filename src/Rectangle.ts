@@ -1,3 +1,5 @@
+import { PanZoom } from "panzoom";
+
 export class Rectangle
 {
     constructor(
@@ -15,5 +17,21 @@ export class Rectangle
             +element.getAttribute("width")!,
             +element.getAttribute("height")!,
         );
+    }
+
+    public static fromSvgBounds(element: SVGElement, panContext: PanZoom): Rectangle
+    {
+        let zoomScale = panContext.getTransform().scale;
+
+        let bounds: Rectangle = element.getBoundingClientRect();
+
+        bounds = {
+            x: (bounds.x - panContext.getTransform().x) / zoomScale,
+            y: (bounds.y - panContext.getTransform().y) / zoomScale,
+            width: bounds.width / zoomScale,
+            height: bounds.height / zoomScale,
+        };
+
+        return bounds;
     }
 }

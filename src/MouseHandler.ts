@@ -4,6 +4,8 @@ import { SankeyNode } from "./Sankey/SankeyNode";
 import { SankeySlot } from "./Sankey/Slots/SankeySlot";
 import { SvgFactory } from "./SVG/SvgFactory";
 import { Rectangle } from "./Rectangle";
+import { SankeyLink } from "./Sankey/SankeyLink";
+import { SlotsGroup } from "./Sankey/SlotsGroup";
 
 export class MouseHandler
 {
@@ -50,8 +52,8 @@ export class MouseHandler
             let zoomScale = this.panContext.getTransform().scale;
 
             let mousePosDelta: Point = {
-                x: event.screenX - this.lastMousePos.x,
-                y: event.screenY - this.lastMousePos.y
+                x: event.clientX - this.lastMousePos.x,
+                y: event.clientY - this.lastMousePos.y
             };
 
             // TODO: Refactor.
@@ -60,8 +62,10 @@ export class MouseHandler
 
             this.draggedNode.nodeSvgGroup.setAttribute("transform", translate);
 
-            this.lastMousePos.x = event.screenX;
-            this.lastMousePos.y = event.screenY;
+            this.draggedNode.recalculateLinks();
+
+            this.lastMousePos.x = event.clientX;
+            this.lastMousePos.y = event.clientY;
         }
         else if (
             this.mouseStatus == MouseHandler.MouseStatus.ConnectingInputSlot
@@ -76,10 +80,8 @@ export class MouseHandler
                 throw Error("Slot connecting line wasn't created.");
             }
 
-            let svg = document.querySelector("#viewport") as SVGGElement;
-
             const domPoint = new DOMPointReadOnly(event.clientX, event.clientY);
-            const svgMousePos = domPoint.matrixTransform(svg.getScreenCTM()!.inverse());
+            const svgMousePos = domPoint.matrixTransform(this.viewport.getScreenCTM()!.inverse());
 
             this.slotConnectingLine.setAttribute("x2", `${svgMousePos.x - 2}`);
             this.slotConnectingLine.setAttribute("y2", `${svgMousePos.y - 2}`);
@@ -107,30 +109,70 @@ export class MouseHandler
         this.mouseStatus = MouseHandler.MouseStatus.Free;
     }
 
-    public inputSlotClicked(event: MouseEvent, firstSlot: SankeySlot)
+    public inputSlotClicked(event: MouseEvent, targetSlot: SankeySlot)
     {
         if (this.mouseStatus === MouseHandler.MouseStatus.Free)
         {
             this.mouseStatus = MouseHandler.MouseStatus.ConnectingInputSlot;
 
-            this.startConnectingSlot(event, firstSlot, true);
+            this.startConnectingSlot(event, targetSlot, true);
         }
         else if (this.mouseStatus === MouseHandler.MouseStatus.ConnectingOutputSlot)
         {
+            if (this.panContext == undefined)
+            {
+                throw Error("Pan context must be initialized before using mouse handlers");
+            }
+            if (this.firstConnectingSlot == undefined)
+            {
+                throw Error("First connecting slot wasn't saved.");
+            }
+
+            let resourcesAmount =
+                Math.min(targetSlot.resourcesAmount, this.firstConnectingSlot.resourcesAmount);
+
+            let newSlot1 = this.firstConnectingSlot.parentGroup.addSlot(resourcesAmount);
+            let newSlot2 = targetSlot.parentGroup.addSlot(resourcesAmount);
+
+            let link = new SankeyLink(newSlot1, newSlot2, this.panContext);
+
+            newSlot1.connectedLink = link;
+            newSlot2.connectedLink = link;
+
             this.cancelConnectingSlots();
         }
     }
 
-    public outputSlotClicked(event: MouseEvent, firstSlot: SankeySlot)
+    public outputSlotClicked(event: MouseEvent, targetSlot: SankeySlot)
     {
         if (this.mouseStatus === MouseHandler.MouseStatus.Free)
         {
             this.mouseStatus = MouseHandler.MouseStatus.ConnectingOutputSlot;
 
-            this.startConnectingSlot(event, firstSlot, false);
+            this.startConnectingSlot(event, targetSlot, false);
         }
         else if (this.mouseStatus === MouseHandler.MouseStatus.ConnectingInputSlot)
         {
+            if (this.panContext == undefined)
+            {
+                throw Error("Pan context must be initialized before using mouse handlers");
+            }
+            if (this.firstConnectingSlot == undefined)
+            {
+                throw Error("First connecting slot wasn't saved.");
+            }
+
+            let resourcesAmount =
+                Math.min(targetSlot.resourcesAmount, this.firstConnectingSlot.resourcesAmount);
+
+            let newSlot1 = this.firstConnectingSlot.parentGroup.addSlot(resourcesAmount);
+            let newSlot2 = targetSlot.parentGroup.addSlot(resourcesAmount);
+
+            let link = new SankeyLink(newSlot1, newSlot2, this.panContext);
+
+            newSlot1.connectedLink = link;
+            newSlot2.connectedLink = link;
+
             this.cancelConnectingSlots();
         }
     }
@@ -159,10 +201,8 @@ export class MouseHandler
             y: slotBounds.y + (slotBounds.height / 2)
         };
 
-        let viewport = document.querySelector("#viewport") as SVGGElement;
-
         const domPoint = new DOMPointReadOnly(event.clientX, event.clientY);
-        const svgMousePos = domPoint.matrixTransform(viewport.getScreenCTM()!.inverse());
+        const svgMousePos = domPoint.matrixTransform(this.viewport.getScreenCTM()!.inverse());
 
         this.slotConnectingLine =
             SvgFactory.createSvgLine(startPos, {
@@ -170,7 +210,7 @@ export class MouseHandler
                 y: svgMousePos.y - 2
             }, "link-hint");
 
-        viewport.appendChild(this.slotConnectingLine);
+        this.viewport.appendChild(this.slotConnectingLine);
     }
 
     public startDraggingNode(event: MouseEvent, node: SankeyNode)
@@ -181,8 +221,8 @@ export class MouseHandler
 
             this.draggedNode = node;
 
-            this.lastMousePos.x = event.screenX;
-            this.lastMousePos.y = event.screenY;
+            this.lastMousePos.x = event.clientX;
+            this.lastMousePos.y = event.clientY;
         }
     }
 
@@ -199,6 +239,8 @@ export class MouseHandler
 
     private mouseStatus: MouseHandler.MouseStatus = MouseHandler.MouseStatus.Free;
     private lastMousePos = new Point(0, 0);
+
+    private readonly viewport = document.querySelector("#viewport") as SVGGElement;
 }
 
 export namespace MouseHandler

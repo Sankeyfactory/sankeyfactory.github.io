@@ -1,25 +1,30 @@
+import { PanZoom } from "panzoom";
 import { Curve } from "../Curve";
 import { Rectangle } from "../Rectangle";
-import { SankeyNode } from "./SankeyNode";
+import { SvgFactory } from "../SVG/SvgFactory";
 import { SvgPathBuilder } from "../SVG/SvgPathBuilder";
+import { SankeySlot } from "./Slots/SankeySlot";
 
 export class SankeyLink
 {
+    private svgPath: SVGPathElement;
+
     constructor(
-        private firstNode: SankeyNode,
-        private secondNode: SankeyNode,
-        private svgPath: SVGPathElement
-    ) { }
+        private firstSlot: SankeySlot,
+        private secondSlot: SankeySlot,
+        private panContext: PanZoom
+    )
+    {
+        this.svgPath = SvgFactory.createSvgPath("link");
+        this.recalculate();
+
+        document.querySelector("#viewport")?.appendChild(this.svgPath);
+    }
 
     public recalculate(): void
     {
-        if (this.firstNode == null || this.secondNode == null)
-        {
-            return;
-        }
-
-        let first = new Rectangle(0, 0, 0, 0);
-        let second = new Rectangle(0, 0, 0, 0);
+        let first = Rectangle.fromSvgBounds(this.firstSlot.slotSvg, this.panContext);
+        let second = Rectangle.fromSvgBounds(this.secondSlot.slotSvg, this.panContext);
 
         let curve1 = new Curve();
 

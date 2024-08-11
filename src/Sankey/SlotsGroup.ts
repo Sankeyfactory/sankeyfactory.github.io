@@ -40,26 +40,31 @@ export class SlotsGroup
         node.nodeSvgGroup.appendChild(this.groupSvg);
     }
 
-    public addSlot(resourcesAmount: number)
+    public addSlot(resourcesAmount: number): SankeySlot
     {
         resourcesAmount = Math.min(resourcesAmount, this.lastSlot.resourcesAmount);
 
         this.lastSlot.resourcesAmount -= resourcesAmount;
 
+        let newSlot: SankeySlot;
+
         if (this.type === "input")
         {
-            this.slots.push(new InputSankeySlot(this, this.groupSvg, resourcesAmount));
+            newSlot = new InputSankeySlot(this, this.groupSvg, resourcesAmount);
         }
         else if (this.type === "output")
         {
-            this.slots.push(new OutputSankeySlot(this, this.groupSvg, resourcesAmount));
+            newSlot = new OutputSankeySlot(this, this.groupSvg, resourcesAmount);
         }
         else
         {
             throw Error("Unexpected slots group type");
         }
 
+        this.slots.push(newSlot);
         this.updateSlotPositions();
+
+        return newSlot;
     }
 
     private updateSlotPositions(): void
@@ -93,6 +98,17 @@ export class SlotsGroup
         {
             throw Error("Unexpected slots group type");
         }
+    }
+
+    public recalculateLinks()
+    {
+        this.slots.forEach(slot =>
+        {
+            if (slot.connectedLink != undefined)
+            {
+                slot.connectedLink.recalculate();
+            }
+        });
     }
 
     private groupSvg: SVGGElement;

@@ -78,6 +78,17 @@ export class SankeyNode
         parentGroup.appendChild(this.nodeSvgGroup);
     }
 
+    public recalculateLinks()
+    {
+        let recalculateGroup = (group: SlotsGroup) =>
+        {
+            group.recalculateLinks();
+        };
+
+        this.inputSlotGroups.forEach(recalculateGroup);
+        this.outputSlotGroups.forEach(recalculateGroup);
+    }
+
     private inputSlotGroups: SlotsGroup[] = [];
     private outputSlotGroups: SlotsGroup[] = [];
 }

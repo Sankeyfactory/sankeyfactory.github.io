@@ -34,6 +34,15 @@ export abstract class SvgFactory
         return result;
     }
 
+    public static createSvgPath(...classes: string[]): SVGPathElement
+    {
+        let result = this.createSvgElement("path", ...classes) as SVGPathElement;
+
+        result.setAttribute("g", "");
+
+        return result;
+    }
+
     private static createSvgElement(tag: string, ...classes: string[]): SVGElement
     {
         let result = document.createElementNS("http://www.w3.org/2000/svg", tag);

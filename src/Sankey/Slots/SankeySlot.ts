@@ -1,5 +1,6 @@
 import { Rectangle } from "../../Rectangle";
 import { SvgFactory } from "../../SVG/SvgFactory";
+import { SankeyLink } from "../SankeyLink";
 import { SlotsGroup } from "../SlotsGroup";
 
 export class SankeySlot
@@ -7,7 +8,11 @@ export class SankeySlot
     public resourcesAmount: number;
     public slotSvg: SVGElement;
 
+    public connectedLink: SankeyLink | undefined;
+
     public static readonly slotWidth = 10;
+
+    public readonly parentGroup: SlotsGroup;
 
     constructor(
         slotsGroup: SlotsGroup,
@@ -16,6 +21,7 @@ export class SankeySlot
         ...classes: string[])
     {
         this.resourcesAmount = resourcesAmount;
+        this.parentGroup = slotsGroup;
 
         let dimensions: Rectangle = {
             width: SankeySlot.slotWidth,
