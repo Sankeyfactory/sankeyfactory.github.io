@@ -20,6 +20,43 @@ function parseMachinesList(docsMachines: string): string[]
         }));
 }
 
+let descriptorsMap = new Map<string, Descriptor>(satisfactory
+    .flatMap((classList) => classList.Classes)
+    .filter((descriptorClass) => descriptorClass.ClassName.startsWith("Desc_"))
+    .map(docsDescriptor => docsDescriptor as DocsDescriptor)
+    .map<Descriptor>((docsDescriptor) =>
+    {
+        let iconPath = "";
+        let iconAdditionalPath = "";
+        let iconName = "";
+
+        if (docsDescriptor.mPersistentBigIcon !== "None")
+        {
+            let iconRegex = /Texture2D \/Game\/FactoryGame\/([\w-/]+?)\/(?:IconDesc_)?(\w+?)(?:_\d+)?\./;
+
+            let match = iconRegex.exec(docsDescriptor.mPersistentBigIcon);
+
+            if (match == null)
+            {
+                throw Error(`Couldn't parse icon path: ${docsDescriptor.mPersistentBigIcon}`);
+            }
+
+            iconPath = match[1].replaceAll("UI/", "");
+            iconName = match[2];
+        }
+
+        // mDisplayName and mDescription are empty here for buildings and should be filled by
+        // building class later.
+        return {
+            id: docsDescriptor.ClassName,
+            displayName: docsDescriptor.mDisplayName,
+            description: docsDescriptor.mDescription,
+            iconPath: `${iconPath}${iconAdditionalPath}${iconName}.png`,
+            isResourceInUse: false // Will be set when parsing recipes
+        };
+    })
+    .map(descriptor => [descriptor.id, descriptor]));
+
 let recipes: Recipe[] = satisfactory
     .flatMap((classList) => classList.Classes)
     .filter((recipeClass) => recipeClass.ClassName.startsWith("Recipe_"))
@@ -94,12 +131,14 @@ console.log(machineFrequency);
 console.log(`Total: ${totalRecipesAmount}`);
 console.log(`Alternate: ${alternateAmount}`);
 console.log(`Machines: ${machines.length}`);
+console.log(`Descriptors: ${descriptorsMap.size}`);
 
 fs.writeFileSync(
     "dist/GameData/Satisfactory.json",
     JSON.stringify({
         gameVersion: gameVersion,
         recipes: recipes,
-        machines: machines
+        machines: machines,
+        resources: [...descriptorsMap.values()]
     }, undefined, 4)
 );

@@ -7,6 +7,16 @@ type DocsClass = {
     ClassName: string;
 };
 
+// Holds general properties of items and machines.
+type DocsDescriptor = {
+    ClassName: string;
+
+    mDisplayName: string;
+    mDescription: string;
+
+    mPersistentBigIcon: string;
+};
+
 type DocsRecipe = {
     ClassName: string;
 
