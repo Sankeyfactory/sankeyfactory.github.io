@@ -6,12 +6,7 @@ let docsPath = "src/Tools/SatisfactoryRecipeExporter/Docs.json";
 let satisfactory = JSON.parse(fs.readFileSync(docsPath, "utf-8")) as Docs;
 let gameVersion = "0.8.3.3";
 
-const machineFrequency: Map<string, number> = new Map();
-
-let totalRecipesAmount = 0;
-let alternateAmount = 0;
-
-function parseMachines(docsMachines: string): string[]
+function parseMachinesList(docsMachines: string): string[]
 {
     return docsMachines
         .substring(1, docsMachines.length - 1) // Removes surrounding parentheses
@@ -35,7 +30,7 @@ let recipes: Recipe[] = satisfactory
             'Build_AutomatedWorkBench_C'
         ];
 
-        let machines = parseMachines(docsRecipe.mProducedIn)
+        let machines = parseMachinesList(docsRecipe.mProducedIn)
             .filter((name) =>
             {
                 // Machines that don't start with "Build_" are probably only for items that
@@ -72,6 +67,11 @@ let machines: Building[] = satisfactory
             powerConsumptionExponent: +docsBuilding.mPowerConsumptionExponent
         };
     });
+
+const machineFrequency: Map<string, number> = new Map();
+
+let totalRecipesAmount = 0;
+let alternateAmount = 0;
 
 recipes.forEach(recipe =>
 {
