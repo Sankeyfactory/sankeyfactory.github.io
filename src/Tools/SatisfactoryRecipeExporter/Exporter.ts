@@ -11,31 +11,31 @@ const machineFrequency: Map<string, number> = new Map();
 let totalRecipesAmount = 0;
 let alternateAmount = 0;
 
-let recipes = new Map<string, Recipe>(satisfactory
+function parseMachines(docsMachines: string): string[]
+{
+    return docsMachines
+        .substring(1, docsMachines.length - 1) // Removes surrounding parentheses
+        .split(",")
+        .filter((name) => name !== "")
+        .map(((name) =>
+        {
+            // View in docs: "/Game/FactoryGame/.../Build_ConstructorMk1.Build_ConstructorMk1_C"
+            // Desired view: Build_ConstructorMk1_C
+            return name.slice(1, -1).split(`.`).at(-1)!;
+        }));
+}
+
+let recipes: Recipe[] = satisfactory
     .flatMap((classList) => classList.Classes)
     .filter((recipeClass) => recipeClass.ClassName.startsWith("Recipe_"))
     .map(docsRecipe => docsRecipe as DocsRecipe)
     .map<Recipe>((docsRecipe) =>
     {
-        let producedIn: string = docsRecipe.mProducedIn;
-
-        // Removes surrounding parentheses.
-        producedIn = producedIn.substring(1, producedIn.length - 1);
-
         let blacklistedMachines = [
             'Build_AutomatedWorkBench_C'
         ];
 
-        let machines = producedIn
-            .split(",")
-            .filter((name) => name !== "")
-            .map(((name) =>
-            {
-                // View in docs: "/Game/FactoryGame/Buildable/Factory/ConstructorMk1/Build_ConstructorMk1.Build_ConstructorMk1_C"
-                // Desired view: Build_ConstructorMk1_C
-                let a = name.slice(1, -1).split(`.`);
-                return a[a.length - 1];
-            }))
+        let machines = parseMachines(docsRecipe.mProducedIn)
             .filter((name) =>
             {
                 // Machines that don't start with "Build_" are probably only for items that
@@ -45,28 +45,35 @@ let recipes = new Map<string, Recipe>(satisfactory
 
         return {
             id: docsRecipe.ClassName,
+            isAlternate: docsRecipe.ClassName.startsWith("Recipe_Alternate_"),
             producedIn: machines,
         };
     })
-    .filter((docsRecipe) => docsRecipe.producedIn.length > 0)
-    .map((docsRecipe) => [docsRecipe.id, docsRecipe]));
+    .filter((docsRecipe) => docsRecipe.producedIn.length > 0);
 
-let docsMachines = new Map<string, Building>(satisfactory
+let machines: Building[] = satisfactory
     .flatMap(classList => classList.Classes)
     .filter(recipeClass => recipeClass.ClassName.startsWith("Build_"))
+    .map(docsRecipe => docsRecipe as DocsBuilding)
     .filter(docsBuilding =>
     {
-        return [...recipes.values()].some((recipe) => recipe.producedIn.includes(docsBuilding.ClassName));
+        return recipes.some((recipe) =>
+        {
+            return recipe.producedIn.includes(docsBuilding.ClassName);
+        });
     })
-    .map<Building>(building =>
+    .map<Building>(docsBuilding =>
     {
         return {
-            id: building.ClassName
+            id: docsBuilding.ClassName,
+            displayName: docsBuilding.mDisplayName,
+            description: docsBuilding.mDescription.replaceAll("\r\n", "\n"),
+            powerConsumption: +docsBuilding.mPowerConsumption,
+            powerConsumptionExponent: +docsBuilding.mPowerConsumptionExponent
         };
-    })
-    .map(docsRecipe => [docsRecipe.id, docsRecipe]));
+    });
 
-for (const [id, recipe] of recipes)
+recipes.forEach(recipe =>
 {
     let machines: string[] = recipe.producedIn;
 
@@ -77,14 +84,22 @@ for (const [id, recipe] of recipes)
 
     ++totalRecipesAmount;
 
-    if (id.startsWith("Recipe_Alternate_"))
+    if (recipe.id.startsWith("Recipe_Alternate_"))
     {
         ++alternateAmount;
     }
-}
+});
 
 console.log(machineFrequency);
 console.log(`Total: ${totalRecipesAmount}`);
 console.log(`Alternate: ${alternateAmount}`);
-console.log(`Machines: ${docsMachines.size}`);
+console.log(`Machines: ${machines.length}`);
 
+fs.writeFileSync(
+    "dist/GameData/Satisfactory.json",
+    JSON.stringify({
+        gameVersion: gameVersion,
+        recipes: recipes,
+        machines: machines
+    }, undefined, 4)
+);

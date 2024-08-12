@@ -5,3 +5,6 @@ node_modules
 
 *.js
 *.js.map
+
+# Generates with tools
+dist/GameData/Satisfactory.json
