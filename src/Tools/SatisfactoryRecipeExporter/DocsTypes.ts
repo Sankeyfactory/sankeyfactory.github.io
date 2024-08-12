@@ -11,6 +11,8 @@ type DocsClass = {
 type DocsDescriptor = {
     ClassName: string;
 
+    mForm: string;
+
     mDisplayName: string;
     mDescription: string;
 
@@ -20,7 +22,6 @@ type DocsDescriptor = {
 type DocsRecipe = {
     ClassName: string;
 
-    FullName: string; // Used for an icon.
     mDisplayName: string;
 
     mIngredients: string;

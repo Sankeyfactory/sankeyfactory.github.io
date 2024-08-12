@@ -20,6 +20,31 @@ function parseMachinesList(docsMachines: string): string[]
         }));
 }
 
+function parseResourcesList(docsResources: string): Resource[]
+{
+    let result: Resource[] = [];
+
+    let resourcesRegex = /\(ItemClass=.+?'\\?".+?\.(.+?)\\?"',Amount=(\d+)\)/g;
+
+    let match: RegExpExecArray;
+    while (match = resourcesRegex.exec(docsResources)!)
+    {
+        result.push({
+            id: match[1],
+            amount: +match[2]
+        });
+    }
+
+    if (result.length == 0)
+    {
+        throw Error(`Couldn't parse resources list: ${docsResources}`);
+    }
+
+    return result;
+}
+
+let formFrequency = new Map<string, number>();
+
 let descriptorsMap = new Map<string, Descriptor>(satisfactory
     .flatMap((classList) => classList.Classes)
     .filter((descriptorClass) => descriptorClass.ClassName.startsWith("Desc_"))
@@ -45,6 +70,8 @@ let descriptorsMap = new Map<string, Descriptor>(satisfactory
             iconName = match[2];
         }
 
+        formFrequency.set(docsDescriptor.mForm, (formFrequency.get(docsDescriptor.mForm) ?? 0) + 1);
+
         // mDisplayName and mDescription are empty here for buildings and should be filled by
         // building class later.
         return {
@@ -61,6 +88,8 @@ let recipes: Recipe[] = satisfactory
     .flatMap((classList) => classList.Classes)
     .filter((recipeClass) => recipeClass.ClassName.startsWith("Recipe_"))
     .map(docsRecipe => docsRecipe as DocsRecipe)
+    .filter(docsRecipe => docsRecipe.mIngredients !== "")
+    .filter(docsRecipe => docsRecipe.mProduct !== "")
     .map<Recipe>((docsRecipe) =>
     {
         let blacklistedMachines = [
@@ -77,8 +106,12 @@ let recipes: Recipe[] = satisfactory
 
         return {
             id: docsRecipe.ClassName,
+            displayName: docsRecipe.mDisplayName,
             isAlternate: docsRecipe.ClassName.startsWith("Recipe_Alternate_"),
+            ingredients: parseResourcesList(docsRecipe.mIngredients),
+            products: parseResourcesList(docsRecipe.mProduct),
             producedIn: machines,
+            manufacturingDuration: +docsRecipe.mManufactoringDuration
         };
     })
     .filter((docsRecipe) => docsRecipe.producedIn.length > 0);
@@ -132,6 +165,7 @@ console.log(`Total: ${totalRecipesAmount}`);
 console.log(`Alternate: ${alternateAmount}`);
 console.log(`Machines: ${machines.length}`);
 console.log(`Descriptors: ${descriptorsMap.size}`);
+console.log(formFrequency);
 
 fs.writeFileSync(
     "dist/GameData/Satisfactory.json",

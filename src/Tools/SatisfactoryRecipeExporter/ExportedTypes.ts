@@ -1,9 +1,19 @@
+type Resource = {
+    id: string;
+    amount: number;
+};
+
 type Recipe = {
     id: string;
 
+    displayName: string;
     isAlternate: boolean;
 
+    ingredients: Resource[];
+    products: Resource[];
+
     producedIn: string[];
+    manufacturingDuration: number;
 };
 
 type Building = {
