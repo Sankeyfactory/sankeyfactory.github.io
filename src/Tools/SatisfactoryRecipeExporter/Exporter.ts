@@ -3,99 +3,88 @@ import fs from 'fs';
 // The file is taken directly from the game at
 // "Satisfactory/CommunityResources/Docs/Docs.json"
 let docsPath = "src/Tools/SatisfactoryRecipeExporter/Docs.json";
-let satisfactory = JSON.parse(fs.readFileSync(docsPath, "utf-8"));
+let satisfactory = JSON.parse(fs.readFileSync(docsPath, "utf-8")) as Docs;
 let gameVersion = "0.8.3.3";
 
-type MachineFrequencyMap = {
-    [id: string]: number;
-};
-const machineFrequency: MachineFrequencyMap = {};
+const machineFrequency: Map<string, number> = new Map();
 
 let totalRecipesAmount = 0;
 let alternateAmount = 0;
 
-let docsRecipes = satisfactory
-    .map((classList: any) => classList.Classes)
-    .flat()
-    .filter((recipeClass: any) => recipeClass.ClassName.startsWith("Recipe_"))
-    .map((docsRecipe: any) =>
+let recipes = new Map<string, Recipe>(satisfactory
+    .flatMap((classList) => classList.Classes)
+    .filter((recipeClass) => recipeClass.ClassName.startsWith("Recipe_"))
+    .map(docsRecipe => docsRecipe as DocsRecipe)
+    .map<Recipe>((docsRecipe) =>
     {
         let producedIn: string = docsRecipe.mProducedIn;
 
         // Removes surrounding parentheses.
         producedIn = producedIn.substring(1, producedIn.length - 1);
 
-        let machines = producedIn.split(",").filter((name) =>
-        {
-            return name != "";
-        }).map(((name) =>
-        {
-            let tokens = name.substring(1, name.length - 1).split(".");
-            return tokens[tokens.length - 1];
-        }));
-
-        // Replace docs array-like string with an array of strings.
-        docsRecipe.mProducedIn = machines;
-
-        return docsRecipe;
-    })
-    .map((docsRecipe: any) =>
-    {
-        docsRecipe.mProducedIn = docsRecipe.mProducedIn.filter((machine: string) =>
-        {
-            // Machines that don't start with "Build_" are probably only for items that
-            // can't be automated or are deprecated.
-            return machine.startsWith("Build_");
-        });
-
-        return docsRecipe;
-    })
-    .filter((docsRecipe: any) =>
-    {
-        let machines: string[] = docsRecipe.mProducedIn;
-
-        // If an item can only be crafted by these things then it can't be automated or is deprecated.
         let blacklistedMachines = [
             'Build_AutomatedWorkBench_C'
         ];
 
-        let blacklistedAmount = 0;
-
-        machines.forEach((machine) =>
-        {
-            if (blacklistedMachines.includes(machine))
+        let machines = producedIn
+            .split(",")
+            .filter((name) => name !== "")
+            .map(((name) =>
             {
-                ++blacklistedAmount;
-            }
-        });
+                // View in docs: "/Game/FactoryGame/Buildable/Factory/ConstructorMk1/Build_ConstructorMk1.Build_ConstructorMk1_C"
+                // Desired view: Build_ConstructorMk1_C
+                let a = name.slice(1, -1).split(`.`);
+                return a[a.length - 1];
+            }))
+            .filter((name) =>
+            {
+                // Machines that don't start with "Build_" are probably only for items that
+                // can't be automated or are deprecated.
+                return name.startsWith("Build_") && !blacklistedMachines.includes(name);
+            });
 
-        // If machines are missing or are all blacklisted, we filter the recipe out.
-        return (machines.length > 0 && machines.length != blacklistedAmount);
-    });
+        return {
+            id: docsRecipe.ClassName,
+            producedIn: machines,
+        };
+    })
+    .filter((docsRecipe) => docsRecipe.producedIn.length > 0)
+    .map((docsRecipe) => [docsRecipe.id, docsRecipe]));
 
-docsRecipes.forEach((docsRecipe: any) =>
+let docsMachines = new Map<string, Building>(satisfactory
+    .flatMap(classList => classList.Classes)
+    .filter(recipeClass => recipeClass.ClassName.startsWith("Build_"))
+    .filter(docsBuilding =>
+    {
+        return [...recipes.values()].some((recipe) => recipe.producedIn.includes(docsBuilding.ClassName));
+    })
+    .map<Building>(building =>
+    {
+        return {
+            id: building.ClassName
+        };
+    })
+    .map(docsRecipe => [docsRecipe.id, docsRecipe]));
+
+for (const [id, recipe] of recipes)
 {
-    let machines: string[] = docsRecipe.mProducedIn;
+    let machines: string[] = recipe.producedIn;
 
     machines.forEach((machine) =>
     {
-        if (machineFrequency[machine] == undefined)
-        {
-            machineFrequency[machine] = 0;
-        }
-
-        ++machineFrequency[machine];
+        machineFrequency.set(machine, (machineFrequency.get(machine) ?? 0) + 1);
     });
 
     ++totalRecipesAmount;
 
-    if (docsRecipe.ClassName.startsWith("Recipe_Alternate_"))
+    if (id.startsWith("Recipe_Alternate_"))
     {
         ++alternateAmount;
     }
-});
+}
 
 console.log(machineFrequency);
 console.log(`Total: ${totalRecipesAmount}`);
 console.log(`Alternate: ${alternateAmount}`);
+console.log(`Machines: ${docsMachines.size}`);
 
