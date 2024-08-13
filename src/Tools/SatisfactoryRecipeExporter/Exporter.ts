@@ -20,9 +20,9 @@ function parseMachinesList(docsMachines: string): string[]
         }));
 }
 
-function parseResourcesList(docsResources: string): Resource[]
+function parseResourcesList(docsResources: string): RecipeResource[]
 {
-    let result: Resource[] = [];
+    let result: RecipeResource[] = [];
 
     let resourcesRegex = /\(ItemClass=.+?'\\?".+?\.(.+?)\\?"',Amount=(\d+)\)/g;
 
@@ -95,7 +95,7 @@ let descriptorsMap = new Map<string, Descriptor>(satisfactory
             iconName = "PortableMiner";
         } else if (docsDescriptor.mPersistentBigIcon !== "None")
         {
-            let iconRegex = /Texture2D \/Game\/FactoryGame\/([\w-/]+?\/)(?:IconDesc_)?(\w+?)(?:_\d+)?\./;
+            let iconRegex = /Texture2D \/Game\/FactoryGame\/(?<path>[\w-/]+?\/)(?:IconDesc_)?(?<name>\w+?)(?:_\d+)?\./;
 
             let match = iconRegex.exec(docsDescriptor.mPersistentBigIcon);
 
@@ -105,8 +105,8 @@ let descriptorsMap = new Map<string, Descriptor>(satisfactory
                     + `Id: ${docsDescriptor.ClassName}`);
             }
 
-            iconPath = match[1].replaceAll("UI/", "");
-            iconName = match[2];
+            iconPath = match.groups!.path;
+            iconName = match.groups!.name;
         }
 
         formFrequency.set(docsDescriptor.mForm, (formFrequency.get(docsDescriptor.mForm) ?? 0) + 1);
@@ -191,7 +191,7 @@ let machines: Building[] = satisfactory
 
 recipes.forEach(recipe =>
 {
-    let markResourceAsUsed = (resource: Resource): void =>
+    let markResourceAsUsed = (resource: RecipeResource): void =>
     {
         let descriptor = descriptorsMap.get(resource.id);
 
@@ -241,6 +241,12 @@ fs.writeFileSync(
     JSON.stringify({
         gameVersion: gameVersion,
         machines: machines,
-        resources: [...descriptorsMap.values()].filter(descriptor => descriptor.isResourceInUse)
+        resources: [...descriptorsMap.values()]
+            .filter(descriptor => descriptor.isResourceInUse)
+            .map<Resource>(descriptor =>
+            {
+                let { isResourceInUse, ...resource } = descriptor;
+                return resource;
+            })
     }, undefined, 4)
 );

@@ -1,4 +1,4 @@
-type Resource = {
+type RecipeResource = {
     id: string;
     amount: number;
 };
@@ -9,8 +9,8 @@ type Recipe = {
     displayName: string;
     isAlternate: boolean;
 
-    ingredients: Resource[];
-    products: Resource[];
+    ingredients: RecipeResource[];
+    products: RecipeResource[];
 
     producedIn: string[];
     manufacturingDuration: number;
@@ -44,3 +44,5 @@ type Descriptor = {
     // Set if the resource is used in parsed recipes.
     isResourceInUse: boolean;
 };
+
+type Resource = Omit<Descriptor, "isResourceInUse">;
