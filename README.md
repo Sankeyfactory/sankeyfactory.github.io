@@ -53,7 +53,7 @@ Once it is installed, you can use it for the project dependencies:
 
 ```bash
 # Builds application's TypeScript code to runnable by browsers JavaScript.
-npx esbuild src/main.ts --bundle --outfile=dist/script.js
+> npx esbuild src/main.ts --bundle --outfile=dist/script.js
 ```
 
 Once the web application is built, it can be viewed in browser by opening `dist/index.html` file. It doesn't need a server to run.
