@@ -57,11 +57,31 @@ function getMachinesRecipe(machineName: string, allRecipes: Recipe[], alternate:
         });
 }
 
+function getMachineDescriptorId(machineId: string): string
+{
+    let idRegex = /Build_(.+?)_/;
+    let match = idRegex.exec(machineId);
+
+    if (match == null)
+    {
+        throw Error(`Couldn't parse machine id: ${machineId}`);
+    }
+
+    let machineName = match[1];
+
+    return `Desc_${machineName}_C`;
+}
+
 let formFrequency = new Map<string, number>();
 
 let descriptorsMap = new Map<string, Descriptor>(satisfactory
     .flatMap((classList) => classList.Classes)
-    .filter((descriptorClass) => descriptorClass.ClassName.startsWith("Desc_"))
+    .filter((descriptorClass) =>
+    {
+        return descriptorClass.ClassName.startsWith("Desc_")
+            || descriptorClass.ClassName === "BP_ItemDescriptorPortableMiner_C"
+            || descriptorClass.ClassName === "BP_EquipmentDescriptorBeacon_C";
+    })
     .map(docsDescriptor => docsDescriptor as DocsDescriptor)
     .map<Descriptor>((docsDescriptor) =>
     {
@@ -69,7 +89,11 @@ let descriptorsMap = new Map<string, Descriptor>(satisfactory
         let iconAdditionalPath = "";
         let iconName = "";
 
-        if (docsDescriptor.mPersistentBigIcon !== "None")
+        if (docsDescriptor.mPersistentBigIcon === "Texture2D /Game/FactoryGame/IconDesc_PortableMiner_256.IconDesc_PortableMiner_256")
+        {
+            iconPath = "Equipment/PortableMiner/";
+            iconName = "PortableMiner";
+        } else if (docsDescriptor.mPersistentBigIcon !== "None")
         {
             let iconRegex = /Texture2D \/Game\/FactoryGame\/([\w-/]+?\/)(?:IconDesc_)?(\w+?)(?:_\d+)?\./;
 
@@ -77,7 +101,8 @@ let descriptorsMap = new Map<string, Descriptor>(satisfactory
 
             if (match == null)
             {
-                throw Error(`Couldn't parse icon path: ${docsDescriptor.mPersistentBigIcon}`);
+                throw Error(`Couldn't parse icon path: ${docsDescriptor.mPersistentBigIcon}.`
+                    + `Id: ${docsDescriptor.ClassName}`);
             }
 
             iconPath = match[1].replaceAll("UI/", "");
@@ -92,7 +117,8 @@ let descriptorsMap = new Map<string, Descriptor>(satisfactory
             id: docsDescriptor.ClassName,
             displayName: docsDescriptor.mDisplayName,
             description: docsDescriptor.mDescription,
-            iconPath: `${iconPath}${iconAdditionalPath}${iconName}.png`
+            iconPath: `${iconPath}${iconAdditionalPath}${iconName}.png`,
+            isResourceInUse: false // Will be set after parsing recipes.
         };
     })
     .map(descriptor => [descriptor.id, descriptor]));
@@ -142,16 +168,44 @@ let machines: Building[] = satisfactory
     })
     .map<Building>(docsBuilding =>
     {
+        let descriptorId = getMachineDescriptorId(docsBuilding.ClassName);
+
+        let descriptor = descriptorsMap.get(descriptorId);
+
+        if (descriptor == undefined)
+        {
+            throw Error(`Couldn't find machine descriptor: ${descriptorId}`);
+        }
+
         return {
             id: docsBuilding.ClassName,
             displayName: docsBuilding.mDisplayName,
             description: docsBuilding.mDescription.replaceAll("\r\n", "\n"),
+            iconPath: descriptor.iconPath,
             powerConsumption: +docsBuilding.mPowerConsumption,
             powerConsumptionExponent: +docsBuilding.mPowerConsumptionExponent,
             recipes: getMachinesRecipe(docsBuilding.ClassName, recipes, false),
             alternateRecipes: getMachinesRecipe(docsBuilding.ClassName, recipes, true),
         };
     });
+
+recipes.forEach(recipe =>
+{
+    let markResourceAsUsed = (resource: Resource): void =>
+    {
+        let descriptor = descriptorsMap.get(resource.id);
+
+        if (descriptor == undefined)
+        {
+            throw Error(`Couldn't find resource descriptor: ${resource.id}`);
+        }
+
+        descriptor.isResourceInUse = true;
+    };
+
+    recipe.ingredients.forEach(markResourceAsUsed);
+    recipe.products.forEach(markResourceAsUsed);
+});
 
 const machineFrequency: Map<string, number> = new Map();
 
@@ -187,6 +241,6 @@ fs.writeFileSync(
     JSON.stringify({
         gameVersion: gameVersion,
         machines: machines,
-        resources: [...descriptorsMap.values()]
+        resources: [...descriptorsMap.values()].filter(descriptor => descriptor.isResourceInUse)
     }, undefined, 4)
 );

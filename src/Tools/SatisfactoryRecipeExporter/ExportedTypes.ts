@@ -21,6 +21,7 @@ type BuildingRecipe = Omit<Recipe, "producedIn" | "isAlternate">;
 type Building = {
     id: string;
 
+    iconPath: string;
     displayName: string;
     description: string;
 
@@ -39,4 +40,7 @@ type Descriptor = {
     description: string;
 
     iconPath: string;
+
+    // Set if the resource is used in parsed recipes.
+    isResourceInUse: boolean;
 };
