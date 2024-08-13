@@ -248,5 +248,5 @@ fs.writeFileSync(
                 let { isResourceInUse, ...resource } = descriptor;
                 return resource;
             })
-    }, undefined, 4)
+    })
 );
