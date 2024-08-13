@@ -43,6 +43,20 @@ function parseResourcesList(docsResources: string): Resource[]
     return result;
 }
 
+function getMachinesRecipe(machineName: string, allRecipes: Recipe[], alternate: boolean): BuildingRecipe[]
+{
+    return allRecipes
+        .filter(recipe =>
+        {
+            return recipe.producedIn.includes(machineName) && recipe.isAlternate == alternate;
+        })
+        .map(recipe =>
+        {
+            let { isAlternate, producedIn, ...buildingRecipe } = recipe;
+            return buildingRecipe;
+        });
+}
+
 let formFrequency = new Map<string, number>();
 
 let descriptorsMap = new Map<string, Descriptor>(satisfactory
@@ -57,7 +71,7 @@ let descriptorsMap = new Map<string, Descriptor>(satisfactory
 
         if (docsDescriptor.mPersistentBigIcon !== "None")
         {
-            let iconRegex = /Texture2D \/Game\/FactoryGame\/([\w-/]+?)\/(?:IconDesc_)?(\w+?)(?:_\d+)?\./;
+            let iconRegex = /Texture2D \/Game\/FactoryGame\/([\w-/]+?\/)(?:IconDesc_)?(\w+?)(?:_\d+)?\./;
 
             let match = iconRegex.exec(docsDescriptor.mPersistentBigIcon);
 
@@ -78,8 +92,7 @@ let descriptorsMap = new Map<string, Descriptor>(satisfactory
             id: docsDescriptor.ClassName,
             displayName: docsDescriptor.mDisplayName,
             description: docsDescriptor.mDescription,
-            iconPath: `${iconPath}${iconAdditionalPath}${iconName}.png`,
-            isResourceInUse: false // Will be set when parsing recipes
+            iconPath: `${iconPath}${iconAdditionalPath}${iconName}.png`
         };
     })
     .map(descriptor => [descriptor.id, descriptor]));
@@ -134,7 +147,9 @@ let machines: Building[] = satisfactory
             displayName: docsBuilding.mDisplayName,
             description: docsBuilding.mDescription.replaceAll("\r\n", "\n"),
             powerConsumption: +docsBuilding.mPowerConsumption,
-            powerConsumptionExponent: +docsBuilding.mPowerConsumptionExponent
+            powerConsumptionExponent: +docsBuilding.mPowerConsumptionExponent,
+            recipes: getMachinesRecipe(docsBuilding.ClassName, recipes, false),
+            alternateRecipes: getMachinesRecipe(docsBuilding.ClassName, recipes, true),
         };
     });
 
@@ -171,7 +186,6 @@ fs.writeFileSync(
     "dist/GameData/Satisfactory.json",
     JSON.stringify({
         gameVersion: gameVersion,
-        recipes: recipes,
         machines: machines,
         resources: [...descriptorsMap.values()]
     }, undefined, 4)

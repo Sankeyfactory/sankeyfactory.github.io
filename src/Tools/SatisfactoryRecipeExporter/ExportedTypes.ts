@@ -16,6 +16,8 @@ type Recipe = {
     manufacturingDuration: number;
 };
 
+type BuildingRecipe = Omit<Recipe, "producedIn" | "isAlternate">;
+
 type Building = {
     id: string;
 
@@ -24,6 +26,9 @@ type Building = {
 
     powerConsumption: number;
     powerConsumptionExponent: number;
+
+    recipes: BuildingRecipe[];
+    alternateRecipes: BuildingRecipe[];
 };
 
 // Holds general properties of items and machines.
@@ -34,7 +39,4 @@ type Descriptor = {
     description: string;
 
     iconPath: string;
-
-    // Set if the resource is used in parsed recipes.
-    isResourceInUse: boolean;
 };
