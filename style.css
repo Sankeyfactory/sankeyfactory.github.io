@@ -137,3 +137,134 @@ div.controls div.button {
 div.controls div.button:hover {
     background-color: #464b4d;
 }
+
+div.dimming {
+    background-color: #00000050;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+div#node-creation-modal {
+    width: 80%;
+    height: 80%;
+    background-color: #323232;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+#node-creation-modal .title-row {
+    height: 64px;
+    display: flex;
+    align-items: center;
+    padding: 0 0 0 16px;
+}
+
+#node-creation-modal .title-row h2.title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 500;
+    flex-grow: 1;
+    color: #e8e8e8;
+}
+
+#node-creation-modal .title-row div.close {
+    font-size: 20px;
+    font-weight: 500;
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #cecece;
+}
+
+#node-creation-modal .title-row div.close:hover {
+    color: #ffffff;
+    cursor: pointer;
+}
+
+#node-creation-modal div.content {
+    padding: 0 16px 16px 16px;
+    display: flex;
+    flex-direction: column-reverse;
+    flex-grow: 1;
+}
+
+#node-creation-modal div.tab-selectors {
+    display: flex;
+    gap: 8px;
+}
+
+#node-creation-modal div.tab-selector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 56px;
+    width: 100px;
+    border-radius: 8px 8px 0 0;
+    border: 2px solid #575757;
+    background-color: #212121;
+    border-bottom: none;
+}
+
+#node-creation-modal div.tab-selector:hover {
+    cursor: pointer;
+    background-color: #282828;
+    border: 2px solid #7a7a7a;
+    border-bottom: none;
+}
+
+#node-creation-modal div.tab-selector.active {
+    border: 2px solid #7a7a7a;
+    background-color: #2b2b2b;
+    border-bottom: none;
+    height: 58px;
+    margin-bottom: -2px;
+    cursor: default;
+}
+
+#node-creation-modal .tab-selector img.machine-icon {
+    height: 52px;
+    width: 52px;
+    object-fit: contain;
+}
+
+#node-creation-modal .recipes-tab {
+    display: flex;
+    max-width: 100%;
+    background-color: #2b2b2b;
+    border: 2px solid #7a7a7a;
+    padding: 12px;
+    height: 100%;
+    flex-grow: 1;
+    gap: 12px;
+    border-radius: 0 8px 8px 8px;
+}
+
+#node-creation-modal div.recipe {
+    height: 64px;
+    width: 64px;
+    padding: 8px;
+    background-color: #212121;
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+
+#node-creation-modal div.recipe:hover {
+    cursor: pointer;
+    background-color: #242424;
+    border: 2px solid #585858;
+}
+
+#node-creation-modal .recipe img.item-icon {
+    height: 100%;
+    width: 100%;
+    object-fit: contain;
+}
