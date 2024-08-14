@@ -1,7 +1,7 @@
-# Sankeyfactory
+# Sankeyfactory (W.I.P.)
 A tool for planning Satisfactory production chains with convenient sankey diagram view.
 
-The tool: [https://sankeyfactory.github.io](https://sankeyfactory.github.io).
+The tool: [https://sankeyfactory.github.io](https://sankeyfactory.github.io) (it's not yet ready to use).
 
 The recipes are up-to-date with Satisfactory version `0.8.3.3` (Update 8 latest patch).
 
