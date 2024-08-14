@@ -116,7 +116,7 @@ let descriptorsMap = new Map<string, Descriptor>(satisfactory
         return {
             id: docsDescriptor.ClassName,
             displayName: docsDescriptor.mDisplayName,
-            description: docsDescriptor.mDescription,
+            description: docsDescriptor.mDescription.replaceAll("\r\n", "\n"),
             iconPath: `${iconPath}${iconAdditionalPath}${iconName}.png`,
             isResourceInUse: false // Will be set after parsing recipes.
         };
@@ -127,8 +127,10 @@ let recipes: Recipe[] = satisfactory
     .flatMap((classList) => classList.Classes)
     .filter((recipeClass) => recipeClass.ClassName.startsWith("Recipe_"))
     .map(docsRecipe => docsRecipe as DocsRecipe)
-    .filter(docsRecipe => docsRecipe.mIngredients !== "")
-    .filter(docsRecipe => docsRecipe.mProduct !== "")
+    .filter(docsRecipe =>
+    {
+        return docsRecipe.mIngredients !== "" && docsRecipe.mProduct !== "";
+    })
     .map<Recipe>((docsRecipe) =>
     {
         let blacklistedMachines = [
