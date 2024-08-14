@@ -1641,7 +1641,7 @@
       if (this.panContext == void 0) {
         throw Error("Pan context must be initialized before using mouse handlers");
       }
-      if (this.mouseStatus == _MouseHandler.MouseStatus.DraggingNode) {
+      if (this.mouseStatus === _MouseHandler.MouseStatus.DraggingNode) {
         if (this.draggedNode == void 0) {
           throw Error("Dragged node wasn't saved.");
         }
@@ -1659,7 +1659,7 @@
         this.draggedNode.recalculateLinks();
         this.lastMousePos.x = event.clientX;
         this.lastMousePos.y = event.clientY;
-      } else if (this.mouseStatus == _MouseHandler.MouseStatus.ConnectingInputSlot || this.mouseStatus == _MouseHandler.MouseStatus.ConnectingOutputSlot) {
+      } else if (this.mouseStatus === _MouseHandler.MouseStatus.ConnectingInputSlot || this.mouseStatus === _MouseHandler.MouseStatus.ConnectingOutputSlot) {
         if (this.firstConnectingSlot == void 0) {
           throw Error("First connecting slot wasn't saved.");
         }
@@ -1985,11 +1985,11 @@
       if (event.repeat) {
         return;
       }
-      if (event.key == "Alt") {
+      if (event.key === "Alt") {
         isHoldingAlt = true;
         document.querySelector("#container").classList.add("move");
       }
-      if (event.key == "Escape") {
+      if (event.key === "Escape") {
         MouseHandler.getInstance().cancelConnectingSlots();
       }
     });
@@ -1997,7 +1997,7 @@
       if (event.repeat) {
         return;
       }
-      if (event.key == "Alt") {
+      if (event.key === "Alt") {
         isHoldingAlt = false;
         document.querySelector("#container").classList.remove("move");
       }
