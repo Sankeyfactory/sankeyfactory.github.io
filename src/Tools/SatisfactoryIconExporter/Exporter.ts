@@ -72,7 +72,7 @@ fs.readdir(resourcesDir, { withFileTypes: true, recursive: true }, (err, files) 
                         }
                         else if (existing.resolution != 256)
                         {
-                            console.warn(`Conflict: "${resultingPath}" and "${existingEntry}"`);
+                            console.warn(`Conflict: "${originalPath}" and "${existingEntry}"`);
                         }
                     }
                 }
