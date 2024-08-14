@@ -34,7 +34,7 @@ export class MouseHandler
             throw Error("Pan context must be initialized before using mouse handlers");
         }
 
-        if (this.mouseStatus == MouseHandler.MouseStatus.DraggingNode)
+        if (this.mouseStatus === MouseHandler.MouseStatus.DraggingNode)
         {
             if (this.draggedNode == undefined)
             {
@@ -68,8 +68,8 @@ export class MouseHandler
             this.lastMousePos.y = event.clientY;
         }
         else if (
-            this.mouseStatus == MouseHandler.MouseStatus.ConnectingInputSlot
-            || this.mouseStatus == MouseHandler.MouseStatus.ConnectingOutputSlot)
+            this.mouseStatus === MouseHandler.MouseStatus.ConnectingInputSlot
+            || this.mouseStatus === MouseHandler.MouseStatus.ConnectingOutputSlot)
         {
             if (this.firstConnectingSlot == undefined)
             {

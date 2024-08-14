@@ -35,7 +35,7 @@ function parseResourcesList(docsResources: string): RecipeResource[]
         });
     }
 
-    if (result.length == 0)
+    if (result.length === 0)
     {
         throw Error(`Couldn't parse resources list: ${docsResources}`);
     }
@@ -48,7 +48,7 @@ function getMachinesRecipe(machineName: string, allRecipes: Recipe[], alternate:
     return allRecipes
         .filter(recipe =>
         {
-            return recipe.producedIn.includes(machineName) && recipe.isAlternate == alternate;
+            return recipe.producedIn.includes(machineName) && recipe.isAlternate === alternate;
         })
         .map(recipe =>
         {

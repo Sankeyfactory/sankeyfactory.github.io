@@ -3,7 +3,7 @@ import { SvgFactory } from "../../SVG/SvgFactory";
 import { SankeyLink } from "../SankeyLink";
 import { SlotsGroup } from "../SlotsGroup";
 
-export class SankeySlot
+export abstract class SankeySlot
 {
     public resourcesAmount: number;
     public slotSvg: SVGElement;

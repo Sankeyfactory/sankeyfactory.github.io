@@ -71,13 +71,13 @@ async function main()
     {
         if (event.repeat) { return; }
 
-        if (event.key == "Alt")
+        if (event.key === "Alt")
         {
             isHoldingAlt = true;
             document.querySelector("#container")!.classList.add("move");
         }
 
-        if (event.key == "Escape")
+        if (event.key === "Escape")
         {
             MouseHandler.getInstance().cancelConnectingSlots();
         }
@@ -87,7 +87,7 @@ async function main()
     {
         if (event.repeat) { return; }
 
-        if (event.key == "Alt")
+        if (event.key === "Alt")
         {
             isHoldingAlt = false;
             document.querySelector("#container")!.classList.remove("move");
