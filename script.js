@@ -1846,11 +1846,11 @@
     updateSlotPositions() {
       let freeResourcesAmount = this.resourcesAmount;
       let nextYPosition = 0;
-      this.slots.forEach((slot) => {
+      for (const slot of this.slots) {
         slot.setYPosition(nextYPosition);
         freeResourcesAmount -= slot.resourcesAmount;
         nextYPosition += +(slot.slotSvg.getAttribute("height") ?? 0);
-      });
+      }
       this.lastSlot.setYPosition(nextYPosition);
       this.lastSlot.setResourcesAmount(this, freeResourcesAmount);
     }
@@ -1864,11 +1864,11 @@
       }
     }
     recalculateLinks() {
-      this.slots.forEach((slot) => {
+      for (const slot of this.slots) {
         if (slot.connectedLink != void 0) {
           slot.connectedLink.recalculate();
         }
-      });
+      }
     }
     groupSvg;
     lastSlot;
@@ -1878,9 +1878,9 @@
   // src/Sankey/SankeyNode.ts
   function sumOfNumbers(array) {
     let result = 0;
-    array.forEach((resourcesAmount) => {
+    for (let resourcesAmount of array) {
       result += resourcesAmount;
-    });
+    }
     return result;
   }
   var SankeyNode = class _SankeyNode {
@@ -1899,7 +1899,7 @@
       let totalInputResourcesAmount = sumOfNumbers(inputResourcesAmount);
       let totalOutputResourcesAmount = sumOfNumbers(outputResourcesAmount);
       let nextInputGroupY = 0;
-      inputResourcesAmount.forEach((resourcesAmount) => {
+      for (const resourcesAmount of inputResourcesAmount) {
         let newGroup = new SlotsGroup(
           this,
           "input",
@@ -1909,9 +1909,9 @@
         );
         this.inputSlotGroups.push(newGroup);
         nextInputGroupY += newGroup.maxHeight;
-      });
+      }
       let nextOutputGroupY = 0;
-      outputResourcesAmount.forEach((resourcesAmount) => {
+      for (const resourcesAmount of outputResourcesAmount) {
         let newGroup = new SlotsGroup(
           this,
           "output",
@@ -1921,7 +1921,7 @@
         );
         this.outputSlotGroups.push(newGroup);
         nextOutputGroupY += newGroup.maxHeight;
-      });
+      }
       this.nodeSvgGroup.appendChild(this.nodeSvg);
       parentGroup.appendChild(this.nodeSvgGroup);
     }
