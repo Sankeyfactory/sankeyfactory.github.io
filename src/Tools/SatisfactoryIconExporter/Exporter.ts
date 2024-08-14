@@ -133,7 +133,7 @@ function getResultingPath(originalPath: string): string | undefined
 
         let { path, name } = match.groups!;
 
-        return `${path}${name}.png`;
+        return `${path.replace("UI/", "")}${name}.png`;
     }
 
     return undefined;

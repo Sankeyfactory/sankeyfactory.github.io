@@ -86,7 +86,6 @@ let descriptorsMap = new Map<string, Descriptor>(satisfactory
     .map<Descriptor>((docsDescriptor) =>
     {
         let iconPath = "";
-        let iconAdditionalPath = "";
         let iconName = "";
 
         if (docsDescriptor.mPersistentBigIcon === "Texture2D /Game/FactoryGame/IconDesc_PortableMiner_256.IconDesc_PortableMiner_256")
@@ -106,7 +105,7 @@ let descriptorsMap = new Map<string, Descriptor>(satisfactory
                     + `Id: ${docsDescriptor.ClassName}`);
             }
 
-            iconPath = match.groups!.path;
+            iconPath = match.groups!.path.replace("UI/", "");
             iconName = match.groups!.name;
         }
 
@@ -118,7 +117,7 @@ let descriptorsMap = new Map<string, Descriptor>(satisfactory
             id: docsDescriptor.ClassName,
             displayName: docsDescriptor.mDisplayName,
             description: docsDescriptor.mDescription.replaceAll("\r\n", "\n"),
-            iconPath: `${iconPath}${iconAdditionalPath}${iconName}.png`,
+            iconPath: `${iconPath}${iconName}.png`,
             isResourceInUse: false // Will be set after parsing recipes.
         };
     })
