@@ -93,7 +93,8 @@ let descriptorsMap = new Map<string, Descriptor>(satisfactory
         {
             iconPath = "Equipment/PortableMiner/";
             iconName = "PortableMiner";
-        } else if (docsDescriptor.mPersistentBigIcon !== "None")
+        }
+        else if (docsDescriptor.mPersistentBigIcon !== "None")
         {
             let iconRegex = /Texture2D \/Game\/FactoryGame\/(?<path>[\w-/]+?\/)(?:IconDesc_)?(?<name>\w+?)(?:_\d+)?\./;
 
@@ -238,8 +239,10 @@ console.log(`Machines: ${machines.length}`);
 console.log(`Descriptors: ${descriptorsMap.size}`);
 console.log(formFrequency);
 
+let destinationDir = "dist/GameData";
+fs.mkdirSync(destinationDir, { recursive: true });
 fs.writeFileSync(
-    "dist/GameData/Satisfactory.json",
+    `${destinationDir}/Satisfactory.json`,
     JSON.stringify({
         gameVersion: gameVersion,
         machines: machines,

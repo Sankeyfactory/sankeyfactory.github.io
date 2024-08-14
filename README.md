@@ -12,6 +12,7 @@ The recipes are up-to-date with Satisfactory version `0.8.3.3` (Update 8 latest 
     - [Dependencies](#dependencies)
     - [Compile](#compile)
     - [Generating Satisfactory data files](#generating-satisfactory-data-files)
+    - [Exporting Satisfactory icons](#exporting-satisfactory-icons)
     - [Building web application](#building-web-application)
 - [Extracting the game files](#extracting-the-game-files)
 
@@ -41,13 +42,29 @@ Once it is installed, you can use it for the project dependencies:
 ### Generating Satisfactory data files
 
 ```bash
-# Creates a folder for game data.
-> mkdir -p dist/GameData
 # Builds tool on TypeScript to JS code.
 > npx esbuild --platform=node src/Tools/SatisfactoryRecipeExporter/Exporter.ts --bundle --sourcemap --outfile=src/Tools/SatisfactoryRecipeExporter/Exporter.js
 # Runs the JS code locally as a native application.
 > node src/Tools/SatisfactoryRecipeExporter/Exporter.js
 ```
+
+### Exporting Satisfactory icons
+
+First, you'll need to export original icons from the game. See [Extracting the game files](#extracting-the-game-files).
+
+Once you have the icons, they can be automatically copied and renamed by a tool to `dist` folder.
+
+```bash
+# Builds tool on TypeScript to JS code.
+> npx esbuild --platform=node src/Tools/SatisfactoryIconExporter/Exporter.ts --bundle --sourcemap --outfile=src/Tools/SatisfactoryIconExporter/Exporter.js
+# Runs the JS code locally as a native application.
+# RESOURCES_DIR should be set to a path where you exported icons to.
+# For example: `RESOURCES_DIR=Path-To-FModel/Output/Exports/FactoryGame/Content`
+> RESOURCES_DIR=... node src/Tools/SatisfactoryIconExporter/Exporter.js
+```
+
+> Note: RESOURCES_DIR is a environment variable and it can only be set this way on UNIX systems.
+> If you're using Windows, setting the environment variable should be performed another way.
 
 ### Building web application
 

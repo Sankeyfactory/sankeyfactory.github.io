@@ -20,7 +20,6 @@ jobs:
         cache: 'npm'
     - run: npm install typescript
     - run: npx tsc
-    - run: mkdir -p dist/GameData
     - run: npx esbuild --platform=node src/Tools/SatisfactoryRecipeExporter/Exporter.ts --bundle --sourcemap --outfile=src/Tools/SatisfactoryRecipeExporter/Exporter.js
     - run: node src/Tools/SatisfactoryRecipeExporter/Exporter.js
     - run: npx esbuild src/main.ts --bundle --outfile=dist/script.js
