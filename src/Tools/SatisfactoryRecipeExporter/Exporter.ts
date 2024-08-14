@@ -189,7 +189,7 @@ let machines: Building[] = satisfactory
         };
     });
 
-recipes.forEach(recipe =>
+for (const recipe of recipes)
 {
     let markResourceAsUsed = (resource: RecipeResource): void =>
     {
@@ -205,21 +205,21 @@ recipes.forEach(recipe =>
 
     recipe.ingredients.forEach(markResourceAsUsed);
     recipe.products.forEach(markResourceAsUsed);
-});
+}
 
 const machineFrequency: Map<string, number> = new Map();
 
 let totalRecipesAmount = 0;
 let alternateAmount = 0;
 
-recipes.forEach(recipe =>
+for (const recipe of recipes)
 {
     let machines: string[] = recipe.producedIn;
 
-    machines.forEach((machine) =>
+    for (const machine of machines)
     {
         machineFrequency.set(machine, (machineFrequency.get(machine) ?? 0) + 1);
-    });
+    }
 
     ++totalRecipesAmount;
 
@@ -227,7 +227,7 @@ recipes.forEach(recipe =>
     {
         ++alternateAmount;
     }
-});
+}
 
 console.log(machineFrequency);
 console.log(`Total: ${totalRecipesAmount}`);

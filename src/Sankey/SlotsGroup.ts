@@ -72,13 +72,13 @@ export class SlotsGroup
         let freeResourcesAmount = this.resourcesAmount;
         let nextYPosition = 0;
 
-        this.slots.forEach(slot =>
+        for (const slot of this.slots)
         {
             slot.setYPosition(nextYPosition);
 
             freeResourcesAmount -= slot.resourcesAmount;
             nextYPosition += +(slot.slotSvg.getAttribute("height") ?? 0);
-        });
+        }
 
         this.lastSlot.setYPosition(nextYPosition);
         this.lastSlot.setResourcesAmount(this, freeResourcesAmount);
@@ -102,13 +102,13 @@ export class SlotsGroup
 
     public recalculateLinks()
     {
-        this.slots.forEach(slot =>
+        for (const slot of this.slots)
         {
             if (slot.connectedLink != undefined)
             {
                 slot.connectedLink.recalculate();
             }
-        });
+        }
     }
 
     private groupSvg: SVGGElement;

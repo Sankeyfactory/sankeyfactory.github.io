@@ -7,10 +7,10 @@ function sumOfNumbers(array: number[])
 {
     let result = 0;
 
-    array.forEach(resourcesAmount =>
+    for (let resourcesAmount of array)
     {
         result += resourcesAmount;
-    });
+    }
 
     return result;
 }
@@ -43,7 +43,7 @@ export class SankeyNode
 
         let nextInputGroupY = 0;
 
-        inputResourcesAmount.forEach(resourcesAmount =>
+        for (const resourcesAmount of inputResourcesAmount)
         {
             let newGroup = new SlotsGroup(
                 this,
@@ -56,11 +56,11 @@ export class SankeyNode
             this.inputSlotGroups.push(newGroup);
 
             nextInputGroupY += newGroup.maxHeight;
-        });
+        }
 
         let nextOutputGroupY = 0;
 
-        outputResourcesAmount.forEach(resourcesAmount =>
+        for (const resourcesAmount of outputResourcesAmount)
         {
             let newGroup = new SlotsGroup(
                 this,
@@ -72,7 +72,7 @@ export class SankeyNode
             this.outputSlotGroups.push(newGroup);
 
             nextOutputGroupY += newGroup.maxHeight;
-        });
+        }
 
         this.nodeSvgGroup.appendChild(this.nodeSvg);
         parentGroup.appendChild(this.nodeSvgGroup);
