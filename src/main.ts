@@ -3,6 +3,10 @@ import { SankeyNode } from "./Sankey/SankeyNode";
 import { Point } from "./Point";
 import { MouseHandler } from "./MouseHandler";
 
+// Ignore import error as the file only appears on launch of the exporting tool.
+// @ts-ignore
+import satisfactoryData from '../dist/GameData/Satisfactory.json';
+
 async function main()
 {
     let viewport: SVGElement | null = document.querySelector("#viewport");
@@ -111,6 +115,27 @@ async function main()
     {
         MouseHandler.getInstance().handleMouseMove(event);
     };
+
+    let tabSelectors = document.querySelector("div#tab-selectors")!;
+    let recipeTabs = document.querySelector("div#recipe-tabs")!;
+
+    for (const machine of satisfactoryData.machines)
+    {
+        let tabSelector = document.createElement("div");
+        tabSelector.classList.add("tab-selector");
+
+        let machineIcon = document.createElement("img");
+        machineIcon.classList.add("machine-icon");
+
+        machineIcon.src = `GameData/SatisfactoryIcons/${machine.iconPath}`;
+        machineIcon.alt = machine.displayName;
+        machineIcon.loading = "lazy";
+
+        tabSelector.appendChild(machineIcon);
+        tabSelectors?.appendChild(tabSelector);
+    }
+
+    tabSelectors.children[0].classList.add("active");
 }
 
 main().catch((reason) =>

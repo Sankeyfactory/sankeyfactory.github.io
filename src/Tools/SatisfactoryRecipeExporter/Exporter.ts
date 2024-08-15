@@ -238,13 +238,43 @@ console.log(`Machines: ${machines.length}`);
 console.log(`Descriptors: ${descriptorsMap.size}`);
 console.log(formFrequency);
 
+let machinesSorter = (first: Building, second: Building): number =>
+{
+    const order = [
+        "Smelter", "Constructor", "Assembler", "Foundry", "Refinery", "Manufacturer",
+        "Packager", "Blender", "Particle Accelerator"
+    ];
+
+    const firstOrder = order.indexOf(first.displayName);
+    const secondOrder = order.indexOf(second.displayName);
+
+    if (firstOrder === -1 && secondOrder === -1)
+    {
+        // Both names are not in the order array, keep their relative positions.
+        return 0;
+    }
+    if (firstOrder === -1)
+    {
+        // First's name is not in the order array, place it after the second.
+        return 1;
+    }
+    if (secondOrder === -1)
+    {
+        // Second's name is not in the order array, place it after the first.
+        return -1;
+    }
+
+    // Sort by the order array.
+    return firstOrder - secondOrder;
+};
+
 let destinationDir = "dist/GameData";
 fs.mkdirSync(destinationDir, { recursive: true });
 fs.writeFileSync(
     `${destinationDir}/Satisfactory.json`,
     JSON.stringify({
         gameVersion: gameVersion,
-        machines: machines,
+        machines: machines.toSorted(machinesSorter),
         resources: [...descriptorsMap.values()]
             .filter(descriptor => descriptor.isResourceInUse)
             .map<Resource>(descriptor =>

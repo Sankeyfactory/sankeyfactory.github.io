@@ -197,7 +197,7 @@ div#node-creation-modal {
     flex-grow: 1;
 }
 
-#node-creation-modal div.tab-selectors {
+#node-creation-modal div#tab-selectors {
     display: flex;
     gap: 8px;
 }
@@ -231,9 +231,15 @@ div#node-creation-modal {
 }
 
 #node-creation-modal .tab-selector img.machine-icon {
-    height: 52px;
-    width: 52px;
+    height: 44px;
+    width: 44px;
     object-fit: contain;
+}
+
+#node-creation-modal div#recipe-tabs {
+    display: flex;
+    max-width: 100%;
+    flex-grow: 1;
 }
 
 #node-creation-modal .recipes-tab {
@@ -242,7 +248,6 @@ div#node-creation-modal {
     background-color: #2b2b2b;
     border: 2px solid #7a7a7a;
     padding: 12px;
-    height: 100%;
     flex-grow: 1;
     gap: 12px;
     border-radius: 0 8px 8px 8px;
