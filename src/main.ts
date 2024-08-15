@@ -174,7 +174,13 @@ async function main()
 
                 if (recipe.products.length === 1)
                 {
-                    let resource = satisfactoryData.resources.find(resource => resource.id == recipe.products[0].id);
+                    let resource = satisfactoryData.resources.find(
+                        // I specify type because CD fails otherwise for some reason.
+                        (resource: typeof satisfactoryData.resources[0]) => 
+                        {
+                            return resource.id == recipe.products[0].id;
+                        }
+                    );
 
                     if (resource != undefined)
                     {
