@@ -4,6 +4,10 @@
     font-family: Roboto, sans-serif;
 }
 
+.hidden {
+    display: none !important;
+}
+
 html {
     height: 100%;
 }
@@ -243,7 +247,7 @@ div#node-creation-modal {
 }
 
 #node-creation-modal .recipes-tab {
-    display: flex;
+    display: none;
     max-width: 100%;
     background-color: #2b2b2b;
     border: 2px solid #7a7a7a;
@@ -251,6 +255,12 @@ div#node-creation-modal {
     flex-grow: 1;
     gap: 12px;
     border-radius: 0 8px 8px 8px;
+    flex-wrap: wrap;
+    align-content: flex-start;
+}
+
+#node-creation-modal .recipes-tab.active {
+    display: flex;
 }
 
 #node-creation-modal div.recipe {

@@ -116,6 +116,13 @@ async function main()
         MouseHandler.getInstance().handleMouseMove(event);
     };
 
+    let nodeCreationClose = document.querySelector("div#node-creation-close");
+    let nodeCreationContainer = document.querySelector("div#node-creation-container");
+    nodeCreationClose?.addEventListener("click", (event) =>
+    {
+        nodeCreationContainer?.classList.add("hidden");
+    });
+
     let tabSelectors = document.querySelector("div#tab-selectors")!;
     let recipeTabs = document.querySelector("div#recipe-tabs")!;
 
@@ -131,11 +138,55 @@ async function main()
         machineIcon.alt = machine.displayName;
         machineIcon.loading = "lazy";
 
+        let recipesTab = document.createElement("div");
+        recipesTab.classList.add("recipes-tab");
+
+        for (let recipe of machine.recipes)
+        {
+            let recipeNode = document.createElement("div");
+            recipeNode.classList.add("recipe");
+
+            let itemIcon = document.createElement("img");
+            itemIcon.classList.add("item-icon");
+
+            if (recipe.products.length === 1)
+            {
+                let resource = satisfactoryData.resources.find(resource => resource.id == recipe.products[0].id);
+
+                if (resource != undefined)
+                {
+                    itemIcon.src = `GameData/SatisfactoryIcons/${resource.iconPath}`;
+                }
+            }
+
+            itemIcon.alt = recipe.displayName;
+            itemIcon.loading = "lazy";
+
+            recipeNode.appendChild(itemIcon);
+            recipesTab.appendChild(recipeNode);
+        }
+
+        tabSelector.addEventListener("click", () =>
+        {
+            document.dispatchEvent(new Event("recipes-tab-switched"));
+            recipesTab.classList.add("active");
+            tabSelector.classList.add("active");
+        });
+
+        document.addEventListener("recipes-tab-switched", () =>
+        {
+            recipesTab.classList.remove("active");
+            tabSelector.classList.remove("active");
+        });
+
         tabSelector.appendChild(machineIcon);
         tabSelectors?.appendChild(tabSelector);
+
+        recipeTabs.appendChild(recipesTab);
     }
 
     tabSelectors.children[0].classList.add("active");
+    recipeTabs.children[0].classList.add("active");
 }
 
 main().catch((reason) =>
