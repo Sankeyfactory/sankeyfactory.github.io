@@ -37,6 +37,9 @@ async function main()
 
     function createNode() 
     {
+        let nodeCreationContainer = document.querySelector("div#node-creation-container");
+        nodeCreationContainer?.classList.remove("hidden");
+
         const node = new SankeyNode(nodesGroup, new Point(50, 50), [50, 50], [100]);
 
         node.nodeSvg.onmousedown = (event) =>
@@ -141,29 +144,78 @@ async function main()
         let recipesTab = document.createElement("div");
         recipesTab.classList.add("recipes-tab");
 
-        for (let recipe of machine.recipes)
+        let createRecipesGroup = (name: string): { div: HTMLDivElement, title: HTMLHeadingElement; } =>
         {
-            let recipeNode = document.createElement("div");
-            recipeNode.classList.add("recipe");
+            let groupTitle = document.createElement("h3");
+            groupTitle.classList.add("group-title");
+            groupTitle.innerText = name;
 
-            let itemIcon = document.createElement("img");
-            itemIcon.classList.add("item-icon");
+            let groupDiv = document.createElement("div");
+            groupDiv.classList.add("group");
 
-            if (recipe.products.length === 1)
+            return { div: groupDiv, title: groupTitle };
+        };
+
+        let basicRecipesGroup = createRecipesGroup("Basic recipes");
+        let alternateRecipesGroup = createRecipesGroup("Alternate recipes");
+        let eventsRecipesGroup = createRecipesGroup("Events recipes");
+
+        let createRecipeParser = (simpleRecipesGroup: HTMLDivElement) =>
+        {
+            return (recipe: typeof machine.recipes[0]): void =>
             {
-                let resource = satisfactoryData.resources.find(resource => resource.id == recipe.products[0].id);
+                let recipeNode = document.createElement("div");
+                recipeNode.classList.add("recipe");
 
-                if (resource != undefined)
+                let itemIcon = document.createElement("img");
+                itemIcon.classList.add("item-icon");
+
+                let isEventRecipe = false;
+
+                if (recipe.products.length === 1)
                 {
-                    itemIcon.src = `GameData/SatisfactoryIcons/${resource.iconPath}`;
+                    let resource = satisfactoryData.resources.find(resource => resource.id == recipe.products[0].id);
+
+                    if (resource != undefined)
+                    {
+                        itemIcon.src = `GameData/SatisfactoryIcons/${resource.iconPath}`;
+                        isEventRecipe = resource.iconPath.startsWith("Events");
+                    }
                 }
-            }
 
-            itemIcon.alt = recipe.displayName;
-            itemIcon.loading = "lazy";
+                itemIcon.alt = recipe.displayName;
+                itemIcon.loading = "lazy";
 
-            recipeNode.appendChild(itemIcon);
-            recipesTab.appendChild(recipeNode);
+                recipeNode.appendChild(itemIcon);
+
+                if (isEventRecipe)
+                {
+                    eventsRecipesGroup.div.appendChild(recipeNode);
+                }
+                else
+                {
+                    simpleRecipesGroup.appendChild(recipeNode);
+                }
+            };
+        };
+
+        machine.recipes.forEach(createRecipeParser(basicRecipesGroup.div));
+        machine.alternateRecipes.forEach(createRecipeParser(alternateRecipesGroup.div));
+
+        if (basicRecipesGroup.div.childElementCount !== 0)
+        {
+            recipesTab.appendChild(basicRecipesGroup.title);
+            recipesTab.appendChild(basicRecipesGroup.div);
+        }
+        if (alternateRecipesGroup.div.childElementCount !== 0)
+        {
+            recipesTab.appendChild(alternateRecipesGroup.title);
+            recipesTab.appendChild(alternateRecipesGroup.div);
+        }
+        if (eventsRecipesGroup.div.childElementCount !== 0)
+        {
+            recipesTab.appendChild(eventsRecipesGroup.title);
+            recipesTab.appendChild(eventsRecipesGroup.div);
         }
 
         tabSelector.addEventListener("click", () =>
