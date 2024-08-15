@@ -1961,6 +1961,8 @@
       zoomRatioDisplay.textContent = `Zoom: ${zoomScale.toPrecision(2)}x`;
     });
     function createNode() {
+      let nodeCreationContainer2 = document.querySelector("div#node-creation-container");
+      nodeCreationContainer2?.classList.remove("hidden");
       const node = new SankeyNode(nodesGroup, new Point(50, 50), [50, 50], [100]);
       node.nodeSvg.onmousedown = (event) => {
         if (!isHoldingAlt && event.buttons === 1) {
@@ -2016,6 +2018,11 @@
     window.onmousemove = (event) => {
       MouseHandler.getInstance().handleMouseMove(event);
     };
+    let nodeCreationClose = document.querySelector("div#node-creation-close");
+    let nodeCreationContainer = document.querySelector("div#node-creation-container");
+    nodeCreationClose?.addEventListener("click", (event) => {
+      nodeCreationContainer?.classList.add("hidden");
+    });
     let tabSelectors = document.querySelector("div#tab-selectors");
     let recipeTabs = document.querySelector("div#recipe-tabs");
     for (const machine of Satisfactory_default.machines) {
@@ -2026,10 +2033,77 @@
       machineIcon.src = `GameData/SatisfactoryIcons/${machine.iconPath}`;
       machineIcon.alt = machine.displayName;
       machineIcon.loading = "lazy";
+      let recipesTab = document.createElement("div");
+      recipesTab.classList.add("recipes-tab");
+      let createRecipesGroup = (name) => {
+        let groupTitle = document.createElement("h3");
+        groupTitle.classList.add("group-title");
+        groupTitle.innerText = name;
+        let groupDiv = document.createElement("div");
+        groupDiv.classList.add("group");
+        return { div: groupDiv, title: groupTitle };
+      };
+      let basicRecipesGroup = createRecipesGroup("Basic recipes");
+      let alternateRecipesGroup = createRecipesGroup("Alternate recipes");
+      let eventsRecipesGroup = createRecipesGroup("Events recipes");
+      let createRecipeParser = (simpleRecipesGroup) => {
+        return (recipe) => {
+          let recipeNode = document.createElement("div");
+          recipeNode.classList.add("recipe");
+          let itemIcon = document.createElement("img");
+          itemIcon.classList.add("item-icon");
+          let isEventRecipe = false;
+          if (recipe.products.length === 1) {
+            let resource = Satisfactory_default.resources.find(
+              // I specify type because CD fails otherwise for some reason.
+              (resource2) => {
+                return resource2.id == recipe.products[0].id;
+              }
+            );
+            if (resource != void 0) {
+              itemIcon.src = `GameData/SatisfactoryIcons/${resource.iconPath}`;
+              isEventRecipe = resource.iconPath.startsWith("Events");
+            }
+          }
+          itemIcon.alt = recipe.displayName;
+          itemIcon.loading = "lazy";
+          recipeNode.appendChild(itemIcon);
+          if (isEventRecipe) {
+            eventsRecipesGroup.div.appendChild(recipeNode);
+          } else {
+            simpleRecipesGroup.appendChild(recipeNode);
+          }
+        };
+      };
+      machine.recipes.forEach(createRecipeParser(basicRecipesGroup.div));
+      machine.alternateRecipes.forEach(createRecipeParser(alternateRecipesGroup.div));
+      if (basicRecipesGroup.div.childElementCount !== 0) {
+        recipesTab.appendChild(basicRecipesGroup.title);
+        recipesTab.appendChild(basicRecipesGroup.div);
+      }
+      if (alternateRecipesGroup.div.childElementCount !== 0) {
+        recipesTab.appendChild(alternateRecipesGroup.title);
+        recipesTab.appendChild(alternateRecipesGroup.div);
+      }
+      if (eventsRecipesGroup.div.childElementCount !== 0) {
+        recipesTab.appendChild(eventsRecipesGroup.title);
+        recipesTab.appendChild(eventsRecipesGroup.div);
+      }
+      tabSelector.addEventListener("click", () => {
+        document.dispatchEvent(new Event("recipes-tab-switched"));
+        recipesTab.classList.add("active");
+        tabSelector.classList.add("active");
+      });
+      document.addEventListener("recipes-tab-switched", () => {
+        recipesTab.classList.remove("active");
+        tabSelector.classList.remove("active");
+      });
       tabSelector.appendChild(machineIcon);
       tabSelectors?.appendChild(tabSelector);
+      recipeTabs.appendChild(recipesTab);
     }
     tabSelectors.children[0].classList.add("active");
+    recipeTabs.children[0].classList.add("active");
   }
   main().catch((reason) => {
     console.error(reason);
