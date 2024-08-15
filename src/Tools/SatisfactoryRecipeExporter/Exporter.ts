@@ -54,6 +54,10 @@ function getMachinesRecipe(machineName: string, allRecipes: Recipe[], alternate:
         {
             let { isAlternate, producedIn, ...buildingRecipe } = recipe;
             return buildingRecipe;
+        })
+        .toSorted((first, second) =>
+        {
+            return first.complexity - second.complexity;
         });
 }
 
@@ -149,6 +153,7 @@ let recipes: Recipe[] = satisfactory
             id: docsRecipe.ClassName,
             displayName: docsRecipe.mDisplayName,
             isAlternate: docsRecipe.ClassName.startsWith("Recipe_Alternate_"),
+            complexity: +docsRecipe.mManufacturingMenuPriority,
             ingredients: parseResourcesList(docsRecipe.mIngredients),
             products: parseResourcesList(docsRecipe.mProduct),
             producedIn: machines,

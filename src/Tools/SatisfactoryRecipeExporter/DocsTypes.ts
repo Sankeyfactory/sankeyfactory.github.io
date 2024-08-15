@@ -24,6 +24,8 @@ type DocsRecipe = {
 
     mDisplayName: string;
 
+    mManufacturingMenuPriority: string;
+
     mIngredients: string;
     mProduct: string;
 

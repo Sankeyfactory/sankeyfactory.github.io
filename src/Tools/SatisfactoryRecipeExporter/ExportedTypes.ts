@@ -9,6 +9,9 @@ type Recipe = {
     displayName: string;
     isAlternate: boolean;
 
+    // For sorting from early-game to late-game resources.
+    complexity: number;
+
     ingredients: RecipeResource[];
     products: RecipeResource[];
 
