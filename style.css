@@ -165,6 +165,26 @@ div#node-creation-modal {
     flex-direction: column;
 }
 
+@media screen and (max-width: 560px) {
+    div#node-creation-modal {
+        min-width: 100%;
+        min-height: 100%;
+        max-width: 100%;
+        max-height: 100%;
+        border-radius: 0;
+    }
+}
+
+@media screen and (max-height: 560px) {
+    div#node-creation-modal {
+        min-width: 100%;
+        min-height: 100%;
+        max-width: 100%;
+        max-height: 100%;
+        border-radius: 0;
+    }
+}
+
 #node-creation-modal .title-row {
     height: 64px;
     display: flex;
