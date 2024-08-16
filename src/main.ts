@@ -269,7 +269,12 @@ async function main()
     {
         return (recipeResource: RecipeResource) =>
         {
-            let resource = satisfactoryData.resources.find((el => el.id === recipeResource.id));
+            let resource = satisfactoryData.resources.find(
+                (el: typeof satisfactoryData.resources[0]) =>
+                {
+                    return el.id === recipeResource.id;
+                }
+            );
 
             let resourceDiv = document.createElement("div");
             resourceDiv.classList.add("resource");
