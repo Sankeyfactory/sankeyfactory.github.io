@@ -300,6 +300,8 @@ div#node-creation-modal {
     background-color: #212121;
     border-radius: 8px;
     box-sizing: border-box;
+    display: flex;
+    gap: 4px;
 }
 
 #node-creation-modal div.recipe:hover {
@@ -309,7 +311,7 @@ div#node-creation-modal {
 }
 
 #node-creation-modal .recipe img.item-icon {
-    height: 100%;
-    width: 100%;
+    flex-grow: 1;
+    min-width: 0;
     object-fit: contain;
 }
