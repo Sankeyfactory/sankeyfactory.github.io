@@ -2050,28 +2050,28 @@
         return (recipe) => {
           let recipeNode = document.createElement("div");
           recipeNode.classList.add("recipe");
-          let itemIcon = document.createElement("img");
-          itemIcon.classList.add("item-icon");
-          let isEventRecipe = false;
-          if (recipe.products.length === 1) {
+          for (const product of recipe.products) {
+            let itemIcon = document.createElement("img");
+            itemIcon.classList.add("item-icon");
+            let isEventRecipe = false;
             let resource = Satisfactory_default.resources.find(
-              // I specify type because CD fails otherwise for some reason.
+              // I specify type because deploy fails otherwise for some reason.
               (resource2) => {
-                return resource2.id == recipe.products[0].id;
+                return resource2.id == product.id;
               }
             );
             if (resource != void 0) {
               itemIcon.src = `GameData/SatisfactoryIcons/${resource.iconPath}`;
               isEventRecipe = resource.iconPath.startsWith("Events");
             }
-          }
-          itemIcon.alt = recipe.displayName;
-          itemIcon.loading = "lazy";
-          recipeNode.appendChild(itemIcon);
-          if (isEventRecipe) {
-            eventsRecipesGroup.div.appendChild(recipeNode);
-          } else {
-            simpleRecipesGroup.appendChild(recipeNode);
+            itemIcon.alt = recipe.displayName;
+            itemIcon.loading = "lazy";
+            recipeNode.appendChild(itemIcon);
+            if (isEventRecipe) {
+              eventsRecipesGroup.div.appendChild(recipeNode);
+            } else {
+              simpleRecipesGroup.appendChild(recipeNode);
+            }
           }
         };
       };
