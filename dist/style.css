@@ -143,7 +143,7 @@ div.controls div.button:hover {
 }
 
 div.dimming {
-    background-color: #00000050;
+    background-color: #00000070;
     position: fixed;
     top: 0;
     left: 0;
@@ -155,8 +155,10 @@ div.dimming {
 }
 
 div#node-creation-modal {
-    width: 80%;
-    height: 80%;
+    min-width: 80%;
+    min-height: 80%;
+    max-width: 80%;
+    max-height: 80%;
     background-color: #323232;
     border-radius: 16px;
     display: flex;
@@ -199,11 +201,22 @@ div#node-creation-modal {
     display: flex;
     flex-direction: column-reverse;
     flex-grow: 1;
+    min-height: 0;
+}
+
+#node-creation-modal div.tab-selectors-container {
+    display: flex;
+    max-width: calc(100% - 12px);
+    min-height: 58px;
+    overflow-y: visible;
+    margin-bottom: -2px;
 }
 
 #node-creation-modal div#tab-selectors {
     display: flex;
     gap: 8px;
+    min-height: 58px;
+    overflow-x: scroll;
 }
 
 #node-creation-modal div.tab-selector {
@@ -211,11 +224,12 @@ div#node-creation-modal {
     align-items: center;
     justify-content: center;
     height: 56px;
-    width: 100px;
+    min-width: 100px;
     border-radius: 8px 8px 0 0;
     border: 2px solid #575757;
     background-color: #212121;
     border-bottom: none;
+    box-sizing: border-box;
 }
 
 #node-creation-modal div.tab-selector:hover {
@@ -230,7 +244,6 @@ div#node-creation-modal {
     background-color: #2b2b2b;
     border-bottom: none;
     height: 58px;
-    margin-bottom: -2px;
     cursor: default;
 }
 
@@ -244,6 +257,7 @@ div#node-creation-modal {
     display: flex;
     max-width: 100%;
     flex-grow: 1;
+    min-height: 0;
 }
 
 #node-creation-modal .recipes-tab {
@@ -257,6 +271,8 @@ div#node-creation-modal {
     border-radius: 0 8px 8px 8px;
     flex-direction: column;
     align-content: flex-start;
+    overflow-y: scroll;
+    min-height: 0;
 }
 
 #node-creation-modal .recipes-tab.active {
@@ -274,6 +290,7 @@ div#node-creation-modal {
     display: flex;
     flex-wrap: wrap;
     align-content: flex-start;
+    gap: 8px;
 }
 
 #node-creation-modal div.recipe {
