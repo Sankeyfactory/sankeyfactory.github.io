@@ -50,14 +50,14 @@ function getMachinesRecipe(machineName: string, allRecipes: Recipe[], alternate:
         {
             return recipe.producedIn.includes(machineName) && recipe.isAlternate === alternate;
         })
-        .map(recipe =>
-        {
-            let { isAlternate, producedIn, ...buildingRecipe } = recipe;
-            return buildingRecipe;
-        })
         .toSorted((first, second) =>
         {
             return first.complexity - second.complexity;
+        })
+        .map(recipe =>
+        {
+            let { isAlternate, producedIn, complexity, ...buildingRecipe } = recipe;
+            return buildingRecipe;
         });
 }
 

@@ -217,11 +217,19 @@ div#node-creation-modal {
 }
 
 #node-creation-modal div.content {
-    padding: 0 16px 16px 16px;
     display: flex;
     flex-direction: column-reverse;
     flex-grow: 1;
     min-height: 0;
+    min-width: 0;
+}
+
+#node-creation-modal div.columns {
+    display: flex;
+    flex-grow: 1;
+    min-height: 0;
+    padding: 0 16px 16px 16px;
+    gap: 16px;
 }
 
 #node-creation-modal div.tab-selectors-container {
@@ -330,8 +338,76 @@ div#node-creation-modal {
     border: 2px solid #585858;
 }
 
+#node-creation-modal div.recipe.selected {
+    background-color: #242424;
+    border: 2px solid #585858;
+}
+
 #node-creation-modal .recipe img.item-icon {
     flex-grow: 1;
     min-width: 0;
     object-fit: contain;
+}
+
+#node-creation-modal div#selected-recipe {
+    align-self: stretch;
+    justify-content: flex-end;
+    min-width: 120px;
+    max-width: 120px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+#node-creation-modal #selected-recipe .property {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+#node-creation-modal #selected-recipe .property>div {
+    background-color: #00000050;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 6px;
+}
+
+#node-creation-modal #selected-recipe .property>div:first-child {
+    border-radius: 8px 8px 0 0;
+}
+
+#node-creation-modal #selected-recipe .property>div:last-child {
+    border-radius: 0 0 8px 8px;
+}
+
+#node-creation-modal #selected-recipe .property .title {
+    font-weight: 500;
+}
+
+#node-creation-modal #selected-recipe .property .resource {
+    display: flex;
+    gap: 8px;
+}
+
+#node-creation-modal #selected-recipe .property .resource img.icon {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    min-width: 0;
+}
+
+#node-creation-modal #selected-recipe .property .resource p.amount {
+    margin: 0;
+}
+
+#node-creation-modal #selected-recipe .property .machine img.icon {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    min-width: 0;
+}
+
+#node-creation-modal #selected-recipe .property .text {
+    text-align: center;
 }

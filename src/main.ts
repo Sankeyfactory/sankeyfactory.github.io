@@ -6,6 +6,7 @@ import { MouseHandler } from "./MouseHandler";
 // Ignore import error as the file only appears on launch of the exporting tool.
 // @ts-ignore
 import satisfactoryData from '../dist/GameData/Satisfactory.json';
+import { GameRecipe, GameRecipeEvent } from "./GameData/GameRecipe";
 
 async function main()
 {
@@ -121,9 +122,14 @@ async function main()
 
     let nodeCreationClose = document.querySelector("div#node-creation-close");
     let nodeCreationContainer = document.querySelector("div#node-creation-container");
-    nodeCreationClose?.addEventListener("click", (event) =>
+    nodeCreationClose?.addEventListener("click", () =>
     {
         nodeCreationContainer?.classList.add("hidden");
+    });
+
+    nodeCreationContainer!.addEventListener("click", () =>
+    {
+        document.dispatchEvent(new GameRecipeEvent(undefined, undefined, "recipe-selected"));
     });
 
     let tabSelectors = document.querySelector("div#tab-selectors")!;
@@ -193,6 +199,18 @@ async function main()
 
                     recipeNode.appendChild(itemIcon);
 
+                    recipeNode.addEventListener("click", (event) =>
+                    {
+                        document.dispatchEvent(new GameRecipeEvent(recipe, machine, "recipe-selected"));
+                        recipeNode.classList.add("selected");
+                        event.stopPropagation();
+                    });
+
+                    document.addEventListener("recipe-selected", () =>
+                    {
+                        recipeNode.classList.remove("selected");
+                    });
+
                     if (isEventRecipe)
                     {
                         eventsRecipesGroup.div.appendChild(recipeNode);
@@ -242,6 +260,69 @@ async function main()
 
         recipeTabs.appendChild(recipesTab);
     }
+
+    let selectedRecipeDisplay = document.querySelector("div#selected-recipe") as HTMLDivElement;
+
+    let selectedRecipeOutput = document.querySelector("#selected-recipe-output") as HTMLDivElement;
+
+    let createResourceDisplay = (parentDiv: HTMLDivElement, craftingTime: number) =>
+    {
+        return (recipeResource: RecipeResource) =>
+        {
+            let resource = satisfactoryData.resources.find((el => el.id === recipeResource.id));
+
+            let resourceDiv = document.createElement("div");
+            resourceDiv.classList.add("resource");
+
+            let icon = document.createElement("img");
+            icon.classList.add("icon");
+            icon.loading = "lazy";
+            icon.alt = resource!.displayName;
+            icon.src = `GameData/SatisfactoryIcons/${resource!.iconPath}`;
+
+            let amount = document.createElement("p");
+            amount.classList.add("amount");
+            amount.innerText = `${(60 / craftingTime) * recipeResource.amount}`;
+
+            resourceDiv.appendChild(icon);
+            resourceDiv.appendChild(amount);
+            parentDiv.appendChild(resourceDiv);
+        };
+    };
+
+    document.addEventListener("recipe-selected", (event) =>
+    {
+        let recipe = (event as GameRecipeEvent).recipe;
+        let machine = (event as GameRecipeEvent).machine;
+
+        if (recipe == undefined || machine == undefined)
+        {
+            selectedRecipeDisplay.classList.add("hidden");
+        }
+        else
+        {
+            let selectedRecipeName = document.querySelector("#selected-recipe-name>div.text") as HTMLDivElement;
+            selectedRecipeName.innerText = recipe.displayName;
+
+            let selectedRecipeMachine = document.querySelector("#selected-recipe-machine>div.machine>img.icon") as HTMLImageElement;
+            selectedRecipeMachine.src = `GameData/SatisfactoryIcons/${machine.iconPath}`;
+
+            document.querySelectorAll("#selected-recipe-input>div.resource").forEach(div => div.remove());
+            let selectedRecipeInput = document.querySelector("#selected-recipe-input") as HTMLDivElement;
+
+            recipe.ingredients.forEach(createResourceDisplay(selectedRecipeInput, recipe.manufacturingDuration));
+
+            document.querySelectorAll("#selected-recipe-output>div.resource").forEach(div => div.remove());
+            let selectedRecipeOutput = document.querySelector("#selected-recipe-output") as HTMLDivElement;
+
+            recipe.products.forEach(createResourceDisplay(selectedRecipeOutput, recipe.manufacturingDuration));
+
+            let selectedRecipePower = document.querySelector("#selected-recipe-power>div.text") as HTMLDivElement;
+            selectedRecipePower.innerText = `${machine.powerConsumption} MW`;
+
+            selectedRecipeDisplay.classList.remove("hidden");
+        }
+    });
 
     tabSelectors.children[0].classList.add("active");
     recipeTabs.children[0].classList.add("active");

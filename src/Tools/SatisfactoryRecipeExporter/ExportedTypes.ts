@@ -19,7 +19,7 @@ type Recipe = {
     manufacturingDuration: number;
 };
 
-type BuildingRecipe = Omit<Recipe, "producedIn" | "isAlternate">;
+type BuildingRecipe = Omit<Recipe, "producedIn" | "isAlternate" | "complexity">;
 
 type Building = {
     id: string;
