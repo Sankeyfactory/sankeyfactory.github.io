@@ -1,168 +1,234 @@
-* {
-    color: white;
+/* Variables */
 
+:root {
+    --background-lv0: #252527;
+    --background-lv1: #303032;
+    --background-lv2: #3b3b3d;
+
+    --foreground: #eeeeee;
+    --foreground-accent: #ffffff;
+
+    --border: #414143;
+    --border-accent: #4a4a4c;
+
+    --button-background: #dd7a2f;
+    --active-button-background: #e88a42;
+
+    --button-border: #bb6624;
+    --active-button-border: #c47030;
+
+    --dimming: #00000090;
+}
+
+/* Global styles */
+
+* {
     font-family: Roboto, sans-serif;
+
+    color: var(--foreground);
+}
+
+img {
+    object-fit: contain;
 }
 
 .hidden {
     display: none !important;
 }
 
+div.dimming {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    height: 100%;
+    width: 100%;
+
+    background-color: var(--dimming);
+}
+
+div.button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+
+    background-color: var(--button-background);
+
+    border: 2px solid var(--button-border);
+}
+
+div.button:hover {
+    background-color: var(--active-button-background);
+
+    border: 2px solid var(--active-button-border);
+
+    color: var(--foreground-accent);
+
+    cursor: pointer;
+}
+
+/* Most upper-level containers */
+
 html {
     height: 100%;
 }
 
 body {
-    height: 100%;
-
-    margin: 0;
-
     display: flex;
     flex-direction: column;
 
+    height: 100%;
+    margin: 0;
+
     overflow: hidden;
 
-    background-color: #272727;
+    background-color: var(--background-lv0);
 }
 
-#container {
+div#container {
     flex-grow: 1;
     position: relative;
 }
 
-#container.move {
+div#container.move {
     cursor: move;
 }
 
-#svg-container {
+svg#canvas {
     display: inline;
 
     width: 100%;
     height: 100%;
 }
 
-g.node rect.machine {
-    fill: #5a81ba;
-}
-
-g.node rect.input-slot:nth-child(odd) {
-    fill: #456799;
-}
-
-g.node rect.input-slot:nth-child(even) {
-    fill: #8BAADA;
-}
-
-g.node rect.output-slot:nth-child(odd) {
-    fill: #8BAADA;
-}
-
-g.node rect.output-slot:nth-child(even) {
-    fill: #456799;
-}
-
-g.node rect.input-slot.missing {
-    fill: #FF6363;
-}
-
-g.node rect.output-slot.exceeding {
-    fill: #9CEF9A;
-}
-
-g.node rect.input-slot.missing:hover {
-    fill: #cd4e4e;
-}
-
-g.node rect.output-slot.exceeding:hover {
-    fill: #74ce73;
-}
-
-line.link-hint {
-    stroke: white;
-    stroke-width: 2px;
-}
+/* User help */
 
 div.help {
     display: grid;
+
+    /* Some black magic to make grid adaptive */
     grid-template-columns: repeat(auto-fill, minmax(min(250px, 49%), 1fr));
-    gap: 8px;
+
     padding: 8px;
+    gap: 8px;
 }
 
-div.help p {
+.help p {
     display: inline-block;
 
     margin: 0;
 }
 
-path.link {
-    fill: #5B81BB;
+/* Nodes */
 
-    stroke: #8BAADA;
+.node rect.machine {
+    fill: #5a81ba;
+}
+
+.node rect.input-slot:nth-child(odd) {
+    fill: #456799;
+}
+
+.node rect.input-slot:nth-child(even) {
+    fill: #8BAADA;
+}
+
+.node rect.output-slot:nth-child(odd) {
+    fill: #8BAADA;
+}
+
+.node rect.output-slot:nth-child(even) {
+    fill: #456799;
+}
+
+.node rect.input-slot.missing {
+    fill: #FF6363;
+}
+
+.node rect.output-slot.exceeding {
+    fill: #9CEF9A;
+}
+
+.node rect.input-slot.missing:hover {
+    fill: #cd4e4e;
+}
+
+.node rect.output-slot.exceeding:hover {
+    fill: #74ce73;
+}
+
+/* Node links */
+
+line.link-hint {
+    stroke: var(--foreground-accent);
+    stroke-width: 2px;
+}
+
+path.link {
     /* Twice the final result because outside part is clipped */
     stroke-width: calc(1px * 2);
+
+    fill: #5B81BB;
+    stroke: #8BAADA;
 
     opacity: 0.5;
 }
 
-div#container div.controls {
+/* Canvas controls */
+
+div.controls {
+    display: flex;
+    flex-direction: column;
+
     position: absolute;
     bottom: 0;
     right: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+
     padding: 8px;
+    gap: 8px;
 }
 
-div.controls div.row {
+.controls div.row {
     display: flex;
     flex-direction: row;
-    gap: 8px;
     justify-content: end;
+
+    gap: 8px;
 }
 
-div.zoom-controls p#ratio-display {
+.controls div.button {
+    width: 56px;
+    height: 56px;
+
+    font-size: 14px;
+
+    border-radius: 999px;
+}
+
+.controls .zoom-controls p#ratio-display {
     margin: 0;
 }
 
-div.controls div.button {
-    width: 56px;
-    height: 56px;
-    background-color: #4D5356;
-    border-radius: 999px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    cursor: pointer;
-}
-
-div.controls div.button:hover {
-    background-color: #464b4d;
-}
-
-div.dimming {
-    background-color: #00000070;
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+/* Node creation modal */
 
 div#node-creation-modal {
+    display: flex;
+    flex-direction: column;
+
     min-width: 80%;
     min-height: 80%;
     max-width: 80%;
     max-height: 80%;
-    background-color: #323232;
+
     border-radius: 16px;
-    display: flex;
-    flex-direction: column;
+
+    background-color: var(--background-lv0);
 }
 
 @media screen and (max-width: 560px) {
@@ -171,6 +237,7 @@ div#node-creation-modal {
         min-height: 100%;
         max-width: 100%;
         max-height: 100%;
+
         border-radius: 0;
     }
 }
@@ -181,45 +248,57 @@ div#node-creation-modal {
         min-height: 100%;
         max-width: 100%;
         max-height: 100%;
+
         border-radius: 0;
     }
 }
 
-#node-creation-modal .title-row {
-    height: 64px;
+#node-creation-modal div.title-row {
     display: flex;
     align-items: center;
+
+    height: 64px;
+
     padding: 0 0 0 16px;
 }
 
 #node-creation-modal .title-row h2.title {
+    flex-grow: 1;
+
     margin: 0;
+
     font-size: 20px;
     font-weight: 500;
-    flex-grow: 1;
-    color: #e8e8e8;
 }
 
 #node-creation-modal .title-row div.close {
-    font-size: 20px;
-    font-weight: 500;
-    width: 64px;
-    height: 64px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #cecece;
+
+    width: 64px;
+    height: 64px;
+
+    border-radius: 0 16px 0 0;
+
+    font-size: 20px;
+    font-weight: 500;
 }
 
 #node-creation-modal .title-row div.close:hover {
-    color: #ffffff;
+    color: var(--foreground-accent);
+
+    background-color: var(--background-lv1);
+
     cursor: pointer;
 }
 
 #node-creation-modal div.content {
     display: flex;
     flex-direction: column-reverse;
+
     flex-grow: 1;
+
     min-height: 0;
     min-width: 0;
 }
@@ -227,149 +306,181 @@ div#node-creation-modal {
 #node-creation-modal div.columns {
     display: flex;
     flex-grow: 1;
+
     min-height: 0;
+
     padding: 0 16px 16px 16px;
     gap: 16px;
 }
 
+/* Node creation modal's tab selector */
+
 #node-creation-modal div.tab-selectors-container {
     display: flex;
+
     max-width: calc(100% - 12px);
     min-height: 58px;
+
     overflow-y: visible;
+
     margin-bottom: -2px;
 }
 
 #node-creation-modal div#tab-selectors {
     display: flex;
-    gap: 8px;
+
     min-height: 58px;
+
     overflow-x: scroll;
+
+    gap: 8px;
 }
 
 #node-creation-modal div.tab-selector {
     display: flex;
     align-items: center;
     justify-content: center;
+
+    box-sizing: border-box;
+
     height: 56px;
     min-width: 100px;
+
+    background-color: var(--background-lv1);
+
     border-radius: 8px 8px 0 0;
-    border: 2px solid #575757;
-    background-color: #212121;
-    border-bottom: none;
-    box-sizing: border-box;
 }
 
 #node-creation-modal div.tab-selector:hover {
+    background-color: var(--background-lv2);
+
     cursor: pointer;
-    background-color: #282828;
-    border: 2px solid #7a7a7a;
-    border-bottom: none;
 }
 
 #node-creation-modal div.tab-selector.active {
-    border: 2px solid #7a7a7a;
-    background-color: #2b2b2b;
-    border-bottom: none;
+    /* Bigger than regular selector by 2 pixels to overlap tab border */
     height: 58px;
+
+    background-color: var(--background-lv1);
+
+    border: 2px solid var(--border);
+    border-bottom: none;
+
     cursor: default;
 }
 
 #node-creation-modal .tab-selector img.machine-icon {
     height: 44px;
     width: 44px;
-    object-fit: contain;
 }
+
+/* Node creation modal's recipe tabs */
 
 #node-creation-modal div#recipe-tabs {
     display: flex;
-    max-width: 100%;
+
     flex-grow: 1;
+
+    max-width: 100%;
     min-height: 0;
 }
 
-#node-creation-modal .recipes-tab {
+#node-creation-modal div.recipes-tab {
     display: none;
-    max-width: 100%;
-    background-color: #2b2b2b;
-    border: 2px solid #7a7a7a;
-    padding: 12px;
+
     flex-grow: 1;
+
+    max-width: 100%;
+    min-height: 0;
+
+    overflow-y: scroll;
+
+    padding: 12px;
     gap: 12px;
+
+    border: 2px solid var(--border);
+
+    background-color: var(--background-lv1);
+
     border-radius: 0 8px 8px 8px;
+}
+
+#node-creation-modal div.recipes-tab.active {
+    display: flex;
     flex-direction: column;
     align-content: flex-start;
-    overflow-y: scroll;
-    min-height: 0;
-}
-
-#node-creation-modal .recipes-tab.active {
-    display: flex;
 }
 
 #node-creation-modal .recipes-tab h3.group-title {
     margin: 0;
+
     font-size: 18px;
     font-weight: 400;
-    color: #e8e8e8;
 }
 
 #node-creation-modal .recipes-tab div.group {
     display: flex;
     flex-wrap: wrap;
     align-content: flex-start;
-    gap: 8px;
 }
 
 #node-creation-modal div.recipe {
+    display: flex;
+
+    box-sizing: border-box;
+
     height: 64px;
     width: 64px;
+
     padding: 8px;
-    background-color: #212121;
-    border-radius: 8px;
-    box-sizing: border-box;
-    display: flex;
     gap: 4px;
 }
 
 #node-creation-modal div.recipe:hover {
+    background-color: var(--background-lv2);
+
     cursor: pointer;
-    background-color: #242424;
-    border: 2px solid #585858;
 }
 
 #node-creation-modal div.recipe.selected {
-    background-color: #242424;
-    border: 2px solid #585858;
+    background-color: var(--background-lv2);
 }
 
 #node-creation-modal .recipe img.item-icon {
     flex-grow: 1;
+
     min-width: 0;
-    object-fit: contain;
 }
 
+/* Node creation modal's selected recipe */
+
 #node-creation-modal div#selected-recipe {
-    align-self: stretch;
-    justify-content: flex-end;
-    min-width: 120px;
-    max-width: 120px;
     display: flex;
     flex-direction: column;
+    justify-content: flex-end;
+
+    align-self: stretch;
+
+    min-width: 120px;
+    max-width: 120px;
+
     gap: 4px;
 }
 
-#node-creation-modal #selected-recipe .property {
+#node-creation-modal #selected-recipe div.property {
     display: flex;
     flex-direction: column;
+
     gap: 2px;
 }
 
 #node-creation-modal #selected-recipe .property>div {
-    background-color: #00000050;
     display: flex;
     justify-content: center;
     align-items: center;
+
+    background-color: var(--background-lv1);
+
     padding: 6px;
 }
 
@@ -381,19 +492,24 @@ div#node-creation-modal {
     border-radius: 0 0 8px 8px;
 }
 
-#node-creation-modal #selected-recipe .property .title {
+#node-creation-modal #selected-recipe .property div.title {
     font-weight: 500;
 }
 
-#node-creation-modal #selected-recipe .property .resource {
+#node-creation-modal #selected-recipe .property div.text {
+    text-align: center;
+}
+
+#node-creation-modal #selected-recipe .property div.resource {
     display: flex;
+
     gap: 8px;
 }
 
 #node-creation-modal #selected-recipe .property .resource img.icon {
     width: 32px;
     height: 32px;
-    object-fit: contain;
+
     min-width: 0;
 }
 
@@ -404,28 +520,15 @@ div#node-creation-modal {
 #node-creation-modal #selected-recipe .property .machine img.icon {
     width: 40px;
     height: 40px;
-    object-fit: contain;
+
     min-width: 0;
 }
 
-#node-creation-modal #selected-recipe .property .text {
-    text-align: center;
-}
+/* Node creation modal's confirmation button */
 
 #node-creation-modal div.button {
-    display: flex;
-    padding: 12px 0;
-    justify-content: center;
     margin-top: 10px;
-    border-radius: 8px;
-    background-color: #2b2b2b;
-    border: 2px solid #7a7a7a;
-    color: #ffffff;
-    text-align: center;
-}
+    padding: 12px 0;
 
-#node-creation-modal div.button:hover {
-    cursor: pointer;
-    background-color: #212121;
-    border: 2px solid #969696;
+    border-radius: 8px;
 }
