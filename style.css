@@ -477,14 +477,19 @@ div#node-creation-modal {
 #node-creation-modal div#selected-recipe {
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
 
     align-self: stretch;
 
     min-width: 120px;
     max-width: 120px;
 
+    overflow-y: scroll;
+
     gap: 4px;
+}
+
+#node-creation-modal div#selected-recipe>div:first-child {
+    margin-top: auto;
 }
 
 #node-creation-modal #selected-recipe div.property {
