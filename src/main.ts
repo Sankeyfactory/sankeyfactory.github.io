@@ -36,11 +36,8 @@ async function main()
         zoomRatioDisplay.textContent = `Zoom: ${zoomScale.toPrecision(2)}x`;
     });
 
-    function createNode() 
+    function createNode()
     {
-        let nodeCreationContainer = document.querySelector("div#node-creation-container");
-        nodeCreationContainer?.classList.remove("hidden");
-
         const node = new SankeyNode(nodesGroup, new Point(50, 50), [50, 50], [100]);
 
         node.nodeSvg.onmousedown = (event) =>
@@ -52,7 +49,11 @@ async function main()
         };
     };
 
-    (document.querySelector("div.button#create-node") as HTMLDivElement).onclick = createNode;
+    (document.querySelector("div.button#create-node") as HTMLDivElement).onclick = () =>
+    {
+        let nodeCreationContainer = document.querySelector("div#node-creation-container");
+        nodeCreationContainer?.classList.remove("hidden");
+    };
 
     let isLocked: boolean = false;
     let lockButton = document.querySelector("div.button#lock-viewport") as HTMLDivElement;
@@ -102,11 +103,22 @@ async function main()
         }
     });
 
+    let nodeCreationContainer = document.querySelector("div#node-creation-container");
+
     window.addEventListener("keypress", (event) =>
     {
         if (event.code === "KeyN")
         {
-            createNode();
+            let nodeCreationContainer = document.querySelector("div#node-creation-container");
+            nodeCreationContainer?.classList.remove("hidden");
+        }
+    });
+
+    window.addEventListener("keydown", (event) =>
+    {
+        if (event.code === "Escape" && !nodeCreationContainer?.classList.contains("hidden"))
+        {
+            nodeCreationContainer?.classList.add("hidden");
         }
     });
 
@@ -121,7 +133,6 @@ async function main()
     };
 
     let nodeCreationClose = document.querySelector("div#node-creation-close");
-    let nodeCreationContainer = document.querySelector("div#node-creation-container");
     nodeCreationClose?.addEventListener("click", () =>
     {
         nodeCreationContainer?.classList.add("hidden");
@@ -263,8 +274,6 @@ async function main()
 
     let selectedRecipeDisplay = document.querySelector("div#selected-recipe") as HTMLDivElement;
 
-    let selectedRecipeOutput = document.querySelector("#selected-recipe-output") as HTMLDivElement;
-
     let createResourceDisplay = (parentDiv: HTMLDivElement, craftingTime: number) =>
     {
         return (recipeResource: RecipeResource) =>
@@ -327,6 +336,14 @@ async function main()
 
             selectedRecipeDisplay.classList.remove("hidden");
         }
+    });
+
+    let confirmRecipeButton = document.querySelector("div#confirm-recipe")!;
+
+    confirmRecipeButton.addEventListener("click", () =>
+    {
+        nodeCreationContainer?.classList.add("hidden");
+        createNode();
     });
 
     tabSelectors.children[0].classList.add("active");
