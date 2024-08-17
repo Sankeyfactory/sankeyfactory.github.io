@@ -17,14 +17,14 @@ type DocsDescriptor = {
     mDescription: string;
 
     mPersistentBigIcon: string;
+
+    mResourceSinkPoints: string;
 };
 
 type DocsRecipe = {
     ClassName: string;
 
     mDisplayName: string;
-
-    mManufacturingMenuPriority: string;
 
     mIngredients: string;
     mProduct: string;

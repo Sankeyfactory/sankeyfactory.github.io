@@ -122,7 +122,8 @@ let descriptorsMap = new Map<string, Descriptor>(satisfactory
             displayName: docsDescriptor.mDisplayName,
             description: docsDescriptor.mDescription.replaceAll("\r\n", "\n"),
             iconPath: `${iconPath}${iconName}.png`,
-            isResourceInUse: false // Will be set after parsing recipes.
+            isResourceInUse: false, // Will be set after parsing recipes.
+            resourceSinkPoints: +docsDescriptor.mResourceSinkPoints,
         };
     })
     .map(descriptor => [descriptor.id, descriptor]));
@@ -149,13 +150,33 @@ let recipes: Recipe[] = satisfactory
                 return name.startsWith("Build_") && !blacklistedMachines.includes(name);
             });
 
+        let ingredients = parseResourcesList(docsRecipe.mIngredients);
+        let products = parseResourcesList(docsRecipe.mProduct);
+
+        let ingredientsComplexity = 0;
+        let productsComplexity = 0;
+
+        for (const ingredient of ingredients)
+        {
+            let resource = descriptorsMap.get(ingredient.id);
+
+            ingredientsComplexity = Math.max(ingredientsComplexity, resource?.resourceSinkPoints ?? 0);
+        }
+
+        for (const product of products)
+        {
+            let resource = descriptorsMap.get(product.id);
+
+            productsComplexity = Math.max(productsComplexity, resource?.resourceSinkPoints ?? 0);
+        }
+
         return {
             id: docsRecipe.ClassName,
             displayName: docsRecipe.mDisplayName,
-            isAlternate: docsRecipe.ClassName.startsWith("Recipe_Alternate_"),
-            complexity: +docsRecipe.mManufacturingMenuPriority,
-            ingredients: parseResourcesList(docsRecipe.mIngredients),
-            products: parseResourcesList(docsRecipe.mProduct),
+            isAlternate: docsRecipe.mDisplayName.startsWith("Alternate:"),
+            complexity: Math.max(ingredientsComplexity, productsComplexity),
+            ingredients: ingredients,
+            products: products,
             producedIn: machines,
             manufacturingDuration: +docsRecipe.mManufactoringDuration
         };
@@ -284,7 +305,7 @@ fs.writeFileSync(
             .filter(descriptor => descriptor.isResourceInUse)
             .map<Resource>(descriptor =>
             {
-                let { isResourceInUse, ...resource } = descriptor;
+                let { isResourceInUse, resourceSinkPoints, ...resource } = descriptor;
                 return resource;
             })
     })

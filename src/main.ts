@@ -6,7 +6,7 @@ import { MouseHandler } from "./MouseHandler";
 // Ignore import error as the file only appears on launch of the exporting tool.
 // @ts-ignore
 import satisfactoryData from '../dist/GameData/Satisfactory.json';
-import { GameRecipe, GameRecipeEvent } from "./GameData/GameRecipe";
+import { GameRecipeEvent } from "./GameData/GameRecipe";
 
 async function main()
 {
@@ -144,13 +144,13 @@ async function main()
         nodeCreationContainer?.classList.add("hidden");
     });
 
-    nodeCreationContainer!.addEventListener("click", () =>
+    let tabSelectors = document.querySelector("div#tab-selectors")!;
+    let recipeTabs = document.querySelector("div#recipe-tabs")!;
+
+    recipeTabs.addEventListener("click", () =>
     {
         document.dispatchEvent(new GameRecipeEvent(undefined, undefined, "recipe-selected"));
     });
-
-    let tabSelectors = document.querySelector("div#tab-selectors")!;
-    let recipeTabs = document.querySelector("div#recipe-tabs")!;
 
     for (const machine of satisfactoryData.machines)
     {
@@ -189,6 +189,7 @@ async function main()
             {
                 let recipeNode = document.createElement("div");
                 recipeNode.classList.add("recipe");
+                recipeNode.title = recipe.displayName;
 
                 for (const product of recipe.products)
                 {
@@ -301,6 +302,7 @@ async function main()
             icon.loading = "lazy";
             icon.alt = resource!.displayName;
             icon.src = `GameData/SatisfactoryIcons/${resource!.iconPath}`;
+            icon.title = resource!.displayName;
 
             let amount = document.createElement("p");
             amount.classList.add("amount");
@@ -328,6 +330,7 @@ async function main()
 
             let selectedRecipeMachine = document.querySelector("#selected-recipe-machine>div.machine>img.icon") as HTMLImageElement;
             selectedRecipeMachine.src = `GameData/SatisfactoryIcons/${machine.iconPath}`;
+            selectedRecipeMachine.title = machine.displayName;
 
             document.querySelectorAll("#selected-recipe-input>div.resource").forEach(div => div.remove());
             let selectedRecipeInput = document.querySelector("#selected-recipe-input") as HTMLDivElement;

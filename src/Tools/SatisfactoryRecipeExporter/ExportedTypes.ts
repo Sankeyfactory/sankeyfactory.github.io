@@ -46,6 +46,9 @@ type Descriptor = {
 
     // Set if the resource is used in parsed recipes.
     isResourceInUse: boolean;
+
+    // For resolving recipe complexity.
+    resourceSinkPoints: number;
 };
 
-type Resource = Omit<Descriptor, "isResourceInUse">;
+type Resource = Omit<Descriptor, "isResourceInUse" | "resourceSinkPoints">;
