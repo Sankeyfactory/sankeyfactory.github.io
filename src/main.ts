@@ -280,6 +280,8 @@ async function main()
 
     let selectedRecipeDisplay = document.querySelector("div#selected-recipe") as HTMLDivElement;
 
+    selectedRecipeDisplay.scrollTop = selectedRecipeDisplay.scrollHeight;
+
     let createResourceDisplay = (parentDiv: HTMLDivElement, craftingTime: number) =>
     {
         return (recipeResource: RecipeResource) =>
@@ -302,7 +304,7 @@ async function main()
 
             let amount = document.createElement("p");
             amount.classList.add("amount");
-            amount.innerText = `${(60 / craftingTime) * recipeResource.amount}`;
+            amount.innerText = `${+((60 / craftingTime) * recipeResource.amount).toPrecision(3)}`;
 
             resourceDiv.appendChild(icon);
             resourceDiv.appendChild(amount);
@@ -341,6 +343,8 @@ async function main()
             selectedRecipePower.innerText = `${machine.powerConsumption} MW`;
 
             selectedRecipeDisplay.classList.remove("hidden");
+
+            selectedRecipeDisplay.scrollTop = selectedRecipeDisplay.scrollHeight;
         }
     });
 
