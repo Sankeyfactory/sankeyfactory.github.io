@@ -6,7 +6,7 @@ import { MouseHandler } from "./MouseHandler";
 // Ignore import error as the file only appears on launch of the exporting tool.
 // @ts-ignore
 import satisfactoryData from '../dist/GameData/Satisfactory.json';
-import { GameRecipeEvent } from "./GameData/GameRecipe";
+import { GameRecipe, GameRecipeEvent } from "./GameData/GameRecipe";
 
 async function main()
 {
@@ -36,9 +36,9 @@ async function main()
         zoomRatioDisplay.textContent = `Zoom: ${zoomScale.toPrecision(2)}x`;
     });
 
-    function createNode()
+    function createNode(recipe: GameRecipe)
     {
-        const node = new SankeyNode(nodesGroup, new Point(50, 50), [50, 50], [100]);
+        const node = new SankeyNode(nodesGroup, new Point(50, 50), recipe);
 
         node.nodeSvg.onmousedown = (event) =>
         {
@@ -314,10 +314,14 @@ async function main()
         };
     };
 
+    let selectedRecipe: GameRecipe | undefined;
+
     document.addEventListener("recipe-selected", (event) =>
     {
         let recipe = (event as GameRecipeEvent).recipe;
         let machine = (event as GameRecipeEvent).machine;
+
+        selectedRecipe = recipe;
 
         if (recipe == undefined || machine == undefined)
         {
@@ -356,7 +360,10 @@ async function main()
     confirmRecipeButton.addEventListener("click", () =>
     {
         nodeCreationContainer?.classList.add("hidden");
-        createNode();
+        if (selectedRecipe != undefined)
+        {
+            createNode(selectedRecipe);
+        }
     });
 
     tabSelectors.children[0].classList.add("active");

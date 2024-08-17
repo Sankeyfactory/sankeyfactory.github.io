@@ -2,18 +2,8 @@ import { Point } from "../Point";
 import { SankeySlot } from "./Slots/SankeySlot";
 import { SlotsGroup } from "./SlotsGroup";
 import { SvgFactory } from "../SVG/SvgFactory";
-
-function sumOfNumbers(array: number[])
-{
-    let result = 0;
-
-    for (let resourcesAmount of array)
-    {
-        result += resourcesAmount;
-    }
-
-    return result;
-}
+import { GameRecipe } from "../GameData/GameRecipe";
+import { GameMachine } from "../GameData/GameMachine";
 
 export class SankeyNode
 {
@@ -26,8 +16,8 @@ export class SankeyNode
     constructor(
         parentGroup: SVGGElement,
         position: Point,
-        inputResourcesAmount: number[],
-        outputResourcesAmount: number[],)
+        recipe: GameRecipe,
+    )
     {
         this.nodeSvgGroup = SvgFactory.createSvgGroup(position, "node");
 
@@ -38,17 +28,26 @@ export class SankeyNode
             y: 0
         }, "machine");
 
-        let totalInputResourcesAmount = sumOfNumbers(inputResourcesAmount);
-        let totalOutputResourcesAmount = sumOfNumbers(outputResourcesAmount);
+        let totalInputResourcesAmount = recipe.ingredients
+            .reduce((sum, ingredient) =>
+            {
+                return sum + toItemsInMinute(ingredient.amount, recipe.manufacturingDuration);
+            }, 0);
+
+        let totalOutputResourcesAmount = recipe.products
+            .reduce((sum, product) =>
+            {
+                return sum + toItemsInMinute(product.amount, recipe.manufacturingDuration);
+            }, 0);
 
         let nextInputGroupY = 0;
 
-        for (const resourcesAmount of inputResourcesAmount)
+        for (const ingredient of recipe.ingredients)
         {
             let newGroup = new SlotsGroup(
                 this,
                 "input",
-                resourcesAmount,
+                toItemsInMinute(ingredient.amount, recipe.manufacturingDuration),
                 totalInputResourcesAmount,
                 nextInputGroupY
             );
@@ -60,12 +59,12 @@ export class SankeyNode
 
         let nextOutputGroupY = 0;
 
-        for (const resourcesAmount of outputResourcesAmount)
+        for (const product of recipe.products)
         {
             let newGroup = new SlotsGroup(
                 this,
                 "output",
-                resourcesAmount,
+                toItemsInMinute(product.amount, recipe.manufacturingDuration),
                 totalOutputResourcesAmount,
                 nextOutputGroupY);
 
@@ -91,4 +90,9 @@ export class SankeyNode
 
     private inputSlotGroups: SlotsGroup[] = [];
     private outputSlotGroups: SlotsGroup[] = [];
+}
+
+function toItemsInMinute(amount: number, consumingTime: number): number
+{
+    return (60 / consumingTime) * amount;
 }
