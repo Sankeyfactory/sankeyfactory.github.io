@@ -411,3 +411,21 @@ div#node-creation-modal {
 #node-creation-modal #selected-recipe .property .text {
     text-align: center;
 }
+
+#node-creation-modal div.button {
+    display: flex;
+    padding: 12px 0;
+    justify-content: center;
+    margin-top: 10px;
+    border-radius: 8px;
+    background-color: #2b2b2b;
+    border: 2px solid #7a7a7a;
+    color: #ffffff;
+    text-align: center;
+}
+
+#node-creation-modal div.button:hover {
+    cursor: pointer;
+    background-color: #212121;
+    border: 2px solid #969696;
+}

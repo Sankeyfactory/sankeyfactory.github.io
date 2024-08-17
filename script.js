@@ -1972,8 +1972,6 @@
       zoomRatioDisplay.textContent = `Zoom: ${zoomScale.toPrecision(2)}x`;
     });
     function createNode() {
-      let nodeCreationContainer2 = document.querySelector("div#node-creation-container");
-      nodeCreationContainer2?.classList.remove("hidden");
       const node = new SankeyNode(nodesGroup, new Point(50, 50), [50, 50], [100]);
       node.nodeSvg.onmousedown = (event) => {
         if (!isHoldingAlt && event.buttons === 1) {
@@ -1982,7 +1980,10 @@
       };
     }
     ;
-    document.querySelector("div.button#create-node").onclick = createNode;
+    document.querySelector("div.button#create-node").onclick = () => {
+      let nodeCreationContainer2 = document.querySelector("div#node-creation-container");
+      nodeCreationContainer2?.classList.remove("hidden");
+    };
     let isLocked = false;
     let lockButton = document.querySelector("div.button#lock-viewport");
     lockButton.onclick = () => {
@@ -2018,9 +2019,16 @@
         document.querySelector("#container").classList.remove("move");
       }
     });
+    let nodeCreationContainer = document.querySelector("div#node-creation-container");
     window.addEventListener("keypress", (event) => {
       if (event.code === "KeyN") {
-        createNode();
+        let nodeCreationContainer2 = document.querySelector("div#node-creation-container");
+        nodeCreationContainer2?.classList.remove("hidden");
+      }
+    });
+    window.addEventListener("keydown", (event) => {
+      if (event.code === "Escape" && !nodeCreationContainer?.classList.contains("hidden")) {
+        nodeCreationContainer?.classList.add("hidden");
       }
     });
     window.onmouseup = () => {
@@ -2030,7 +2038,6 @@
       MouseHandler.getInstance().handleMouseMove(event);
     };
     let nodeCreationClose = document.querySelector("div#node-creation-close");
-    let nodeCreationContainer = document.querySelector("div#node-creation-container");
     nodeCreationClose?.addEventListener("click", () => {
       nodeCreationContainer?.classList.add("hidden");
     });
@@ -2125,7 +2132,6 @@
       recipeTabs.appendChild(recipesTab);
     }
     let selectedRecipeDisplay = document.querySelector("div#selected-recipe");
-    let selectedRecipeOutput = document.querySelector("#selected-recipe-output");
     let createResourceDisplay = (parentDiv, craftingTime) => {
       return (recipeResource) => {
         let resource = Satisfactory_default.resources.find(
@@ -2162,12 +2168,17 @@
         let selectedRecipeInput = document.querySelector("#selected-recipe-input");
         recipe.ingredients.forEach(createResourceDisplay(selectedRecipeInput, recipe.manufacturingDuration));
         document.querySelectorAll("#selected-recipe-output>div.resource").forEach((div) => div.remove());
-        let selectedRecipeOutput2 = document.querySelector("#selected-recipe-output");
-        recipe.products.forEach(createResourceDisplay(selectedRecipeOutput2, recipe.manufacturingDuration));
+        let selectedRecipeOutput = document.querySelector("#selected-recipe-output");
+        recipe.products.forEach(createResourceDisplay(selectedRecipeOutput, recipe.manufacturingDuration));
         let selectedRecipePower = document.querySelector("#selected-recipe-power>div.text");
         selectedRecipePower.innerText = `${machine.powerConsumption} MW`;
         selectedRecipeDisplay.classList.remove("hidden");
       }
+    });
+    let confirmRecipeButton = document.querySelector("div#confirm-recipe");
+    confirmRecipeButton.addEventListener("click", () => {
+      nodeCreationContainer?.classList.add("hidden");
+      createNode();
     });
     tabSelectors.children[0].classList.add("active");
     recipeTabs.children[0].classList.add("active");
