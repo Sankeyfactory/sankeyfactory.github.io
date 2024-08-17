@@ -49,6 +49,8 @@ div.dimming {
     width: 100%;
 
     background-color: var(--dimming);
+
+    cursor: default;
 }
 
 div.button {
