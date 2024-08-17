@@ -211,6 +211,16 @@ div.controls {
     border-radius: 999px;
 }
 
+.controls .button svg {
+    width: 32px;
+    height: auto;
+    fill: var(--foreground);
+}
+
+.controls .button:hover svg {
+    fill: var(--foreground-accent);
+}
+
 .controls .zoom-controls p#ratio-display {
     margin: 0;
 }
@@ -283,6 +293,16 @@ div#node-creation-modal {
 
     font-size: 20px;
     font-weight: 500;
+}
+
+#node-creation-modal .title-row .close svg {
+    width: 28px;
+    height: auto;
+    fill: var(--foreground);
+}
+
+#node-creation-modal .title-row .close:hover svg {
+    fill: var(--foreground-accent);
 }
 
 #node-creation-modal .title-row div.close:hover {

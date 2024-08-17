@@ -57,6 +57,8 @@ async function main()
 
     let isLocked: boolean = false;
     let lockButton = document.querySelector("div.button#lock-viewport") as HTMLDivElement;
+    let unlockedIcon = document.querySelector("div.button#lock-viewport>svg.unlocked") as SVGElement;
+    let lockedIcon = document.querySelector("div.button#lock-viewport>svg.locked") as SVGElement;
 
     lockButton.onclick = () =>
     {
@@ -64,13 +66,17 @@ async function main()
         {
             panContext.resume();
             isLocked = false;
-            lockButton.innerText = "Lock";
+
+            unlockedIcon.classList.remove("hidden");
+            lockedIcon.classList.add("hidden");
         }
         else
         {
             panContext.pause();
             isLocked = true;
-            lockButton.innerText = "Unlock";
+
+            unlockedIcon.classList.add("hidden");
+            lockedIcon.classList.remove("hidden");
         }
     };
 
