@@ -1986,15 +1986,19 @@
     };
     let isLocked = false;
     let lockButton = document.querySelector("div.button#lock-viewport");
+    let unlockedIcon = document.querySelector("div.button#lock-viewport>svg.unlocked");
+    let lockedIcon = document.querySelector("div.button#lock-viewport>svg.locked");
     lockButton.onclick = () => {
       if (isLocked) {
         panContext.resume();
         isLocked = false;
-        lockButton.innerText = "Lock";
+        unlockedIcon.classList.remove("hidden");
+        lockedIcon.classList.add("hidden");
       } else {
         panContext.pause();
         isLocked = true;
-        lockButton.innerText = "Unlock";
+        unlockedIcon.classList.add("hidden");
+        lockedIcon.classList.remove("hidden");
       }
     };
     MouseHandler.getInstance().setPanContext(panContext);
