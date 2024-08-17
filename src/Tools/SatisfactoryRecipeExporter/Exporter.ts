@@ -170,6 +170,9 @@ let recipes: Recipe[] = satisfactory
             productsComplexity = Math.max(productsComplexity, resource?.resourceSinkPoints ?? 0);
         }
 
+        // Products which can't be sinked are usually very late-game ones or just should be together.
+        productsComplexity = productsComplexity == 0 ? 99999 : productsComplexity;
+
         return {
             id: docsRecipe.ClassName,
             displayName: docsRecipe.mDisplayName,
