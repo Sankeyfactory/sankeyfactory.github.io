@@ -17,7 +17,7 @@ The recipes are up-to-date with Satisfactory version `0.8.3.3` (Update 8 latest 
 - [Extracting the game files](#extracting-the-game-files)
 
 ## Screenshots
-![Design screenshot](screenshots/design.png)
+![Design screenshot](iron.png)
 
 ## Building
 
