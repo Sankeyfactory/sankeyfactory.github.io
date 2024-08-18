@@ -22,13 +22,13 @@ async function main()
         throw new Error("Svg container is broken");
     }
 
-    let isHoldingAlt = false;
+    let isHoldingCtrl = false;
 
     let panContext = panzoom(viewport, {
         zoomDoubleClickSpeed: 1, // disables double click zoom
         beforeMouseDown: () =>
         {
-            return !isHoldingAlt;
+            return !isHoldingCtrl;
         }
     });
 
@@ -44,7 +44,7 @@ async function main()
 
         node.nodeSvg.onmousedown = (event) =>
         {
-            if (!isHoldingAlt && event.buttons === 1)
+            if (!isHoldingCtrl && event.buttons === 1)
             {
                 MouseHandler.getInstance().startDraggingNode(event, node);
             }
@@ -88,9 +88,9 @@ async function main()
     {
         if (event.repeat) { return; }
 
-        if (event.key === "Alt")
+        if (event.key === "Control")
         {
-            isHoldingAlt = true;
+            isHoldingCtrl = true;
             document.querySelector("#container")!.classList.add("move");
         }
 
@@ -104,11 +104,16 @@ async function main()
     {
         if (event.repeat) { return; }
 
-        if (event.key === "Alt")
+        if (event.key === "Control")
         {
-            isHoldingAlt = false;
+            isHoldingCtrl = false;
             document.querySelector("#container")!.classList.remove("move");
         }
+    });
+
+    window.addEventListener("focusout", () =>
+    {
+        document.querySelector("#container")!.classList.remove("move");
     });
 
     let nodeCreationContainer = document.querySelector("div#node-creation-container");
@@ -182,7 +187,7 @@ async function main()
         };
 
         let basicRecipesGroup = createRecipesGroup("Basic recipes");
-        let alternateRecipesGroup = createRecipesGroup("Alternate recipes");
+        let alternateRecipesGroup = createRecipesGroup("Ctrlernate recipes");
         let eventsRecipesGroup = createRecipesGroup("Events recipes");
 
         let createRecipeParser = (simpleRecipesGroup: HTMLDivElement) =>
