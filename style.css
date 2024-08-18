@@ -165,6 +165,88 @@ div.help {
     fill: #74ce73;
 }
 
+/* Recipe display on a node */
+
+.node foreignObject {
+    pointer-events: none;
+}
+
+.node foreignObject .recipe-container {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+
+    height: 100%;
+
+    gap: 2px;
+
+    padding: 2px;
+}
+
+.node .recipe-container * {
+    font-size: 10px;
+}
+
+.node .recipe-container div.property {
+    display: flex;
+    flex-direction: column;
+
+    gap: 1px;
+}
+
+.node .recipe-container .property>div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background-color: var(--dimming);
+
+    padding: 2px 4px;
+}
+
+.node .recipe-container .property>div:first-child {
+    border-radius: 4px 4px 0 0;
+}
+
+.node .recipe-container .property>div:last-child {
+    border-radius: 0 0 4px 4px;
+}
+
+.node .recipe-container .property div.title {
+    text-align: center;
+
+    font-weight: 500;
+}
+
+.node .recipe-container .property div.text {
+    text-align: center;
+}
+
+.node .recipe-container .property div.resource {
+    display: flex;
+
+    gap: 4px;
+}
+
+.node .recipe-container .property .resource img.icon {
+    width: 16px;
+    height: 16px;
+
+    min-width: 0;
+}
+
+.node .recipe-container .property .resource p.amount {
+    margin: 0;
+}
+
+.node .recipe-container .property .machine img.icon {
+    width: 20px;
+    height: 20px;
+
+    min-width: 0;
+}
+
 /* Node links */
 
 line.link-hint {
