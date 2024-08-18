@@ -57,7 +57,7 @@ export class SankeyNode
                 nextInputGroupY
             );
 
-            this.inputSlotGroups.push(newGroup);
+            this._inputSlotGroups.push(newGroup);
 
             nextInputGroupY += newGroup.maxHeight;
         }
@@ -73,7 +73,7 @@ export class SankeyNode
                 totalOutputResourcesAmount,
                 nextOutputGroupY);
 
-            this.outputSlotGroups.push(newGroup);
+            this._outputSlotGroups.push(newGroup);
 
             nextOutputGroupY += newGroup.maxHeight;
         }
@@ -204,22 +204,37 @@ export class SankeyNode
         parentGroup.appendChild(this.nodeSvgGroup);
     }
 
-    public recalculateLinks()
+    public get position(): Point
     {
-        let recalculateGroup = (group: SlotsGroup) =>
-        {
-            group.recalculateLinks();
-        };
+        let transform = this.nodeSvgGroup.getAttribute("transform") ?? "translate(0, 0)";
+        let transformRegex = /translate\((?<x>-?\d+(?:\.\d+)?), ?(?<y>-?\d+(?:\.\d+)?)\)/;
 
-        this.inputSlotGroups.forEach(recalculateGroup);
-        this.outputSlotGroups.forEach(recalculateGroup);
+        let match = transformRegex.exec(transform)!;
+        let { x, y } = match.groups!;
+
+        return { x: +x, y: +y };
     }
 
-    private inputSlotGroups: SlotsGroup[] = [];
-    private outputSlotGroups: SlotsGroup[] = [];
+    public set position(position: Point)
+    {
+        this.nodeSvgGroup.setAttribute("transform", `translate(${position.x}, ${position.y})`);
+
+        for (const group of this._inputSlotGroups)
+        {
+            group.dispatchEvent(new Event(SlotsGroup.boundsChangedEvent));
+        }
+
+        for (const group of this._outputSlotGroups)
+        {
+            group.dispatchEvent(new Event(SlotsGroup.boundsChangedEvent));
+        }
+    }
+
+    private _inputSlotGroups: SlotsGroup[] = [];
+    private _outputSlotGroups: SlotsGroup[] = [];
 }
 
-function toItemsInMinute(amount: number, consumingTime: number): number
+export function toItemsInMinute(amount: number, consumingTime: number): number
 {
     return (60 / consumingTime) * amount;
 }

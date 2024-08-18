@@ -1,18 +1,12 @@
 import { Rectangle } from "../../Rectangle";
 import { SvgFactory } from "../../SVG/SvgFactory";
-import { SankeyLink } from "../SankeyLink";
 import { SlotsGroup } from "../SlotsGroup";
 
-export abstract class SankeySlot
+export abstract class SankeySlot extends EventTarget
 {
-    public resourcesAmount: number;
-    public slotSvg: SVGElement;
-
-    public connectedLink: SankeyLink | undefined;
-
     public static readonly slotWidth = 10;
 
-    public readonly parentGroup: SlotsGroup;
+    public static readonly boundsChangedEvent = "bounds-changed";
 
     constructor(
         slotsGroup: SlotsGroup,
@@ -20,8 +14,10 @@ export abstract class SankeySlot
         resourcesAmount: number,
         ...classes: string[])
     {
-        this.resourcesAmount = resourcesAmount;
-        this.parentGroup = slotsGroup;
+        super();
+
+        this._resourcesAmount = resourcesAmount;
+        this._parentGroup = slotsGroup;
 
         let dimensions: Rectangle = {
             width: SankeySlot.slotWidth,
@@ -30,20 +26,47 @@ export abstract class SankeySlot
             y: 0
         };
 
-        this.slotSvg = SvgFactory.createSvgRect(dimensions, ...classes);
-        slotsGroupSvg.appendChild(this.slotSvg);
+        this._slotSvgRect = SvgFactory.createSvgRect(dimensions, ...classes);
+        slotsGroupSvg.appendChild(this.slotSvgRect);
     }
 
-    public setYPosition(yPosition: number)
+    public setYPosition(yPosition: number): void
     {
-        this.slotSvg.setAttribute("y", `${yPosition}`);
+        this.slotSvgRect.setAttribute("y", `${yPosition}`);
+
+        this.dispatchEvent(new Event(SankeySlot.boundsChangedEvent));
     }
 
-    public setResourcesAmount(slotsGroup: SlotsGroup, resourcesAmount: number)
+    public get resourcesAmount()
     {
-        this.slotSvg.setAttribute(
+        return this._resourcesAmount;
+    }
+
+    public set resourcesAmount(resourcesAmount: number)
+    {
+        this._resourcesAmount = resourcesAmount;
+
+        this.slotSvgRect.setAttribute(
             "height",
-            `${slotsGroup.maxHeight * (resourcesAmount / slotsGroup.resourcesAmount)}`
+            `${this._parentGroup.maxHeight * (resourcesAmount / this._parentGroup.resourcesAmount)}`
         );
+
+        this.dispatchEvent(new Event(SankeySlot.boundsChangedEvent));
     }
+
+    public get slotSvgRect(): SVGRectElement
+    {
+        return this._slotSvgRect;
+    }
+
+    protected get parentGroup(): SlotsGroup
+    {
+        return this._parentGroup;
+    }
+
+    private _resourcesAmount: number;
+
+    private readonly _slotSvgRect: SVGRectElement;
+
+    private readonly _parentGroup: SlotsGroup;
 }

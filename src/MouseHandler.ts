@@ -1,11 +1,11 @@
 import { PanZoom } from "panzoom";
 import { Point } from "./Point";
 import { SankeyNode } from "./Sankey/SankeyNode";
-import { SankeySlot } from "./Sankey/Slots/SankeySlot";
 import { SvgFactory } from "./SVG/SvgFactory";
 import { Rectangle } from "./Rectangle";
 import { SankeyLink } from "./Sankey/SankeyLink";
-import { SlotsGroup } from "./Sankey/SlotsGroup";
+import { SankeySlotMissing } from "./Sankey/Slots/SankeySlotMissing";
+import { SankeySlotExceeding } from "./Sankey/Slots/SankeySlotExceeding";
 
 export class MouseHandler
 {
@@ -41,13 +41,7 @@ export class MouseHandler
                 throw Error("Dragged node wasn't saved.");
             }
 
-            // TODO: Do something with this nightmare.
-            let previousPos: Point = {
-                x: parseFloat(this.draggedNode.nodeSvgGroup.getAttribute("transform")!
-                    .split("translate(")[1].split(",")[0]),
-                y: parseFloat(this.draggedNode.nodeSvgGroup.getAttribute("transform")!
-                    .split("translate(")[1].split(",")[1])
-            };
+            let previousPos = this.draggedNode.position;
 
             let zoomScale = this.panContext.getTransform().scale;
 
@@ -56,13 +50,10 @@ export class MouseHandler
                 y: event.clientY - this.lastMousePos.y
             };
 
-            // TODO: Refactor.
-            let translate = `translate(${previousPos.x + mousePosDelta.x / zoomScale}, `
-                + `${previousPos.y + mousePosDelta.y / zoomScale})`;
-
-            this.draggedNode.nodeSvgGroup.setAttribute("transform", translate);
-
-            this.draggedNode.recalculateLinks();
+            this.draggedNode.position = {
+                x: previousPos.x + mousePosDelta.x / zoomScale,
+                y: previousPos.y + mousePosDelta.y / zoomScale
+            };
 
             this.lastMousePos.x = event.clientX;
             this.lastMousePos.y = event.clientY;
@@ -109,7 +100,7 @@ export class MouseHandler
         this.mouseStatus = MouseHandler.MouseStatus.Free;
     }
 
-    public inputSlotClicked(event: MouseEvent, targetSlot: SankeySlot)
+    public inputSlotClicked(event: MouseEvent, targetSlot: SankeySlotMissing)
     {
         if (this.mouseStatus === MouseHandler.MouseStatus.Free)
         {
@@ -131,19 +122,16 @@ export class MouseHandler
             let resourcesAmount =
                 Math.min(targetSlot.resourcesAmount, this.firstConnectingSlot.resourcesAmount);
 
-            let newSlot1 = this.firstConnectingSlot.parentGroup.addSlot(resourcesAmount);
-            let newSlot2 = targetSlot.parentGroup.addSlot(resourcesAmount);
+            let newSlot1 = this.firstConnectingSlot.splitOffSlot(resourcesAmount);
+            let newSlot2 = targetSlot.splitOffSlot(resourcesAmount);
 
-            let link = new SankeyLink(newSlot1, newSlot2, this.panContext);
-
-            newSlot1.connectedLink = link;
-            newSlot2.connectedLink = link;
+            SankeyLink.connect(newSlot1, newSlot2, this.panContext);
 
             this.cancelConnectingSlots();
         }
     }
 
-    public outputSlotClicked(event: MouseEvent, targetSlot: SankeySlot)
+    public outputSlotClicked(event: MouseEvent, targetSlot: SankeySlotExceeding)
     {
         if (this.mouseStatus === MouseHandler.MouseStatus.Free)
         {
@@ -165,19 +153,19 @@ export class MouseHandler
             let resourcesAmount =
                 Math.min(targetSlot.resourcesAmount, this.firstConnectingSlot.resourcesAmount);
 
-            let newSlot1 = this.firstConnectingSlot.parentGroup.addSlot(resourcesAmount);
-            let newSlot2 = targetSlot.parentGroup.addSlot(resourcesAmount);
+            let newSlot1 = this.firstConnectingSlot.splitOffSlot(resourcesAmount);
+            let newSlot2 = targetSlot.splitOffSlot(resourcesAmount);
 
-            let link = new SankeyLink(newSlot1, newSlot2, this.panContext);
-
-            newSlot1.connectedLink = link;
-            newSlot2.connectedLink = link;
+            SankeyLink.connect(newSlot1, newSlot2, this.panContext);
 
             this.cancelConnectingSlots();
         }
     }
 
-    private startConnectingSlot(event: MouseEvent, firstSlot: SankeySlot, isInput: boolean)
+    private startConnectingSlot(
+        event: MouseEvent,
+        firstSlot: SankeySlotExceeding | SankeySlotMissing,
+        isInput: boolean)
     {
         if (this.panContext == undefined)
         {
@@ -188,7 +176,7 @@ export class MouseHandler
 
         let zoomScale = this.panContext.getTransform().scale;
 
-        let slotBounds: Rectangle = (firstSlot.slotSvg as SVGRectElement).getBoundingClientRect();
+        let slotBounds: Rectangle = firstSlot.slotSvgRect.getBoundingClientRect();
         slotBounds = {
             x: (slotBounds.x - this.panContext.getTransform().x) / zoomScale,
             y: (slotBounds.y - this.panContext.getTransform().y) / zoomScale,
@@ -233,7 +221,7 @@ export class MouseHandler
 
     private panContext: PanZoom | undefined;
 
-    private firstConnectingSlot: SankeySlot | undefined;
+    private firstConnectingSlot: SankeySlotMissing | SankeySlotExceeding | undefined;
     private draggedNode: SankeyNode | undefined;
     private slotConnectingLine: SVGLineElement | undefined;
 

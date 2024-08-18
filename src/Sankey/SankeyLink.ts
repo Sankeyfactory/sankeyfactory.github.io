@@ -7,24 +7,30 @@ import { SankeySlot } from "./Slots/SankeySlot";
 
 export class SankeyLink
 {
-    private svgPath: SVGPathElement;
-
-    constructor(
-        private firstSlot: SankeySlot,
-        private secondSlot: SankeySlot,
-        private panContext: PanZoom
-    )
+    public static connect(firstSlot: SankeySlot, secondSlot: SankeySlot, panContext: PanZoom) 
     {
-        this.svgPath = SvgFactory.createSvgPath("link");
-        this.recalculate();
+        let link = new SankeyLink(firstSlot, secondSlot, panContext);
 
-        document.querySelector("#viewport")?.appendChild(this.svgPath);
+        document.querySelector("#viewport")?.appendChild(link._svgPath);
+    }
+
+    constructor(firstSlot: SankeySlot, secondSlot: SankeySlot, panContext: PanZoom)
+    {
+        this._firstSlot = firstSlot;
+        this._secondSlot = secondSlot;
+        this._panContext = panContext;
+
+        firstSlot.addEventListener(SankeySlot.boundsChangedEvent, this.recalculate.bind(this));
+        secondSlot.addEventListener(SankeySlot.boundsChangedEvent, this.recalculate.bind(this));
+
+        this._svgPath = SvgFactory.createSvgPath("link");
+        this.recalculate();
     }
 
     public recalculate(): void
     {
-        let first = Rectangle.fromSvgBounds(this.firstSlot.slotSvg, this.panContext);
-        let second = Rectangle.fromSvgBounds(this.secondSlot.slotSvg, this.panContext);
+        let first = Rectangle.fromSvgBounds(this._firstSlot.slotSvgRect, this._panContext);
+        let second = Rectangle.fromSvgBounds(this._secondSlot.slotSvgRect, this._panContext);
 
         let curve1 = new Curve();
 
@@ -72,9 +78,14 @@ export class SankeyLink
             .verticalLineTo(curve1.startPoint.y)
             .build();
 
-        this.svgPath.setAttribute("d", svgPath);
+        this._svgPath.setAttribute("d", svgPath);
 
         // For cutting-out stroke on the outside of the shape.
-        this.svgPath.style.clipPath = `view-box path("${svgPath}")`;
+        this._svgPath.style.clipPath = `view-box path("${svgPath}")`;
     }
+
+    private _firstSlot: SankeySlot;
+    private _secondSlot: SankeySlot;
+    private _panContext: PanZoom;
+    private _svgPath: SVGPathElement;
 }

@@ -9,8 +9,10 @@ import { OutputSankeySlot } from "./Slots/OutputSankeySlot";
 
 type SlotsGroupType = "input" | "output";
 
-export class SlotsGroup
+export class SlotsGroup extends EventTarget
 {
+    public static readonly boundsChangedEvent = "bounds-changed";
+
     public type: SlotsGroupType;
 
     public maxHeight: number;
@@ -23,6 +25,8 @@ export class SlotsGroup
         nodeResourcesAmount: number,
         startY: number)
     {
+        super();
+
         this.type = type;
         this.resourcesAmount = resourcesAmount;
 
@@ -38,6 +42,14 @@ export class SlotsGroup
         this.lastSlot = this.createLastSlot();
 
         node.nodeSvgGroup.appendChild(this.groupSvg);
+
+        this.addEventListener(SlotsGroup.boundsChangedEvent, () =>
+        {
+            for (const slot of this.slots)
+            {
+                slot.dispatchEvent(new Event(SankeySlot.boundsChangedEvent));
+            }
+        });
     }
 
     public addSlot(resourcesAmount: number): SankeySlot
@@ -77,11 +89,11 @@ export class SlotsGroup
             slot.setYPosition(nextYPosition);
 
             freeResourcesAmount -= slot.resourcesAmount;
-            nextYPosition += +(slot.slotSvg.getAttribute("height") ?? 0);
+            nextYPosition += +(slot.slotSvgRect.getAttribute("height") ?? 0);
         }
 
         this.lastSlot.setYPosition(nextYPosition);
-        this.lastSlot.setResourcesAmount(this, freeResourcesAmount);
+        this.lastSlot.resourcesAmount = freeResourcesAmount;
     }
 
     private createLastSlot(): SankeySlotMissing | SankeySlotExceeding
@@ -97,17 +109,6 @@ export class SlotsGroup
         else
         {
             throw Error("Unexpected slots group type");
-        }
-    }
-
-    public recalculateLinks()
-    {
-        for (const slot of this.slots)
-        {
-            if (slot.connectedLink != undefined)
-            {
-                slot.connectedLink.recalculate();
-            }
         }
     }
 

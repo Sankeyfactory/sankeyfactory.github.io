@@ -1,6 +1,7 @@
 import { OutputSankeySlot } from "./OutputSankeySlot";
 import { SlotsGroup } from "../SlotsGroup";
 import { MouseHandler } from "../../MouseHandler";
+import { SankeySlot } from "./SankeySlot";
 
 export class SankeySlotExceeding extends OutputSankeySlot
 {
@@ -9,16 +10,19 @@ export class SankeySlotExceeding extends OutputSankeySlot
         slotsGroupSvg: SVGGElement,
         resourcesAmount: number)
     {
-        super(slotsGroup, slotsGroupSvg, resourcesAmount);
+        super(slotsGroup, slotsGroupSvg, resourcesAmount, "exceeding");
 
-        this.slotSvg.classList.add("exceeding");
-
-        this.slotSvg.onmousedown = (event) =>
+        this.slotSvgRect.addEventListener("click", (event) =>
         {
-            if (!event.altKey && event.buttons === 1)
+            if (!event.altKey)
             {
                 MouseHandler.getInstance().outputSlotClicked(event, this);
             }
-        };
+        });
+    }
+
+    public splitOffSlot(resourcesAmount: number): SankeySlot
+    {
+        return this.parentGroup.addSlot(resourcesAmount);
     }
 }
