@@ -258,9 +258,13 @@ div.help {
     margin: 0;
 }
 
+.node .recipe-container .property .machine {
+    padding: 2px;
+}
+
 .node .recipe-container .property .machine img.icon {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
 
     min-width: 0;
 }
