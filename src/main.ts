@@ -1,12 +1,14 @@
 import panzoom from "panzoom";
-import { SankeyNode } from "./Sankey/SankeyNode";
-import { Point } from "./Point";
-import { MouseHandler } from "./MouseHandler";
-import { GameRecipe, GameRecipeEvent } from "./GameData/GameRecipe";
 
 // Ignore import error as the file only appears on launch of the exporting tool.
 // @ts-ignore
 import satisfactoryData from '../dist/GameData/Satisfactory.json';
+
+import { SankeyNode } from "./Sankey/SankeyNode";
+import { Point } from "./Point";
+import { MouseHandler } from "./MouseHandler";
+import { GameRecipe, GameRecipeEvent } from "./GameData/GameRecipe";
+import { GameMachine } from "./GameData/GameMachine";
 
 async function main()
 {
@@ -36,9 +38,9 @@ async function main()
         zoomRatioDisplay.textContent = `Zoom: ${zoomScale.toPrecision(2)}x`;
     });
 
-    function createNode(recipe: GameRecipe)
+    function createNode(recipe: GameRecipe, machine: GameMachine)
     {
-        const node = new SankeyNode(nodesGroup, new Point(50, 50), recipe);
+        const node = new SankeyNode(nodesGroup, new Point(50, 50), recipe, machine);
 
         node.nodeSvg.onmousedown = (event) =>
         {
@@ -315,6 +317,7 @@ async function main()
     };
 
     let selectedRecipe: GameRecipe | undefined;
+    let selectedRecipeMachine: GameMachine | undefined;
 
     document.addEventListener("recipe-selected", (event) =>
     {
@@ -322,6 +325,7 @@ async function main()
         let machine = (event as GameRecipeEvent).machine;
 
         selectedRecipe = recipe;
+        selectedRecipeMachine = machine;
 
         if (recipe == undefined || machine == undefined)
         {
@@ -360,9 +364,9 @@ async function main()
     confirmRecipeButton.addEventListener("click", () =>
     {
         nodeCreationContainer?.classList.add("hidden");
-        if (selectedRecipe != undefined)
+        if (selectedRecipe != undefined && selectedRecipeMachine != undefined)
         {
-            createNode(selectedRecipe);
+            createNode(selectedRecipe, selectedRecipeMachine);
         }
     });
 

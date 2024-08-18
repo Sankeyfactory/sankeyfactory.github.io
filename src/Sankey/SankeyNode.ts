@@ -1,12 +1,13 @@
+// Ignore import error as the file only appears on launch of the exporting tool.
+// @ts-ignore
+import satisfactoryData from '../../dist/GameData/Satisfactory.json';
+
 import { Point } from "../Point";
 import { SankeySlot } from "./Slots/SankeySlot";
 import { SlotsGroup } from "./SlotsGroup";
 import { SvgFactory } from "../SVG/SvgFactory";
 import { GameRecipe } from "../GameData/GameRecipe";
-
-// Ignore import error as the file only appears on launch of the exporting tool.
-// @ts-ignore
-import satisfactoryData from '../../dist/GameData/Satisfactory.json';
+import { GameMachine } from "../GameData/GameMachine";
 
 export class SankeyNode
 {
@@ -20,6 +21,7 @@ export class SankeyNode
         parentGroup: SVGGElement,
         position: Point,
         recipe: GameRecipe,
+        machine: GameMachine,
     )
     {
         this.nodeSvgGroup = SvgFactory.createSvgGroup(position, "node");
@@ -88,15 +90,18 @@ export class SankeyNode
         recipeContainer.classList.add("recipe-container");
 
 
-        let recipeNameProp = document.createElement("div");
-        recipeNameProp.classList.add("property");
+        let recipeMachineProp = document.createElement("div");
+        recipeMachineProp.classList.add("property");
 
-        let recipeNameTitle = document.createElement("div");
-        recipeNameTitle.classList.add("title");
-        recipeNameTitle.innerText = "Recipe";
+        let recipeMachineTitle = document.createElement("div");
+        recipeMachineTitle.classList.add("title");
+        recipeMachineTitle.innerText = "Machine";
 
-        let recipeNameText = document.createElement("div");
-        recipeNameText.classList.add("text");
+        let recipeMachineValue = document.createElement("div");
+        recipeMachineValue.classList.add("machine");
+
+        let recipeMachineIcon = document.createElement("img");
+        recipeMachineIcon.classList.add("icon");
 
 
         let recipeInputsProp = document.createElement("div");
@@ -115,17 +120,33 @@ export class SankeyNode
         recipeOutputsTitle.innerText = "Output/min";
 
 
+        let recipePowerProp = document.createElement("div");
+        recipePowerProp.classList.add("property");
 
-        recipeNameProp.appendChild(recipeNameTitle);
-        recipeNameProp.appendChild(recipeNameText);
+        let recipePowerTitle = document.createElement("div");
+        recipePowerTitle.classList.add("title");
+        recipePowerTitle.innerText = "Power";
+
+        let recipePowerText = document.createElement("div");
+        recipePowerText.classList.add("text");
+
+
+
+        recipeMachineValue.appendChild(recipeMachineIcon);
+        recipeMachineProp.appendChild(recipeMachineTitle);
+        recipeMachineProp.appendChild(recipeMachineValue);
 
         recipeInputsProp.appendChild(recipeInputsTitle);
 
         recipeOutputsProp.appendChild(recipeOutputsTitle);
 
-        recipeContainer.appendChild(recipeNameProp);
+        recipePowerProp.appendChild(recipePowerTitle);
+        recipePowerProp.appendChild(recipePowerText);
+
+        recipeContainer.appendChild(recipeMachineProp);
         recipeContainer.appendChild(recipeInputsProp);
         recipeContainer.appendChild(recipeOutputsProp);
+        recipeContainer.appendChild(recipePowerProp);
 
         foreignObject.appendChild(recipeContainer);
 
@@ -164,18 +185,15 @@ export class SankeyNode
 
 
 
-        recipeNameText.innerText = recipe.displayName;
-
-        // let selectedRecipeMachine = document.querySelector("#selected-recipe-machine>div.machine>img.icon") as HTMLImageElement;
-        // selectedRecipeMachine.src = `GameData/SatisfactoryIcons/${machine.iconPath}`;
-        // selectedRecipeMachine.title = machine.displayName;
+        recipeMachineIcon.src = `GameData/SatisfactoryIcons/${machine.iconPath}`;
+        recipeMachineIcon.title = machine.displayName;
+        recipeMachineIcon.alt = machine.displayName;
 
         recipe.ingredients.forEach(createResourceDisplay(recipeInputsProp, recipe.manufacturingDuration));
 
         recipe.products.forEach(createResourceDisplay(recipeOutputsProp, recipe.manufacturingDuration));
 
-        // let selectedRecipePower = document.querySelector("#selected-recipe-power>div.text") as HTMLDivElement;
-        // selectedRecipePower.innerText = `${machine.powerConsumption} MW`;
+        recipePowerText.innerText = `${machine.powerConsumption} MW`;
 
 
 
