@@ -2038,12 +2038,12 @@
     if (viewport == null || nodesGroup == null || linksGroup == null) {
       throw new Error("Svg container is broken");
     }
-    let isHoldingAlt = false;
+    let isHoldingCtrl = false;
     let panContext = (0, import_panzoom.default)(viewport, {
       zoomDoubleClickSpeed: 1,
       // disables double click zoom
       beforeMouseDown: () => {
-        return !isHoldingAlt;
+        return !isHoldingCtrl;
       }
     });
     panContext.on("zoom", () => {
@@ -2053,7 +2053,7 @@
     function createNode(recipe, machine) {
       const node = new SankeyNode(nodesGroup, new Point(50, 50), recipe, machine);
       node.nodeSvg.onmousedown = (event) => {
-        if (!isHoldingAlt && event.buttons === 1) {
+        if (!isHoldingCtrl && event.buttons === 1) {
           MouseHandler.getInstance().startDraggingNode(event, node);
         }
       };
@@ -2085,8 +2085,8 @@
       if (event.repeat) {
         return;
       }
-      if (event.key === "Alt") {
-        isHoldingAlt = true;
+      if (event.key === "Control") {
+        isHoldingCtrl = true;
         document.querySelector("#container").classList.add("move");
       }
       if (event.key === "Escape") {
@@ -2097,10 +2097,13 @@
       if (event.repeat) {
         return;
       }
-      if (event.key === "Alt") {
-        isHoldingAlt = false;
+      if (event.key === "Control") {
+        isHoldingCtrl = false;
         document.querySelector("#container").classList.remove("move");
       }
+    });
+    window.addEventListener("focusout", () => {
+      document.querySelector("#container").classList.remove("move");
     });
     let nodeCreationContainer = document.querySelector("div#node-creation-container");
     window.addEventListener("keypress", (event) => {
@@ -2148,7 +2151,7 @@
         return { div: groupDiv, title: groupTitle };
       };
       let basicRecipesGroup = createRecipesGroup("Basic recipes");
-      let alternateRecipesGroup = createRecipesGroup("Alternate recipes");
+      let alternateRecipesGroup = createRecipesGroup("Ctrlernate recipes");
       let eventsRecipesGroup = createRecipesGroup("Events recipes");
       let createRecipeParser = (simpleRecipesGroup) => {
         return (recipe) => {
