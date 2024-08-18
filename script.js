@@ -1472,33 +1472,46 @@
   };
 
   // src/Sankey/Slots/SankeySlot.ts
-  var SankeySlot = class _SankeySlot {
-    resourcesAmount;
-    slotSvg;
-    connectedLink;
+  var SankeySlot = class _SankeySlot extends EventTarget {
     static slotWidth = 10;
-    parentGroup;
+    static boundsChangedEvent = "bounds-changed";
     constructor(slotsGroup, slotsGroupSvg, resourcesAmount, ...classes) {
-      this.resourcesAmount = resourcesAmount;
-      this.parentGroup = slotsGroup;
+      super();
+      this._resourcesAmount = resourcesAmount;
+      this._parentGroup = slotsGroup;
       let dimensions = {
         width: _SankeySlot.slotWidth,
         height: slotsGroup.maxHeight * (resourcesAmount / slotsGroup.resourcesAmount),
         x: 0,
         y: 0
       };
-      this.slotSvg = SvgFactory.createSvgRect(dimensions, ...classes);
-      slotsGroupSvg.appendChild(this.slotSvg);
+      this._slotSvgRect = SvgFactory.createSvgRect(dimensions, ...classes);
+      slotsGroupSvg.appendChild(this.slotSvgRect);
     }
     setYPosition(yPosition) {
-      this.slotSvg.setAttribute("y", `${yPosition}`);
+      this.slotSvgRect.setAttribute("y", `${yPosition}`);
+      this.dispatchEvent(new Event(_SankeySlot.boundsChangedEvent));
     }
-    setResourcesAmount(slotsGroup, resourcesAmount) {
-      this.slotSvg.setAttribute(
+    get resourcesAmount() {
+      return this._resourcesAmount;
+    }
+    set resourcesAmount(resourcesAmount) {
+      this._resourcesAmount = resourcesAmount;
+      this.slotSvgRect.setAttribute(
         "height",
-        `${slotsGroup.maxHeight * (resourcesAmount / slotsGroup.resourcesAmount)}`
+        `${this._parentGroup.maxHeight * (resourcesAmount / this._parentGroup.resourcesAmount)}`
       );
+      this.dispatchEvent(new Event(_SankeySlot.boundsChangedEvent));
     }
+    get slotSvgRect() {
+      return this._slotSvgRect;
+    }
+    get parentGroup() {
+      return this._parentGroup;
+    }
+    _resourcesAmount;
+    _slotSvgRect;
+    _parentGroup;
   };
 
   // src/Point.ts
@@ -1511,8 +1524,8 @@
 
   // src/Sankey/Slots/OutputSankeySlot.ts
   var OutputSankeySlot = class extends SankeySlot {
-    constructor(slotsGroup, slotsGroupSvg, resourcesAmount) {
-      super(slotsGroup, slotsGroupSvg, resourcesAmount, "output-slot");
+    constructor(slotsGroup, slotsGroupSvg, resourcesAmount, ...classes) {
+      super(slotsGroup, slotsGroupSvg, resourcesAmount, "output-slot", ...classes);
     }
   };
 
@@ -1578,19 +1591,23 @@
   };
 
   // src/Sankey/SankeyLink.ts
-  var SankeyLink = class {
-    constructor(firstSlot, secondSlot, panContext) {
-      this.firstSlot = firstSlot;
-      this.secondSlot = secondSlot;
-      this.panContext = panContext;
-      this.svgPath = SvgFactory.createSvgPath("link");
-      this.recalculate();
-      document.querySelector("#viewport")?.appendChild(this.svgPath);
+  var SankeyLink = class _SankeyLink {
+    static connect(firstSlot, secondSlot, panContext) {
+      let link = new _SankeyLink(firstSlot, secondSlot, panContext);
+      document.querySelector("#viewport")?.appendChild(link._svgPath);
     }
-    svgPath;
+    constructor(firstSlot, secondSlot, panContext) {
+      this._firstSlot = firstSlot;
+      this._secondSlot = secondSlot;
+      this._panContext = panContext;
+      firstSlot.addEventListener(SankeySlot.boundsChangedEvent, this.recalculate.bind(this));
+      secondSlot.addEventListener(SankeySlot.boundsChangedEvent, this.recalculate.bind(this));
+      this._svgPath = SvgFactory.createSvgPath("link");
+      this.recalculate();
+    }
     recalculate() {
-      let first = Rectangle.fromSvgBounds(this.firstSlot.slotSvg, this.panContext);
-      let second = Rectangle.fromSvgBounds(this.secondSlot.slotSvg, this.panContext);
+      let first = Rectangle.fromSvgBounds(this._firstSlot.slotSvgRect, this._panContext);
+      let second = Rectangle.fromSvgBounds(this._secondSlot.slotSvgRect, this._panContext);
       let curve1 = new Curve();
       curve1.startPoint = {
         x: first.x + first.width,
@@ -1626,9 +1643,13 @@
         y: first.y + first.height
       };
       let svgPath = new SvgPathBuilder().startAt(curve1.startPoint).curve(curve1).verticalLineTo(curve1.endPoint.y + second.height).curve(curve2).verticalLineTo(curve1.startPoint.y).build();
-      this.svgPath.setAttribute("d", svgPath);
-      this.svgPath.style.clipPath = `view-box path("${svgPath}")`;
+      this._svgPath.setAttribute("d", svgPath);
+      this._svgPath.style.clipPath = `view-box path("${svgPath}")`;
     }
+    _firstSlot;
+    _secondSlot;
+    _panContext;
+    _svgPath;
   };
 
   // src/MouseHandler.ts
@@ -1652,18 +1673,16 @@
         if (this.draggedNode == void 0) {
           throw Error("Dragged node wasn't saved.");
         }
-        let previousPos = {
-          x: parseFloat(this.draggedNode.nodeSvgGroup.getAttribute("transform").split("translate(")[1].split(",")[0]),
-          y: parseFloat(this.draggedNode.nodeSvgGroup.getAttribute("transform").split("translate(")[1].split(",")[1])
-        };
+        let previousPos = this.draggedNode.position;
         let zoomScale = this.panContext.getTransform().scale;
         let mousePosDelta = {
           x: event.clientX - this.lastMousePos.x,
           y: event.clientY - this.lastMousePos.y
         };
-        let translate = `translate(${previousPos.x + mousePosDelta.x / zoomScale}, ${previousPos.y + mousePosDelta.y / zoomScale})`;
-        this.draggedNode.nodeSvgGroup.setAttribute("transform", translate);
-        this.draggedNode.recalculateLinks();
+        this.draggedNode.position = {
+          x: previousPos.x + mousePosDelta.x / zoomScale,
+          y: previousPos.y + mousePosDelta.y / zoomScale
+        };
         this.lastMousePos.x = event.clientX;
         this.lastMousePos.y = event.clientY;
       } else if (this.mouseStatus === _MouseHandler.MouseStatus.ConnectingInputSlot || this.mouseStatus === _MouseHandler.MouseStatus.ConnectingOutputSlot) {
@@ -1705,11 +1724,9 @@
           throw Error("First connecting slot wasn't saved.");
         }
         let resourcesAmount = Math.min(targetSlot.resourcesAmount, this.firstConnectingSlot.resourcesAmount);
-        let newSlot1 = this.firstConnectingSlot.parentGroup.addSlot(resourcesAmount);
-        let newSlot2 = targetSlot.parentGroup.addSlot(resourcesAmount);
-        let link = new SankeyLink(newSlot1, newSlot2, this.panContext);
-        newSlot1.connectedLink = link;
-        newSlot2.connectedLink = link;
+        let newSlot1 = this.firstConnectingSlot.splitOffSlot(resourcesAmount);
+        let newSlot2 = targetSlot.splitOffSlot(resourcesAmount);
+        SankeyLink.connect(newSlot1, newSlot2, this.panContext);
         this.cancelConnectingSlots();
       }
     }
@@ -1725,11 +1742,9 @@
           throw Error("First connecting slot wasn't saved.");
         }
         let resourcesAmount = Math.min(targetSlot.resourcesAmount, this.firstConnectingSlot.resourcesAmount);
-        let newSlot1 = this.firstConnectingSlot.parentGroup.addSlot(resourcesAmount);
-        let newSlot2 = targetSlot.parentGroup.addSlot(resourcesAmount);
-        let link = new SankeyLink(newSlot1, newSlot2, this.panContext);
-        newSlot1.connectedLink = link;
-        newSlot2.connectedLink = link;
+        let newSlot1 = this.firstConnectingSlot.splitOffSlot(resourcesAmount);
+        let newSlot2 = targetSlot.splitOffSlot(resourcesAmount);
+        SankeyLink.connect(newSlot1, newSlot2, this.panContext);
         this.cancelConnectingSlots();
       }
     }
@@ -1739,7 +1754,7 @@
       }
       this.firstConnectingSlot = firstSlot;
       let zoomScale = this.panContext.getTransform().scale;
-      let slotBounds = firstSlot.slotSvg.getBoundingClientRect();
+      let slotBounds = firstSlot.slotSvgRect.getBoundingClientRect();
       slotBounds = {
         x: (slotBounds.x - this.panContext.getTransform().x) / zoomScale,
         y: (slotBounds.y - this.panContext.getTransform().y) / zoomScale,
@@ -1790,42 +1805,48 @@
   // src/Sankey/Slots/SankeySlotExceeding.ts
   var SankeySlotExceeding = class extends OutputSankeySlot {
     constructor(slotsGroup, slotsGroupSvg, resourcesAmount) {
-      super(slotsGroup, slotsGroupSvg, resourcesAmount);
-      this.slotSvg.classList.add("exceeding");
-      this.slotSvg.onmousedown = (event) => {
-        if (!event.altKey && event.buttons === 1) {
+      super(slotsGroup, slotsGroupSvg, resourcesAmount, "exceeding");
+      this.slotSvgRect.addEventListener("click", (event) => {
+        if (!event.altKey) {
           MouseHandler.getInstance().outputSlotClicked(event, this);
         }
-      };
+      });
+    }
+    splitOffSlot(resourcesAmount) {
+      return this.parentGroup.addSlot(resourcesAmount);
     }
   };
 
   // src/Sankey/Slots/InputSankeySlot.ts
   var InputSankeySlot = class extends SankeySlot {
-    constructor(slotsGroup, slotsGroupSvg, resourcesAmount) {
-      super(slotsGroup, slotsGroupSvg, resourcesAmount, "input-slot");
+    constructor(slotsGroup, slotsGroupSvg, resourcesAmount, ...classes) {
+      super(slotsGroup, slotsGroupSvg, resourcesAmount, "input-slot", ...classes);
     }
   };
 
   // src/Sankey/Slots/SankeySlotMissing.ts
   var SankeySlotMissing = class extends InputSankeySlot {
     constructor(slotsGroup, slotsGroupSvg, resourcesAmount) {
-      super(slotsGroup, slotsGroupSvg, resourcesAmount);
-      this.slotSvg.classList.add("missing");
-      this.slotSvg.onmousedown = (event) => {
-        if (!event.altKey && event.buttons === 1) {
+      super(slotsGroup, slotsGroupSvg, resourcesAmount, "missing");
+      this.slotSvgRect.addEventListener("click", (event) => {
+        if (!event.altKey) {
           MouseHandler.getInstance().inputSlotClicked(event, this);
         }
-      };
+      });
+    }
+    splitOffSlot(resourcesAmount) {
+      return this.parentGroup.addSlot(resourcesAmount);
     }
   };
 
   // src/Sankey/SlotsGroup.ts
-  var SlotsGroup = class {
+  var SlotsGroup = class _SlotsGroup extends EventTarget {
+    static boundsChangedEvent = "bounds-changed";
     type;
     maxHeight;
     resourcesAmount;
     constructor(node, type, resourcesAmount, nodeResourcesAmount, startY) {
+      super();
       this.type = type;
       this.resourcesAmount = resourcesAmount;
       let nodeHeight = +(node.nodeSvg.getAttribute("height") ?? 0);
@@ -1834,6 +1855,11 @@
       this.groupSvg = SvgFactory.createSvgGroup(position, `${type}-slots`);
       this.lastSlot = this.createLastSlot();
       node.nodeSvgGroup.appendChild(this.groupSvg);
+      this.addEventListener(_SlotsGroup.boundsChangedEvent, () => {
+        for (const slot of this.slots) {
+          slot.dispatchEvent(new Event(SankeySlot.boundsChangedEvent));
+        }
+      });
     }
     addSlot(resourcesAmount) {
       resourcesAmount = Math.min(resourcesAmount, this.lastSlot.resourcesAmount);
@@ -1856,10 +1882,10 @@
       for (const slot of this.slots) {
         slot.setYPosition(nextYPosition);
         freeResourcesAmount -= slot.resourcesAmount;
-        nextYPosition += +(slot.slotSvg.getAttribute("height") ?? 0);
+        nextYPosition += +(slot.slotSvgRect.getAttribute("height") ?? 0);
       }
       this.lastSlot.setYPosition(nextYPosition);
-      this.lastSlot.setResourcesAmount(this, freeResourcesAmount);
+      this.lastSlot.resourcesAmount = freeResourcesAmount;
     }
     createLastSlot() {
       if (this.type === "input") {
@@ -1868,13 +1894,6 @@
         return new SankeySlotExceeding(this, this.groupSvg, this.resourcesAmount);
       } else {
         throw Error("Unexpected slots group type");
-      }
-    }
-    recalculateLinks() {
-      for (const slot of this.slots) {
-        if (slot.connectedLink != void 0) {
-          slot.connectedLink.recalculate();
-        }
       }
     }
     groupSvg;
@@ -1911,7 +1930,7 @@
           totalInputResourcesAmount,
           nextInputGroupY
         );
-        this.inputSlotGroups.push(newGroup);
+        this._inputSlotGroups.push(newGroup);
         nextInputGroupY += newGroup.maxHeight;
       }
       let nextOutputGroupY = 0;
@@ -1923,7 +1942,7 @@
           totalOutputResourcesAmount,
           nextOutputGroupY
         );
-        this.outputSlotGroups.push(newGroup);
+        this._outputSlotGroups.push(newGroup);
         nextOutputGroupY += newGroup.maxHeight;
       }
       let foreignObject = SvgFactory.createSvgForeignObject();
@@ -2004,15 +2023,24 @@
       this.nodeSvgGroup.appendChild(foreignObject);
       parentGroup.appendChild(this.nodeSvgGroup);
     }
-    recalculateLinks() {
-      let recalculateGroup = (group) => {
-        group.recalculateLinks();
-      };
-      this.inputSlotGroups.forEach(recalculateGroup);
-      this.outputSlotGroups.forEach(recalculateGroup);
+    get position() {
+      let transform = this.nodeSvgGroup.getAttribute("transform") ?? "translate(0, 0)";
+      let transformRegex = /translate\((?<x>-?\d+(?:\.\d+)?), ?(?<y>-?\d+(?:\.\d+)?)\)/;
+      let match = transformRegex.exec(transform);
+      let { x, y } = match.groups;
+      return { x: +x, y: +y };
     }
-    inputSlotGroups = [];
-    outputSlotGroups = [];
+    set position(position) {
+      this.nodeSvgGroup.setAttribute("transform", `translate(${position.x}, ${position.y})`);
+      for (const group of this._inputSlotGroups) {
+        group.dispatchEvent(new Event(SlotsGroup.boundsChangedEvent));
+      }
+      for (const group of this._outputSlotGroups) {
+        group.dispatchEvent(new Event(SlotsGroup.boundsChangedEvent));
+      }
+    }
+    _inputSlotGroups = [];
+    _outputSlotGroups = [];
   };
   function toItemsInMinute(amount, consumingTime) {
     return 60 / consumingTime * amount;
