@@ -43,6 +43,13 @@ export abstract class SvgFactory
         return result;
     }
 
+    public static createSvgForeignObject(...classes: string[]): SVGForeignObjectElement
+    {
+        let result = this.createSvgElement("foreignObject", ...classes) as SVGForeignObjectElement;
+
+        return result;
+    }
+
     private static createSvgElement(tag: string, ...classes: string[]): SVGElement
     {
         let result = document.createElementNS("http://www.w3.org/2000/svg", tag);

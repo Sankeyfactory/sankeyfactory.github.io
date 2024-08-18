@@ -2,11 +2,11 @@ import panzoom from "panzoom";
 import { SankeyNode } from "./Sankey/SankeyNode";
 import { Point } from "./Point";
 import { MouseHandler } from "./MouseHandler";
+import { GameRecipe, GameRecipeEvent } from "./GameData/GameRecipe";
 
 // Ignore import error as the file only appears on launch of the exporting tool.
 // @ts-ignore
 import satisfactoryData from '../dist/GameData/Satisfactory.json';
-import { GameRecipe, GameRecipeEvent } from "./GameData/GameRecipe";
 
 async function main()
 {
