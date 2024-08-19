@@ -1475,13 +1475,13 @@
   var SankeySlot = class _SankeySlot extends EventTarget {
     static slotWidth = 10;
     static boundsChangedEvent = "bounds-changed";
-    constructor(slotsGroup, slotsGroupSvg, resourcesAmount, ...classes) {
+    constructor(slotsGroup, slotsGroupSvg, resource, ...classes) {
       super();
-      this._resourcesAmount = resourcesAmount;
+      this._resource = resource;
       this._parentGroup = slotsGroup;
       let dimensions = {
         width: _SankeySlot.slotWidth,
-        height: slotsGroup.maxHeight * (resourcesAmount / slotsGroup.resourcesAmount),
+        height: slotsGroup.maxHeight * (this._resource.amount / slotsGroup.resource.amount),
         x: 0,
         y: 0
       };
@@ -1493,15 +1493,18 @@
       this.dispatchEvent(new Event(_SankeySlot.boundsChangedEvent));
     }
     get resourcesAmount() {
-      return this._resourcesAmount;
+      return this._resource.amount;
     }
     set resourcesAmount(resourcesAmount) {
-      this._resourcesAmount = resourcesAmount;
+      this._resource.amount = resourcesAmount;
       this.slotSvgRect.setAttribute(
         "height",
-        `${this._parentGroup.maxHeight * (resourcesAmount / this._parentGroup.resourcesAmount)}`
+        `${this._parentGroup.maxHeight * (resourcesAmount / this._parentGroup.resource.amount)}`
       );
       this.dispatchEvent(new Event(_SankeySlot.boundsChangedEvent));
+    }
+    get resourceId() {
+      return this._resource.id;
     }
     get slotSvgRect() {
       return this._slotSvgRect;
@@ -1509,7 +1512,7 @@
     get parentGroup() {
       return this._parentGroup;
     }
-    _resourcesAmount;
+    _resource;
     _slotSvgRect;
     _parentGroup;
   };
@@ -1524,8 +1527,8 @@
 
   // src/Sankey/Slots/OutputSankeySlot.ts
   var OutputSankeySlot = class extends SankeySlot {
-    constructor(slotsGroup, slotsGroupSvg, resourcesAmount, ...classes) {
-      super(slotsGroup, slotsGroupSvg, resourcesAmount, "output-slot", ...classes);
+    constructor(slotsGroup, slotsGroupSvg, resource, ...classes) {
+      super(slotsGroup, slotsGroupSvg, resource, "output-slot", ...classes);
     }
   };
 
@@ -1718,6 +1721,9 @@
         if (this.firstConnectingSlot == void 0) {
           throw Error("First connecting slot wasn't saved.");
         }
+        if (this.firstConnectingSlot.resourceId != targetSlot.resourceId) {
+          return;
+        }
         let resourcesAmount = Math.min(targetSlot.resourcesAmount, this.firstConnectingSlot.resourcesAmount);
         let newSlot1 = this.firstConnectingSlot.splitOffSlot(resourcesAmount);
         let newSlot2 = targetSlot.splitOffSlot(resourcesAmount);
@@ -1735,6 +1741,9 @@
         }
         if (this.firstConnectingSlot == void 0) {
           throw Error("First connecting slot wasn't saved.");
+        }
+        if (this.firstConnectingSlot.resourceId != targetSlot.resourceId) {
+          return;
         }
         let resourcesAmount = Math.min(targetSlot.resourcesAmount, this.firstConnectingSlot.resourcesAmount);
         let newSlot1 = this.firstConnectingSlot.splitOffSlot(resourcesAmount);
@@ -1804,8 +1813,8 @@
 
   // src/Sankey/Slots/SankeySlotExceeding.ts
   var SankeySlotExceeding = class extends OutputSankeySlot {
-    constructor(slotsGroup, slotsGroupSvg, resourcesAmount) {
-      super(slotsGroup, slotsGroupSvg, resourcesAmount, "exceeding");
+    constructor(slotsGroup, slotsGroupSvg, resource) {
+      super(slotsGroup, slotsGroupSvg, resource, "exceeding");
       this.slotSvgRect.addEventListener("click", (event) => {
         if (!event.altKey) {
           MouseHandler.getInstance().outputSlotClicked(event, this);
@@ -1819,15 +1828,15 @@
 
   // src/Sankey/Slots/InputSankeySlot.ts
   var InputSankeySlot = class extends SankeySlot {
-    constructor(slotsGroup, slotsGroupSvg, resourcesAmount, ...classes) {
-      super(slotsGroup, slotsGroupSvg, resourcesAmount, "input-slot", ...classes);
+    constructor(slotsGroup, slotsGroupSvg, resource, ...classes) {
+      super(slotsGroup, slotsGroupSvg, resource, "input-slot", ...classes);
     }
   };
 
   // src/Sankey/Slots/SankeySlotMissing.ts
   var SankeySlotMissing = class extends InputSankeySlot {
-    constructor(slotsGroup, slotsGroupSvg, resourcesAmount) {
-      super(slotsGroup, slotsGroupSvg, resourcesAmount, "missing");
+    constructor(slotsGroup, slotsGroupSvg, resource) {
+      super(slotsGroup, slotsGroupSvg, resource, "missing");
       this.slotSvgRect.addEventListener("click", (event) => {
         if (!event.altKey) {
           MouseHandler.getInstance().inputSlotClicked(event, this);
@@ -1844,16 +1853,16 @@
     static boundsChangedEvent = "bounds-changed";
     type;
     maxHeight;
-    resourcesAmount;
-    constructor(node, type, resourcesAmount, nodeResourcesAmount, startY) {
+    resource;
+    constructor(node, type, resource, nodeResourcesAmount, startY) {
       super();
       this.type = type;
-      this.resourcesAmount = resourcesAmount;
+      this.resource = resource;
       let nodeHeight = +(node.nodeSvg.getAttribute("height") ?? 0);
-      this.maxHeight = nodeHeight * (resourcesAmount / nodeResourcesAmount);
+      this.maxHeight = nodeHeight * (resource.amount / nodeResourcesAmount);
       let position = type === "input" ? new Point(0, startY) : new Point(SankeyNode.nodeWidth + SankeySlot.slotWidth, startY);
       this.groupSvg = SvgFactory.createSvgGroup(position, `${type}-slots`);
-      this.lastSlot = this.createLastSlot();
+      this.lastSlot = this.initializeLastSlot();
       node.nodeSvgGroup.appendChild(this.groupSvg);
       this.addEventListener(_SlotsGroup.boundsChangedEvent, () => {
         for (const slot of this.slots) {
@@ -1866,9 +1875,15 @@
       this.lastSlot.resourcesAmount -= resourcesAmount;
       let newSlot;
       if (this.type === "input") {
-        newSlot = new InputSankeySlot(this, this.groupSvg, resourcesAmount);
+        newSlot = new InputSankeySlot(this, this.groupSvg, {
+          id: this.resource.id,
+          amount: resourcesAmount
+        });
       } else if (this.type === "output") {
-        newSlot = new OutputSankeySlot(this, this.groupSvg, resourcesAmount);
+        newSlot = new OutputSankeySlot(this, this.groupSvg, {
+          id: this.resource.id,
+          amount: resourcesAmount
+        });
       } else {
         throw Error("Unexpected slots group type");
       }
@@ -1877,7 +1892,7 @@
       return newSlot;
     }
     updateSlotPositions() {
-      let freeResourcesAmount = this.resourcesAmount;
+      let freeResourcesAmount = this.resource.amount;
       let nextYPosition = 0;
       for (const slot of this.slots) {
         slot.setYPosition(nextYPosition);
@@ -1887,11 +1902,17 @@
       this.lastSlot.setYPosition(nextYPosition);
       this.lastSlot.resourcesAmount = freeResourcesAmount;
     }
-    createLastSlot() {
+    initializeLastSlot() {
       if (this.type === "input") {
-        return new SankeySlotMissing(this, this.groupSvg, this.resourcesAmount);
+        return new SankeySlotMissing(this, this.groupSvg, {
+          id: this.resource.id,
+          amount: this.resource.amount
+        });
       } else if (this.type === "output") {
-        return new SankeySlotExceeding(this, this.groupSvg, this.resourcesAmount);
+        return new SankeySlotExceeding(this, this.groupSvg, {
+          id: this.resource.id,
+          amount: this.resource.amount
+        });
       } else {
         throw Error("Unexpected slots group type");
       }
@@ -1926,7 +1947,10 @@
         let newGroup = new SlotsGroup(
           this,
           "input",
-          toItemsInMinute(ingredient.amount, recipe.manufacturingDuration),
+          {
+            id: ingredient.id,
+            amount: toItemsInMinute(ingredient.amount, recipe.manufacturingDuration)
+          },
           totalInputResourcesAmount,
           nextInputGroupY
         );
@@ -1938,7 +1962,10 @@
         let newGroup = new SlotsGroup(
           this,
           "output",
-          toItemsInMinute(product.amount, recipe.manufacturingDuration),
+          {
+            id: product.id,
+            amount: toItemsInMinute(product.amount, recipe.manufacturingDuration)
+          },
           totalOutputResourcesAmount,
           nextOutputGroupY
         );
