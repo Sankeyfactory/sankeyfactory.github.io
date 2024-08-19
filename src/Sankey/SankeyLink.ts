@@ -32,43 +32,15 @@ export class SankeyLink
         let first = Rectangle.fromSvgBounds(this._firstSlot.slotSvgRect, this._panContext);
         let second = Rectangle.fromSvgBounds(this._secondSlot.slotSvgRect, this._panContext);
 
-        let curve1 = new Curve();
+        let curve1 = Curve.fromTwoPoints(
+            { x: first.x + first.width, y: first.y },
+            { x: second.x, y: second.y }
+        );
 
-        curve1.startPoint = {
-            x: first.x + first.width,
-            y: first.y
-        };
-        curve1.endPoint = {
-            x: second.x,
-            y: second.y
-        };
-        curve1.startDeviationPoint = {
-            x: (curve1.startPoint.x + curve1.endPoint.x) / 2,
-            y: first.y
-        };
-        curve1.endDeviationPoint = {
-            x: (curve1.startPoint.x + curve1.endPoint.x) / 2,
-            y: second.y
-        };
-
-        let curve2 = new Curve();
-
-        curve2.startPoint = {
-            x: curve1.endPoint.x,
-            y: second.y
-        };
-        curve2.endPoint = {
-            x: first.x + first.width,
-            y: first.y + first.height
-        };
-        curve2.startDeviationPoint = {
-            x: (curve2.startPoint.x + curve2.endPoint.x) / 2,
-            y: second.y + second.height
-        };
-        curve2.endDeviationPoint = {
-            x: (curve2.startPoint.x + curve2.endPoint.x) / 2,
-            y: first.y + first.height
-        };
+        let curve2 = Curve.fromTwoPoints(
+            { x: second.x, y: second.y + second.height },
+            { x: first.x + first.width, y: first.y + first.height },
+        );
 
         let svgPath = new SvgPathBuilder()
             .startAt(curve1.startPoint)

@@ -17,7 +17,9 @@ export class SvgPathBuilder
         return this;
     }
 
-    // Start point will be ignored because that's how SVG works.
+    /**
+     * Start point will be ignored because that's how SVG works.
+     */
     public curve(curve: Curve): this
     {
         this.path +=

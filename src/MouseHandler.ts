@@ -6,6 +6,8 @@ import { Rectangle } from "./Rectangle";
 import { SankeyLink } from "./Sankey/SankeyLink";
 import { SankeySlotMissing } from "./Sankey/Slots/SankeySlotMissing";
 import { SankeySlotExceeding } from "./Sankey/Slots/SankeySlotExceeding";
+import { Curve } from "./Curve";
+import { SvgPathBuilder } from "./SVG/SvgPathBuilder";
 
 export class MouseHandler
 {
@@ -66,7 +68,7 @@ export class MouseHandler
             {
                 throw Error("First connecting slot wasn't saved.");
             }
-            if (this.slotConnectingLine == undefined)
+            if (this.slotConnectingLine == undefined || this.slotConnectingCurve == undefined)
             {
                 throw Error("Slot connecting line wasn't created.");
             }
@@ -74,8 +76,17 @@ export class MouseHandler
             const domPoint = new DOMPointReadOnly(event.clientX, event.clientY);
             const svgMousePos = domPoint.matrixTransform(this.viewport.getScreenCTM()!.inverse());
 
-            this.slotConnectingLine.setAttribute("x2", `${svgMousePos.x - 2}`);
-            this.slotConnectingLine.setAttribute("y2", `${svgMousePos.y - 2}`);
+            this.slotConnectingCurve = Curve.fromTwoPoints(
+                this.slotConnectingCurve.startPoint,
+                svgMousePos
+            );
+
+            let path = new SvgPathBuilder()
+                .startAt(this.slotConnectingCurve.startPoint)
+                .curve(this.slotConnectingCurve)
+                .build();
+
+            this.slotConnectingLine.setAttribute("d", path);
         }
     }
 
@@ -97,6 +108,7 @@ export class MouseHandler
         this.firstConnectingSlot = undefined;
         this.slotConnectingLine?.remove();
         this.slotConnectingLine = undefined;
+        this.slotConnectingCurve = undefined;
         this.mouseStatus = MouseHandler.MouseStatus.Free;
     }
 
@@ -192,11 +204,19 @@ export class MouseHandler
         const domPoint = new DOMPointReadOnly(event.clientX, event.clientY);
         const svgMousePos = domPoint.matrixTransform(this.viewport.getScreenCTM()!.inverse());
 
-        this.slotConnectingLine =
-            SvgFactory.createSvgLine(startPos, {
-                x: svgMousePos.x - 2,
-                y: svgMousePos.y - 2
-            }, "link-hint");
+        this.slotConnectingCurve = Curve.fromTwoPoints(
+            startPos,
+            svgMousePos
+        );
+
+        let path = new SvgPathBuilder()
+            .startAt(this.slotConnectingCurve.startPoint)
+            .curve(this.slotConnectingCurve)
+            .build();
+
+        this.slotConnectingLine = SvgFactory.createSvgPath("link-hint");
+        this.slotConnectingLine.classList.add(isInput ? "from-input" : "from-output");
+        this.slotConnectingLine.setAttribute("d", path);
 
         this.viewport.appendChild(this.slotConnectingLine);
     }
@@ -223,7 +243,9 @@ export class MouseHandler
 
     private firstConnectingSlot: SankeySlotMissing | SankeySlotExceeding | undefined;
     private draggedNode: SankeyNode | undefined;
-    private slotConnectingLine: SVGLineElement | undefined;
+
+    private slotConnectingLine: SVGPathElement | undefined;
+    private slotConnectingCurve?: Curve;
 
     private mouseStatus: MouseHandler.MouseStatus = MouseHandler.MouseStatus.Free;
     private lastMousePos = new Point(0, 0);

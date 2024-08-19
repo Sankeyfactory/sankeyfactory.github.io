@@ -271,9 +271,20 @@ div.help {
 
 /* Node links */
 
-line.link-hint {
-    stroke: var(--foreground-accent);
+path.link-hint {
+    fill: none;
+
     stroke-width: 2px;
+
+    pointer-events: none;
+}
+
+path.link-hint.from-input {
+    stroke: #FF6363;
+}
+
+path.link-hint.from-output {
+    stroke: #9CEF9A;
 }
 
 path.link {
