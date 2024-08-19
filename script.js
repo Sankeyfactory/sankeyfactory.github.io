@@ -1535,6 +1535,20 @@
     startDeviationPoint = { x: 0, y: 0 };
     endDeviationPoint = { x: 0, y: 0 };
     endPoint = { x: 0, y: 0 };
+    static fromTwoPoints(startPoint, endPoint) {
+      return {
+        startPoint,
+        endPoint,
+        startDeviationPoint: {
+          x: (startPoint.x + endPoint.x) / 2,
+          y: startPoint.y
+        },
+        endDeviationPoint: {
+          x: (startPoint.x + endPoint.x) / 2,
+          y: endPoint.y
+        }
+      };
+    }
   };
 
   // src/Rectangle.ts
@@ -1576,7 +1590,9 @@
       this.path += `M ${point.x} ${point.y} `;
       return this;
     }
-    // Start point will be ignored because that's how SVG works.
+    /**
+     * Start point will be ignored because that's how SVG works.
+     */
     curve(curve) {
       this.path += `C ${curve.startDeviationPoint.x} ${curve.startDeviationPoint.y} ${curve.endDeviationPoint.x} ${curve.endDeviationPoint.y} ${curve.endPoint.x} ${curve.endPoint.y} `;
       return this;
@@ -1608,40 +1624,14 @@
     recalculate() {
       let first = Rectangle.fromSvgBounds(this._firstSlot.slotSvgRect, this._panContext);
       let second = Rectangle.fromSvgBounds(this._secondSlot.slotSvgRect, this._panContext);
-      let curve1 = new Curve();
-      curve1.startPoint = {
-        x: first.x + first.width,
-        y: first.y
-      };
-      curve1.endPoint = {
-        x: second.x,
-        y: second.y
-      };
-      curve1.startDeviationPoint = {
-        x: (curve1.startPoint.x + curve1.endPoint.x) / 2,
-        y: first.y
-      };
-      curve1.endDeviationPoint = {
-        x: (curve1.startPoint.x + curve1.endPoint.x) / 2,
-        y: second.y
-      };
-      let curve2 = new Curve();
-      curve2.startPoint = {
-        x: curve1.endPoint.x,
-        y: second.y
-      };
-      curve2.endPoint = {
-        x: first.x + first.width,
-        y: first.y + first.height
-      };
-      curve2.startDeviationPoint = {
-        x: (curve2.startPoint.x + curve2.endPoint.x) / 2,
-        y: second.y + second.height
-      };
-      curve2.endDeviationPoint = {
-        x: (curve2.startPoint.x + curve2.endPoint.x) / 2,
-        y: first.y + first.height
-      };
+      let curve1 = Curve.fromTwoPoints(
+        { x: first.x + first.width, y: first.y },
+        { x: second.x, y: second.y }
+      );
+      let curve2 = Curve.fromTwoPoints(
+        { x: second.x, y: second.y + second.height },
+        { x: first.x + first.width, y: first.y + first.height }
+      );
       let svgPath = new SvgPathBuilder().startAt(curve1.startPoint).curve(curve1).verticalLineTo(curve1.endPoint.y + second.height).curve(curve2).verticalLineTo(curve1.startPoint.y).build();
       this._svgPath.setAttribute("d", svgPath);
       this._svgPath.style.clipPath = `view-box path("${svgPath}")`;
@@ -1689,13 +1679,17 @@
         if (this.firstConnectingSlot == void 0) {
           throw Error("First connecting slot wasn't saved.");
         }
-        if (this.slotConnectingLine == void 0) {
+        if (this.slotConnectingLine == void 0 || this.slotConnectingCurve == void 0) {
           throw Error("Slot connecting line wasn't created.");
         }
         const domPoint = new DOMPointReadOnly(event.clientX, event.clientY);
         const svgMousePos = domPoint.matrixTransform(this.viewport.getScreenCTM().inverse());
-        this.slotConnectingLine.setAttribute("x2", `${svgMousePos.x - 2}`);
-        this.slotConnectingLine.setAttribute("y2", `${svgMousePos.y - 2}`);
+        this.slotConnectingCurve = Curve.fromTwoPoints(
+          this.slotConnectingCurve.startPoint,
+          svgMousePos
+        );
+        let path = new SvgPathBuilder().startAt(this.slotConnectingCurve.startPoint).curve(this.slotConnectingCurve).build();
+        this.slotConnectingLine.setAttribute("d", path);
       }
     }
     handleMouseUp() {
@@ -1710,6 +1704,7 @@
       this.firstConnectingSlot = void 0;
       this.slotConnectingLine?.remove();
       this.slotConnectingLine = void 0;
+      this.slotConnectingCurve = void 0;
       this.mouseStatus = _MouseHandler.MouseStatus.Free;
     }
     inputSlotClicked(event, targetSlot) {
@@ -1767,10 +1762,14 @@
       };
       const domPoint = new DOMPointReadOnly(event.clientX, event.clientY);
       const svgMousePos = domPoint.matrixTransform(this.viewport.getScreenCTM().inverse());
-      this.slotConnectingLine = SvgFactory.createSvgLine(startPos, {
-        x: svgMousePos.x - 2,
-        y: svgMousePos.y - 2
-      }, "link-hint");
+      this.slotConnectingCurve = Curve.fromTwoPoints(
+        startPos,
+        svgMousePos
+      );
+      let path = new SvgPathBuilder().startAt(this.slotConnectingCurve.startPoint).curve(this.slotConnectingCurve).build();
+      this.slotConnectingLine = SvgFactory.createSvgPath("link-hint");
+      this.slotConnectingLine.classList.add(isInput ? "from-input" : "from-output");
+      this.slotConnectingLine.setAttribute("d", path);
       this.viewport.appendChild(this.slotConnectingLine);
     }
     startDraggingNode(event, node) {
@@ -1788,6 +1787,7 @@
     firstConnectingSlot;
     draggedNode;
     slotConnectingLine;
+    slotConnectingCurve;
     mouseStatus = _MouseHandler.MouseStatus.Free;
     lastMousePos = new Point(0, 0);
     viewport = document.querySelector("#viewport");
