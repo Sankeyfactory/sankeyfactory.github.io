@@ -48,6 +48,8 @@
 
 img {
     object-fit: contain;
+    min-width: 0;
+    min-height: 0;
 }
 
 .hidden {
@@ -250,8 +252,6 @@ div.help {
 .node .recipe-container .property .resource img.icon {
     width: 16px;
     height: 16px;
-
-    min-width: 0;
 }
 
 .node .recipe-container .property .resource p.amount {
@@ -265,8 +265,6 @@ div.help {
 .node .recipe-container .property .machine img.icon {
     width: 24px;
     height: 24px;
-
-    min-width: 0;
 }
 
 /* Node links */
@@ -295,6 +293,26 @@ path.link {
     stroke: #8BAADA;
 
     opacity: 0.5;
+}
+
+/* Node link's resource display */
+
+g.links foreignObject.resource-display div.container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+
+    box-sizing: border-box;
+
+    width: 100%;
+    height: 100%;
+
+    gap: 4px;
+}
+
+g.links .resource-display img.icon {
+    flex-grow: 1;
 }
 
 /* Canvas controls */
@@ -585,8 +603,6 @@ div#node-creation-modal {
 
 #node-creation-modal .recipe img.item-icon {
     flex-grow: 1;
-
-    min-width: 0;
 }
 
 /* Node creation modal's selected recipe */
@@ -651,8 +667,6 @@ div#node-creation-modal {
 #node-creation-modal #selected-recipe .property .resource img.icon {
     width: 32px;
     height: 32px;
-
-    min-width: 0;
 }
 
 #node-creation-modal #selected-recipe .property .resource p.amount {
@@ -662,8 +676,6 @@ div#node-creation-modal {
 #node-creation-modal #selected-recipe .property .machine img.icon {
     width: 40px;
     height: 40px;
-
-    min-width: 0;
 }
 
 /* Node creation modal's confirmation button */
