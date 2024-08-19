@@ -6,9 +6,9 @@ export class InputSankeySlot extends SankeySlot
     constructor(
         slotsGroup: SlotsGroup,
         slotsGroupSvg: SVGGElement,
-        resourcesAmount: number,
+        resource: RecipeResource,
         ...classes: string[])
     {
-        super(slotsGroup, slotsGroupSvg, resourcesAmount, "input-slot", ...classes);
+        super(slotsGroup, slotsGroupSvg, resource, "input-slot", ...classes);
     }
 }

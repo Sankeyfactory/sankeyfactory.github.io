@@ -16,22 +16,22 @@ export class SlotsGroup extends EventTarget
     public type: SlotsGroupType;
 
     public maxHeight: number;
-    public resourcesAmount: number;
+    public readonly resource: RecipeResource;
 
     constructor(
         node: SankeyNode,
         type: SlotsGroupType,
-        resourcesAmount: number,
+        resource: RecipeResource,
         nodeResourcesAmount: number,
         startY: number)
     {
         super();
 
         this.type = type;
-        this.resourcesAmount = resourcesAmount;
+        this.resource = resource;
 
         let nodeHeight = +(node.nodeSvg.getAttribute("height") ?? 0);
-        this.maxHeight = nodeHeight * (resourcesAmount / nodeResourcesAmount);
+        this.maxHeight = nodeHeight * (resource.amount / nodeResourcesAmount);
 
         let position = type === "input"
             ? new Point(0, startY)
@@ -39,7 +39,7 @@ export class SlotsGroup extends EventTarget
 
         this.groupSvg = SvgFactory.createSvgGroup(position, `${type}-slots`);
 
-        this.lastSlot = this.createLastSlot();
+        this.lastSlot = this.initializeLastSlot();
 
         node.nodeSvgGroup.appendChild(this.groupSvg);
 
@@ -62,11 +62,17 @@ export class SlotsGroup extends EventTarget
 
         if (this.type === "input")
         {
-            newSlot = new InputSankeySlot(this, this.groupSvg, resourcesAmount);
+            newSlot = new InputSankeySlot(this, this.groupSvg, {
+                id: this.resource.id,
+                amount: resourcesAmount,
+            });
         }
         else if (this.type === "output")
         {
-            newSlot = new OutputSankeySlot(this, this.groupSvg, resourcesAmount);
+            newSlot = new OutputSankeySlot(this, this.groupSvg, {
+                id: this.resource.id,
+                amount: resourcesAmount,
+            });
         }
         else
         {
@@ -81,7 +87,7 @@ export class SlotsGroup extends EventTarget
 
     private updateSlotPositions(): void
     {
-        let freeResourcesAmount = this.resourcesAmount;
+        let freeResourcesAmount = this.resource.amount;
         let nextYPosition = 0;
 
         for (const slot of this.slots)
@@ -96,15 +102,21 @@ export class SlotsGroup extends EventTarget
         this.lastSlot.resourcesAmount = freeResourcesAmount;
     }
 
-    private createLastSlot(): SankeySlotMissing | SankeySlotExceeding
+    private initializeLastSlot(): SankeySlotMissing | SankeySlotExceeding
     {
         if (this.type === "input")
         {
-            return new SankeySlotMissing(this, this.groupSvg, this.resourcesAmount);
+            return new SankeySlotMissing(this, this.groupSvg, {
+                id: this.resource.id,
+                amount: this.resource.amount
+            });
         }
         else if (this.type === "output")
         {
-            return new SankeySlotExceeding(this, this.groupSvg, this.resourcesAmount);
+            return new SankeySlotExceeding(this, this.groupSvg, {
+                id: this.resource.id,
+                amount: this.resource.amount
+            });
         }
         else
         {

@@ -8,9 +8,9 @@ export class SankeySlotExceeding extends OutputSankeySlot
     constructor(
         slotsGroup: SlotsGroup,
         slotsGroupSvg: SVGGElement,
-        resourcesAmount: number)
+        resource: RecipeResource)
     {
-        super(slotsGroup, slotsGroupSvg, resourcesAmount, "exceeding");
+        super(slotsGroup, slotsGroupSvg, resource, "exceeding");
 
         this.slotSvgRect.addEventListener("click", (event) =>
         {

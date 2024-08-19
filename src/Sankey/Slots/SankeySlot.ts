@@ -11,17 +11,17 @@ export abstract class SankeySlot extends EventTarget
     constructor(
         slotsGroup: SlotsGroup,
         slotsGroupSvg: SVGGElement,
-        resourcesAmount: number,
+        resource: RecipeResource,
         ...classes: string[])
     {
         super();
 
-        this._resourcesAmount = resourcesAmount;
+        this._resource = resource;
         this._parentGroup = slotsGroup;
 
         let dimensions: Rectangle = {
             width: SankeySlot.slotWidth,
-            height: slotsGroup.maxHeight * (resourcesAmount / slotsGroup.resourcesAmount),
+            height: slotsGroup.maxHeight * (this._resource.amount / slotsGroup.resource.amount),
             x: 0,
             y: 0
         };
@@ -39,19 +39,24 @@ export abstract class SankeySlot extends EventTarget
 
     public get resourcesAmount()
     {
-        return this._resourcesAmount;
+        return this._resource.amount;
     }
 
     public set resourcesAmount(resourcesAmount: number)
     {
-        this._resourcesAmount = resourcesAmount;
+        this._resource.amount = resourcesAmount;
 
         this.slotSvgRect.setAttribute(
             "height",
-            `${this._parentGroup.maxHeight * (resourcesAmount / this._parentGroup.resourcesAmount)}`
+            `${this._parentGroup.maxHeight * (resourcesAmount / this._parentGroup.resource.amount)}`
         );
 
         this.dispatchEvent(new Event(SankeySlot.boundsChangedEvent));
+    }
+
+    public get resourceId(): string
+    {
+        return this._resource.id;
     }
 
     public get slotSvgRect(): SVGRectElement
@@ -64,7 +69,7 @@ export abstract class SankeySlot extends EventTarget
         return this._parentGroup;
     }
 
-    private _resourcesAmount: number;
+    private readonly _resource: RecipeResource;
 
     private readonly _slotSvgRect: SVGRectElement;
 

@@ -131,6 +131,11 @@ export class MouseHandler
                 throw Error("First connecting slot wasn't saved.");
             }
 
+            if (this.firstConnectingSlot.resourceId != targetSlot.resourceId)
+            {
+                return;
+            }
+
             let resourcesAmount =
                 Math.min(targetSlot.resourcesAmount, this.firstConnectingSlot.resourcesAmount);
 
@@ -160,6 +165,11 @@ export class MouseHandler
             if (this.firstConnectingSlot == undefined)
             {
                 throw Error("First connecting slot wasn't saved.");
+            }
+
+            if (this.firstConnectingSlot.resourceId != targetSlot.resourceId)
+            {
+                return;
             }
 
             let resourcesAmount =

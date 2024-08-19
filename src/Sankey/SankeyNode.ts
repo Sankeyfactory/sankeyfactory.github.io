@@ -52,7 +52,10 @@ export class SankeyNode
             let newGroup = new SlotsGroup(
                 this,
                 "input",
-                toItemsInMinute(ingredient.amount, recipe.manufacturingDuration),
+                {
+                    id: ingredient.id,
+                    amount: toItemsInMinute(ingredient.amount, recipe.manufacturingDuration)
+                },
                 totalInputResourcesAmount,
                 nextInputGroupY
             );
@@ -69,7 +72,10 @@ export class SankeyNode
             let newGroup = new SlotsGroup(
                 this,
                 "output",
-                toItemsInMinute(product.amount, recipe.manufacturingDuration),
+                {
+                    id: product.id,
+                    amount: toItemsInMinute(product.amount, recipe.manufacturingDuration)
+                },
                 totalOutputResourcesAmount,
                 nextOutputGroupY);
 

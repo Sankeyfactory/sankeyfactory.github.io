@@ -8,9 +8,9 @@ export class SankeySlotMissing extends InputSankeySlot
     constructor(
         slotsGroup: SlotsGroup,
         slotsGroupSvg: SVGGElement,
-        resourcesAmount: number)
+        resource: RecipeResource)
     {
-        super(slotsGroup, slotsGroupSvg, resourcesAmount, "missing");
+        super(slotsGroup, slotsGroupSvg, resource, "missing");
 
         this.slotSvgRect.addEventListener("click", (event) =>
         {
