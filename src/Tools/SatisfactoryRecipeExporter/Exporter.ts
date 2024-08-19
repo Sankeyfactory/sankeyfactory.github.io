@@ -115,6 +115,8 @@ let descriptorsMap = new Map<string, Descriptor>(satisfactory
 
         formFrequency.set(docsDescriptor.mForm, (formFrequency.get(docsDescriptor.mForm) ?? 0) + 1);
 
+        let form = docsDescriptor.mForm.replace("RF_", "") as ResourceForm;
+
         // mDisplayName and mDescription are empty here for buildings and should be filled by
         // building class later.
         return {
@@ -124,6 +126,7 @@ let descriptorsMap = new Map<string, Descriptor>(satisfactory
             iconPath: `${iconPath}${iconName}.png`,
             isResourceInUse: false, // Will be set after parsing recipes.
             resourceSinkPoints: +docsDescriptor.mResourceSinkPoints,
+            form: form,
         };
     })
     .map(descriptor => [descriptor.id, descriptor]));
@@ -161,6 +164,12 @@ let recipes: Recipe[] = satisfactory
             let resource = descriptorsMap.get(ingredient.id);
 
             ingredientsComplexity = Math.max(ingredientsComplexity, resource?.resourceSinkPoints ?? 0);
+
+            if (resource?.form == "LIQUID" || resource?.form == "GAS")
+            {
+                // Because liquids are in cubic meters, I guess.
+                ingredient.amount /= 1000;
+            }
         }
 
         for (const product of products)
@@ -168,6 +177,12 @@ let recipes: Recipe[] = satisfactory
             let resource = descriptorsMap.get(product.id);
 
             productsComplexity = Math.max(productsComplexity, resource?.resourceSinkPoints ?? 0);
+
+            if (resource?.form == "LIQUID" || resource?.form == "GAS")
+            {
+                // Because liquids are in cubic meters, I guess.
+                product.amount /= 1000;
+            }
         }
 
         // Products which can't be sinked are usually very late-game ones or just should be together.
@@ -308,7 +323,7 @@ fs.writeFileSync(
             .filter(descriptor => descriptor.isResourceInUse)
             .map<Resource>(descriptor =>
             {
-                let { isResourceInUse, resourceSinkPoints, ...resource } = descriptor;
+                let { isResourceInUse, resourceSinkPoints, form, ...resource } = descriptor;
                 return resource;
             })
     })

@@ -49,6 +49,10 @@ type Descriptor = {
 
     // For resolving recipe complexity.
     resourceSinkPoints: number;
+
+    form: ResourceForm;
 };
 
-type Resource = Omit<Descriptor, "isResourceInUse" | "resourceSinkPoints">;
+type Resource = Omit<Descriptor, "isResourceInUse" | "resourceSinkPoints" | "form">;
+
+type ResourceForm = "INVALID" | "SOLID" | "LIQUID" | "GAS";
