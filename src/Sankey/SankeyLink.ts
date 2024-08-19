@@ -103,7 +103,11 @@ export class SankeyLink
         let icon = document.createElement("img");
         icon.classList.add("icon");
 
-        let resourceDesc = satisfactoryData.resources.find(resourceDesc => resourceDesc.id == resource.id);
+        let resourceDesc = satisfactoryData.resources.find(
+            (resourceDesc: typeof satisfactoryData.resources[0]) => 
+            {
+                return resourceDesc.id == resource.id;
+            });
 
         if (resourceDesc != undefined)
         {
