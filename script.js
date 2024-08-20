@@ -1645,9 +1645,16 @@
       this._svgPath.setAttribute("d", svgPath);
       this._svgPath.style.clipPath = `view-box path("${svgPath}")`;
       let avgHeight = first.height / 2 + second.height / 2;
+      let linkBoundsWidth = Math.abs(curve1.startPoint.x - curve1.endPoint.x);
       let minSize = 50;
       let maxSize = 90;
-      let resourceDisplaySize = Math.max(minSize, Math.min(maxSize, avgHeight - 16));
+      let resourceDisplaySize = Math.max(
+        minSize,
+        Math.min(
+          maxSize,
+          Math.min(avgHeight, linkBoundsWidth) - 16
+        )
+      );
       let middlePoint = {
         x: curve1.startDeviationPoint.x,
         y: (curve1.startPoint.y + curve1.endPoint.y) / 2 + avgHeight / 2
