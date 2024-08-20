@@ -85,6 +85,7 @@ div.button {
     border: 2px solid var(--button-border);
 
     pointer-events: all;
+    user-select: none;
 }
 
 @keyframes animate-appearance {
@@ -347,7 +348,9 @@ div.controls {
 
     padding: 8px;
     gap: 8px;
+
     pointer-events: none;
+    user-select: none;
 }
 
 .controls div.row {
@@ -426,6 +429,8 @@ div#node-creation-modal {
     height: 64px;
 
     padding: 0 0 0 16px;
+
+    user-select: none;
 }
 
 #node-creation-modal .title-row h2.title {
@@ -477,6 +482,8 @@ div#node-creation-modal {
 
     min-height: 0;
     min-width: 0;
+
+    user-select: none;
 }
 
 #node-creation-modal div.columns {
