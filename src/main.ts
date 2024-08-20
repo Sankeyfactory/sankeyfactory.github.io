@@ -10,7 +10,7 @@ import { MouseHandler } from "./MouseHandler";
 import { GameRecipe, GameRecipeEvent } from "./GameData/GameRecipe";
 import { GameMachine } from "./GameData/GameMachine";
 import { Settings } from "./Settings";
-import { CanvasContextMenu } from "./CanvasContextMenu";
+import { CanvasContextMenu } from "./ContextMenu/CanvasContextMenu";
 
 async function main()
 {
@@ -133,9 +133,7 @@ async function main()
     let nodeCreationContainer = document.querySelector("div#node-creation-container");
 
     let canvas = document.querySelector("#canvas") as SVGElement;
-    let canvasContextMenu = new CanvasContextMenu();
-
-    canvasContextMenu.addMenuTo(canvas);
+    let canvasContextMenu = new CanvasContextMenu(canvas);
 
     canvasContextMenu.addEventListener(CanvasContextMenu.createNodeOptionClickedEvent, () =>
     {
@@ -156,7 +154,7 @@ async function main()
 
     Settings.instance.addEventListener(Settings.isCanvasLockedChangedEvent, () =>
     {
-        canvasContextMenu.setCanvasLockedSwitchEnabled(Settings.instance.isCanvasLocked);
+        canvasContextMenu.setCanvasLockedSwitchState(Settings.instance.isCanvasLocked);
     });
 
     window.addEventListener("keydown", (event) =>

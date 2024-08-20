@@ -31,6 +31,9 @@ export class SankeyLink
         firstSlot.addEventListener(SankeySlot.boundsChangedEvent, this.recalculate.bind(this));
         secondSlot.addEventListener(SankeySlot.boundsChangedEvent, this.recalculate.bind(this));
 
+        firstSlot.addEventListener(SankeySlot.deletionEvent, this.delete.bind(this, secondSlot));
+        secondSlot.addEventListener(SankeySlot.deletionEvent, this.delete.bind(this, firstSlot));
+
         this._svgPath = SvgFactory.createSvgPath("link", "animate-appearance");
 
         this._resourceDisplay = this.createResourceDisplay({
@@ -132,10 +135,25 @@ export class SankeyLink
         return foreignObject;
     }
 
+    private delete(slotToDelete: SankeySlot): void
+    {
+        if (!this._isDeleted)
+        {
+            this._isDeleted = true;
+
+            slotToDelete.delete();
+
+            this._svgPath.remove();
+            this._resourceDisplay.remove();
+        }
+    }
+
     private _firstSlot: SankeySlot;
     private _secondSlot: SankeySlot;
     private _panContext: PanZoom;
     private _svgPath: SVGPathElement;
 
     private _resourceDisplay: SVGForeignObjectElement;
+
+    private _isDeleted = false;
 }

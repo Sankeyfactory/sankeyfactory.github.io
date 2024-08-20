@@ -80,9 +80,30 @@ export class SlotsGroup extends EventTarget
         }
 
         this.slots.push(newSlot);
+
+        newSlot.addEventListener(SankeySlot.deletionEvent, () =>
+        {
+            let index = this.slots.findIndex(slot => Object.is(slot, newSlot));
+
+            this.slots.splice(index, 1);
+
+            this.updateSlotPositions();
+        });
+
         this.updateSlotPositions();
 
         return newSlot;
+    }
+
+    public delete()
+    {
+        // Don't use for/for-of because of iterator invalidation after array is spliced by event.
+        while (this.slots.length !== 0)
+        {
+            this.slots[0].delete();
+        }
+
+        this.groupSvg.remove();
     }
 
     private updateSlotPositions(): void

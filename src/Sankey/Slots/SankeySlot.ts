@@ -7,6 +7,7 @@ export abstract class SankeySlot extends EventTarget
     public static readonly slotWidth = 10;
 
     public static readonly boundsChangedEvent = "bounds-changed";
+    public static readonly deletionEvent = "deleted";
 
     constructor(
         slotsGroup: SlotsGroup,
@@ -35,6 +36,13 @@ export abstract class SankeySlot extends EventTarget
         this.slotSvgRect.setAttribute("y", `${yPosition}`);
 
         this.dispatchEvent(new Event(SankeySlot.boundsChangedEvent));
+    }
+
+    public delete(): void
+    {
+        this.dispatchEvent(new Event(SankeySlot.deletionEvent));
+
+        this.slotSvgRect.remove();
     }
 
     public get resourcesAmount()

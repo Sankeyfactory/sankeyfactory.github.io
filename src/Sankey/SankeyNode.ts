@@ -8,6 +8,7 @@ import { SlotsGroup } from "./SlotsGroup";
 import { SvgFactory } from "../SVG/SvgFactory";
 import { GameRecipe } from "../GameData/GameRecipe";
 import { GameMachine } from "../GameData/GameMachine";
+import { NodeContextMenu } from '../ContextMenu/NodeContextMenu';
 
 export class SankeyNode
 {
@@ -35,6 +36,13 @@ export class SankeyNode
             x: SankeySlot.slotWidth,
             y: 0
         }, "machine");
+
+        let nodeContextMenu = new NodeContextMenu(this.nodeSvg);
+
+        nodeContextMenu.addEventListener(NodeContextMenu.deleteNodeOptionClickedEvent, () =>
+        {
+            this.delete();
+        });
 
         let totalInputResourcesAmount = recipe.ingredients
             .reduce((sum, ingredient) =>
@@ -237,6 +245,21 @@ export class SankeyNode
         {
             group.dispatchEvent(new Event(SlotsGroup.boundsChangedEvent));
         }
+    }
+
+    public delete()
+    {
+        for (const slotsGroup of this._inputSlotGroups)
+        {
+            slotsGroup.delete();
+        }
+
+        for (const slotsGroup of this._outputSlotGroups)
+        {
+            slotsGroup.delete();
+        }
+
+        this.nodeSvgGroup.remove();
     }
 
     private _inputSlotGroups: SlotsGroup[] = [];
