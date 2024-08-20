@@ -1475,6 +1475,7 @@
   var SankeySlot = class _SankeySlot extends EventTarget {
     static slotWidth = 10;
     static boundsChangedEvent = "bounds-changed";
+    static deletionEvent = "deleted";
     constructor(slotsGroup, slotsGroupSvg, resource, ...classes) {
       super();
       this._resource = resource;
@@ -1491,6 +1492,10 @@
     setYPosition(yPosition) {
       this.slotSvgRect.setAttribute("y", `${yPosition}`);
       this.dispatchEvent(new Event(_SankeySlot.boundsChangedEvent));
+    }
+    delete() {
+      this.dispatchEvent(new Event(_SankeySlot.deletionEvent));
+      this.slotSvgRect.remove();
     }
     get resourcesAmount() {
       return this._resource.amount;
@@ -1623,6 +1628,8 @@
       this._panContext = panContext;
       firstSlot.addEventListener(SankeySlot.boundsChangedEvent, this.recalculate.bind(this));
       secondSlot.addEventListener(SankeySlot.boundsChangedEvent, this.recalculate.bind(this));
+      firstSlot.addEventListener(SankeySlot.deletionEvent, this.delete.bind(this, secondSlot));
+      secondSlot.addEventListener(SankeySlot.deletionEvent, this.delete.bind(this, firstSlot));
       this._svgPath = SvgFactory.createSvgPath("link", "animate-appearance");
       this._resourceDisplay = this.createResourceDisplay({
         id: firstSlot.resourceId,
@@ -1689,11 +1696,20 @@
       foreignObject.appendChild(container);
       return foreignObject;
     }
+    delete(slotToDelete) {
+      if (!this._isDeleted) {
+        this._isDeleted = true;
+        slotToDelete.delete();
+        this._svgPath.remove();
+        this._resourceDisplay.remove();
+      }
+    }
     _firstSlot;
     _secondSlot;
     _panContext;
     _svgPath;
     _resourceDisplay;
+    _isDeleted = false;
   };
 
   // src/MouseHandler.ts
@@ -1942,8 +1958,19 @@
         throw Error("Unexpected slots group type");
       }
       this.slots.push(newSlot);
+      newSlot.addEventListener(SankeySlot.deletionEvent, () => {
+        let index = this.slots.findIndex((slot) => Object.is(slot, newSlot));
+        this.slots.splice(index, 1);
+        this.updateSlotPositions();
+      });
       this.updateSlotPositions();
       return newSlot;
+    }
+    delete() {
+      while (this.slots.length !== 0) {
+        this.slots[0].delete();
+      }
+      this.groupSvg.remove();
     }
     updateSlotPositions() {
       let freeResourcesAmount = this.resource.amount;
@@ -1976,6 +2003,82 @@
     slots = [];
   };
 
+  // src/ContextMenu/CustomContextMenu.ts
+  var CustomContextMenu = class extends EventTarget {
+    /** 
+     * @param name is used to deduce html element id: `${name}-context-menu-container`
+     */
+    constructor(ownerNode, name) {
+      super();
+      this._menuContainer = document.querySelector(`#${name}-context-menu-container`);
+      this._menuContainer.addEventListener("mousedown", () => {
+        this.closeMenu();
+      });
+      this.addMenuTo(ownerNode);
+    }
+    openMenu() {
+      this._isMenuOpened = true;
+      this._menuContainer.classList.remove("hidden");
+    }
+    closeMenu() {
+      this._isMenuOpened = false;
+      this._menuContainer.classList.add("hidden");
+    }
+    addMenuTo(node) {
+      let contextMenu = document.querySelector(`#${this.containerId}>.context-menu`);
+      node.addEventListener("contextmenu", (event) => {
+        let mouseEvent = event;
+        event.preventDefault();
+        this._openingPosition = { x: mouseEvent.clientX, y: mouseEvent.clientY };
+        contextMenu.style.top = `${mouseEvent.pageY + 5}px`;
+        contextMenu.style.left = `${mouseEvent.pageX + 5}px`;
+        this.openMenu();
+        event.stopPropagation();
+      });
+    }
+    get isMenuOpened() {
+      return this._isMenuOpened;
+    }
+    get openingPosition() {
+      return this._openingPosition;
+    }
+    get containerId() {
+      return this._menuContainer.id;
+    }
+    setupMenuOption(optionNode, eventName) {
+      optionNode.addEventListener("mousedown", (event) => {
+        event.stopPropagation();
+      });
+      optionNode.addEventListener("click", () => {
+        if (this._isMenuOpened) {
+          this.dispatchEvent(new Event(eventName));
+          this.closeMenu();
+        }
+      });
+    }
+    static setSwitchState(switchNode, enabled) {
+      if (enabled) {
+        switchNode.classList.add("enabled");
+      } else {
+        switchNode.classList.remove("enabled");
+      }
+    }
+    _menuContainer;
+    _isMenuOpened = false;
+    _openingPosition;
+  };
+
+  // src/ContextMenu/NodeContextMenu.ts
+  var NodeContextMenu = class _NodeContextMenu extends CustomContextMenu {
+    static deleteNodeOptionClickedEvent = "delete-node-option-clicked";
+    constructor(ownerNode) {
+      super(ownerNode, "node");
+      this._deleteNodeOption = document.querySelector(`#${this.containerId} #delete-node-option`);
+      this.setupMenuOption(this._deleteNodeOption, _NodeContextMenu.deleteNodeOptionClickedEvent);
+    }
+    _deleteNodeOption;
+  };
+
   // src/Sankey/SankeyNode.ts
   var SankeyNode = class _SankeyNode {
     nodeSvg;
@@ -1993,6 +2096,10 @@
         x: SankeySlot.slotWidth,
         y: 0
       }, "machine");
+      let nodeContextMenu = new NodeContextMenu(this.nodeSvg);
+      nodeContextMenu.addEventListener(NodeContextMenu.deleteNodeOptionClickedEvent, () => {
+        this.delete();
+      });
       let totalInputResourcesAmount = recipe.ingredients.reduce((sum, ingredient) => {
         return sum + toItemsInMinute(ingredient.amount, recipe.manufacturingDuration);
       }, 0);
@@ -2123,6 +2230,15 @@
         group.dispatchEvent(new Event(SlotsGroup.boundsChangedEvent));
       }
     }
+    delete() {
+      for (const slotsGroup of this._inputSlotGroups) {
+        slotsGroup.delete();
+      }
+      for (const slotsGroup of this._outputSlotGroups) {
+        slotsGroup.delete();
+      }
+      this.nodeSvgGroup.remove();
+    }
     _inputSlotGroups = [];
     _outputSlotGroups = [];
   };
@@ -2173,65 +2289,22 @@
     _isCanvasLocked = false;
   };
 
-  // src/CanvasContextMenu.ts
-  var CanvasContextMenu = class _CanvasContextMenu extends EventTarget {
+  // src/ContextMenu/CanvasContextMenu.ts
+  var CanvasContextMenu = class _CanvasContextMenu extends CustomContextMenu {
     static createNodeOptionClickedEvent = "create-node-option-clicked";
     static lockCanvasSwitchClickedEvent = "lock-canvas-switch-clicked";
-    constructor() {
-      super();
-      this._menuContainer.addEventListener("mousedown", () => {
-        this.closeMenu();
-      });
+    constructor(ownerNode) {
+      super(ownerNode, "canvas");
+      this._lockCanvasSwitch = document.querySelector(`#${this.containerId} #lock-canvas-switch`);
+      this._createNodeOption = document.querySelector(`#${this.containerId} #create-node-option`);
       this.setupMenuOption(this._createNodeOption, _CanvasContextMenu.createNodeOptionClickedEvent);
       this.setupMenuOption(this._lockCanvasSwitch, _CanvasContextMenu.lockCanvasSwitchClickedEvent);
     }
-    addMenuTo(node) {
-      let canvasContextMenu = document.querySelector("#canvas-context-menu-container>.context-menu");
-      node.addEventListener("contextmenu", (event) => {
-        let mouseEvent = event;
-        event.preventDefault();
-        this._openingPosition = { x: mouseEvent.clientX, y: mouseEvent.clientY };
-        canvasContextMenu.style.top = `${mouseEvent.pageY + 5}px`;
-        canvasContextMenu.style.left = `${mouseEvent.pageX + 5}px`;
-        this.openMenu();
-      });
+    setCanvasLockedSwitchState(enabled) {
+      CustomContextMenu.setSwitchState(this._lockCanvasSwitch, enabled);
     }
-    closeMenu() {
-      this._isMenuOpened = false;
-      this._menuContainer.classList.add("hidden");
-    }
-    openMenu() {
-      this._isMenuOpened = true;
-      this._menuContainer.classList.remove("hidden");
-    }
-    get isMenuOpened() {
-      return this._isMenuOpened;
-    }
-    get openingPosition() {
-      return this._openingPosition;
-    }
-    setCanvasLockedSwitchEnabled(canvasLocked) {
-      if (canvasLocked) {
-        this._lockCanvasSwitch.classList.add("enabled");
-      } else {
-        this._lockCanvasSwitch.classList.remove("enabled");
-      }
-    }
-    setupMenuOption(optionNode, eventName) {
-      optionNode.addEventListener("mousedown", (event) => {
-        event.stopPropagation();
-      });
-      optionNode.addEventListener("click", () => {
-        this.dispatchEvent(new Event(eventName));
-        this._menuContainer.classList.add("hidden");
-        this._isMenuOpened = false;
-      });
-    }
-    _menuContainer = document.querySelector("#canvas-context-menu-container");
-    _lockCanvasSwitch = document.querySelector("#lock-canvas-switch");
-    _createNodeOption = document.querySelector("#create-node-option");
-    _isMenuOpened = false;
-    _openingPosition;
+    _lockCanvasSwitch;
+    _createNodeOption;
   };
 
   // src/main.ts
@@ -2319,8 +2392,7 @@
     });
     let nodeCreationContainer = document.querySelector("div#node-creation-container");
     let canvas = document.querySelector("#canvas");
-    let canvasContextMenu = new CanvasContextMenu();
-    canvasContextMenu.addMenuTo(canvas);
+    let canvasContextMenu = new CanvasContextMenu(canvas);
     canvasContextMenu.addEventListener(CanvasContextMenu.createNodeOptionClickedEvent, () => {
       let contextMenuPos = canvasContextMenu.openingPosition;
       if (contextMenuPos != void 0) {
@@ -2332,7 +2404,7 @@
       Settings.instance.isCanvasLocked = !Settings.instance.isCanvasLocked;
     });
     Settings.instance.addEventListener(Settings.isCanvasLockedChangedEvent, () => {
-      canvasContextMenu.setCanvasLockedSwitchEnabled(Settings.instance.isCanvasLocked);
+      canvasContextMenu.setCanvasLockedSwitchState(Settings.instance.isCanvasLocked);
     });
     window.addEventListener("keydown", (event) => {
       if (event.code === "Escape") {
