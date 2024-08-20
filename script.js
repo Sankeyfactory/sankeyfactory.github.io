@@ -1623,7 +1623,7 @@
       this._panContext = panContext;
       firstSlot.addEventListener(SankeySlot.boundsChangedEvent, this.recalculate.bind(this));
       secondSlot.addEventListener(SankeySlot.boundsChangedEvent, this.recalculate.bind(this));
-      this._svgPath = SvgFactory.createSvgPath("link");
+      this._svgPath = SvgFactory.createSvgPath("link", "animate-appearance");
       this._resourceDisplay = this.createResourceDisplay({
         id: firstSlot.resourceId,
         amount: firstSlot.resourcesAmount
@@ -1729,8 +1729,7 @@
         if (this.slotConnectingLine == void 0 || this.slotConnectingCurve == void 0) {
           throw Error("Slot connecting line wasn't created.");
         }
-        const domPoint = new DOMPointReadOnly(event.clientX, event.clientY);
-        const svgMousePos = domPoint.matrixTransform(this.viewport.getScreenCTM().inverse());
+        const svgMousePos = _MouseHandler.clientToCanvasPosition({ x: event.clientX, y: event.clientY });
         this.slotConnectingCurve = Curve.fromTwoPoints(
           this.slotConnectingCurve.startPoint,
           svgMousePos
@@ -1813,8 +1812,7 @@
         x: slotBounds.x + (isInput ? 0 : slotBounds.width),
         y: slotBounds.y + slotBounds.height / 2
       };
-      const domPoint = new DOMPointReadOnly(event.clientX, event.clientY);
-      const svgMousePos = domPoint.matrixTransform(this.viewport.getScreenCTM().inverse());
+      const svgMousePos = _MouseHandler.clientToCanvasPosition({ x: event.clientX, y: event.clientY });
       this.slotConnectingCurve = Curve.fromTwoPoints(
         startPos,
         svgMousePos
@@ -1832,6 +1830,11 @@
         this.lastMousePos.x = event.clientX;
         this.lastMousePos.y = event.clientY;
       }
+    }
+    static clientToCanvasPosition(clientPosition) {
+      let viewport = document.querySelector("#viewport");
+      const domPoint = new DOMPointReadOnly(clientPosition.x, clientPosition.y);
+      return domPoint.matrixTransform(viewport.getScreenCTM().inverse());
     }
     constructor() {
     }
@@ -1973,7 +1976,10 @@
     static nodeHeight = 260;
     static nodeWidth = 60;
     constructor(parentGroup, position, recipe, machine) {
-      this.nodeSvgGroup = SvgFactory.createSvgGroup(position, "node");
+      this.nodeSvgGroup = SvgFactory.createSvgGroup({
+        x: position.x - _SankeyNode.nodeWidth / 2 - SankeySlot.slotWidth,
+        y: position.y - _SankeyNode.nodeHeight / 2
+      }, "node", "animate-appearance");
       this.nodeSvg = SvgFactory.createSvgRect({
         width: _SankeyNode.nodeWidth,
         height: _SankeyNode.nodeHeight,
@@ -2128,6 +2134,99 @@
     }
   };
 
+  // src/Settings.ts
+  var Settings = class _Settings extends EventTarget {
+    static isCanvasLockedChangedEvent = "canvas-locked-changed";
+    static get instance() {
+      return this._instance;
+    }
+    setPanContext(panContext) {
+      this._panContext = panContext;
+    }
+    get isCanvasLocked() {
+      return this._isCanvasLocked;
+    }
+    set isCanvasLocked(canvasLocked) {
+      if (this._panContext == void 0) {
+        throw Error("Pan context must be initialized before locking canvas");
+      }
+      if (canvasLocked) {
+        this._panContext.pause();
+      } else {
+        this._panContext.resume();
+      }
+      this._isCanvasLocked = canvasLocked;
+      this.dispatchEvent(new Event(_Settings.isCanvasLockedChangedEvent));
+    }
+    constructor() {
+      super();
+    }
+    static _instance = new _Settings();
+    _panContext;
+    _isCanvasLocked = false;
+  };
+
+  // src/CanvasContextMenu.ts
+  var CanvasContextMenu = class _CanvasContextMenu extends EventTarget {
+    static createNodeOptionClickedEvent = "create-node-option-clicked";
+    static lockCanvasSwitchClickedEvent = "lock-canvas-switch-clicked";
+    constructor() {
+      super();
+      this._menuContainer.addEventListener("mousedown", () => {
+        this.closeMenu();
+      });
+      this.setupMenuOption(this._createNodeOption, _CanvasContextMenu.createNodeOptionClickedEvent);
+      this.setupMenuOption(this._lockCanvasSwitch, _CanvasContextMenu.lockCanvasSwitchClickedEvent);
+    }
+    addMenuTo(node) {
+      let canvasContextMenu = document.querySelector("#canvas-context-menu-container>.context-menu");
+      node.addEventListener("contextmenu", (event) => {
+        let mouseEvent = event;
+        event.preventDefault();
+        this._openingPosition = { x: mouseEvent.clientX, y: mouseEvent.clientY };
+        canvasContextMenu.style.top = `${mouseEvent.pageY + 5}px`;
+        canvasContextMenu.style.left = `${mouseEvent.pageX + 5}px`;
+        this.openMenu();
+      });
+    }
+    closeMenu() {
+      this._isMenuOpened = false;
+      this._menuContainer.classList.add("hidden");
+    }
+    openMenu() {
+      this._isMenuOpened = true;
+      this._menuContainer.classList.remove("hidden");
+    }
+    get isMenuOpened() {
+      return this._isMenuOpened;
+    }
+    get openingPosition() {
+      return this._openingPosition;
+    }
+    setCanvasLockedSwitchEnabled(canvasLocked) {
+      if (canvasLocked) {
+        this._lockCanvasSwitch.classList.add("enabled");
+      } else {
+        this._lockCanvasSwitch.classList.remove("enabled");
+      }
+    }
+    setupMenuOption(optionNode, eventName) {
+      optionNode.addEventListener("mousedown", (event) => {
+        event.stopPropagation();
+      });
+      optionNode.addEventListener("click", () => {
+        this.dispatchEvent(new Event(eventName));
+        this._menuContainer.classList.add("hidden");
+        this._isMenuOpened = false;
+      });
+    }
+    _menuContainer = document.querySelector("#canvas-context-menu-container");
+    _lockCanvasSwitch = document.querySelector("#lock-canvas-switch");
+    _createNodeOption = document.querySelector("#create-node-option");
+    _isMenuOpened = false;
+    _openingPosition;
+  };
+
   // src/main.ts
   async function main() {
     let viewport = document.querySelector("#viewport");
@@ -2149,8 +2248,11 @@
       let zoomScale = panContext.getTransform()?.scale ?? 1;
       zoomRatioDisplay.textContent = `Zoom: ${zoomScale.toPrecision(2)}x`;
     });
+    Settings.instance.setPanContext(panContext);
+    MouseHandler.getInstance().setPanContext(panContext);
+    let nodeCreationPosition;
     function createNode(recipe, machine) {
-      const node = new SankeyNode(nodesGroup, new Point(50, 50), recipe, machine);
+      const node = new SankeyNode(nodesGroup, nodeCreationPosition, recipe, machine);
       node.nodeSvg.onmousedown = (event) => {
         if (!isHoldingCtrl && event.buttons === 1) {
           MouseHandler.getInstance().startDraggingNode(event, node);
@@ -2158,28 +2260,32 @@
       };
     }
     ;
+    function openNodeCreation(nodePosition) {
+      let pageCenter = {
+        x: document.documentElement.clientWidth / 2,
+        y: document.documentElement.clientHeight / 2
+      };
+      nodeCreationPosition = nodePosition ?? MouseHandler.clientToCanvasPosition(pageCenter);
+      nodeCreationContainer?.classList.remove("hidden");
+    }
     document.querySelector("div.button#create-node").onclick = () => {
-      let nodeCreationContainer2 = document.querySelector("div#node-creation-container");
-      nodeCreationContainer2?.classList.remove("hidden");
+      openNodeCreation();
     };
-    let isLocked = false;
     let lockButton = document.querySelector("div.button#lock-viewport");
     let unlockedIcon = document.querySelector("div.button#lock-viewport>svg.unlocked");
     let lockedIcon = document.querySelector("div.button#lock-viewport>svg.locked");
     lockButton.onclick = () => {
-      if (isLocked) {
-        panContext.resume();
-        isLocked = false;
-        unlockedIcon.classList.remove("hidden");
-        lockedIcon.classList.add("hidden");
-      } else {
-        panContext.pause();
-        isLocked = true;
+      Settings.instance.isCanvasLocked = !Settings.instance.isCanvasLocked;
+    };
+    Settings.instance.addEventListener(Settings.isCanvasLockedChangedEvent, () => {
+      if (Settings.instance.isCanvasLocked) {
         unlockedIcon.classList.add("hidden");
         lockedIcon.classList.remove("hidden");
+      } else {
+        unlockedIcon.classList.remove("hidden");
+        lockedIcon.classList.add("hidden");
       }
-    };
-    MouseHandler.getInstance().setPanContext(panContext);
+    });
     window.addEventListener("keydown", (event) => {
       if (event.repeat) {
         return;
@@ -2205,10 +2311,33 @@
       document.querySelector("#container").classList.remove("move");
     });
     let nodeCreationContainer = document.querySelector("div#node-creation-container");
+    let canvas = document.querySelector("#canvas");
+    let canvasContextMenu = new CanvasContextMenu();
+    canvasContextMenu.addMenuTo(canvas);
+    canvasContextMenu.addEventListener(CanvasContextMenu.createNodeOptionClickedEvent, () => {
+      let contextMenuPos = canvasContextMenu.openingPosition;
+      if (contextMenuPos != void 0) {
+        contextMenuPos = MouseHandler.clientToCanvasPosition(contextMenuPos);
+      }
+      openNodeCreation(contextMenuPos);
+    });
+    canvasContextMenu.addEventListener(CanvasContextMenu.lockCanvasSwitchClickedEvent, () => {
+      Settings.instance.isCanvasLocked = !Settings.instance.isCanvasLocked;
+    });
+    Settings.instance.addEventListener(Settings.isCanvasLockedChangedEvent, () => {
+      canvasContextMenu.setCanvasLockedSwitchEnabled(Settings.instance.isCanvasLocked);
+    });
+    window.addEventListener("keydown", (event) => {
+      if (event.code === "Escape") {
+        canvasContextMenu.closeMenu();
+      }
+    });
     window.addEventListener("keypress", (event) => {
-      if (event.code === "KeyN") {
-        let nodeCreationContainer2 = document.querySelector("div#node-creation-container");
-        nodeCreationContainer2?.classList.remove("hidden");
+      if (event.code === "KeyN" && !canvasContextMenu.isMenuOpened) {
+        openNodeCreation();
+      }
+      if (event.code === "KeyL") {
+        Settings.instance.isCanvasLocked = !Settings.instance.isCanvasLocked;
       }
     });
     window.addEventListener("keydown", (event) => {
