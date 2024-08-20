@@ -147,6 +147,12 @@ async function main()
         openNodeCreation(contextMenuPos);
     });
 
+    canvas.addEventListener("dblclick", (event) =>
+    {
+        let nodePosition = { x: event.clientX, y: event.clientY };
+        openNodeCreation(MouseHandler.clientToCanvasPosition(nodePosition));
+    });
+
     canvasContextMenu.addEventListener(CanvasContextMenu.lockCanvasSwitchClickedEvent, () =>
     {
         Settings.instance.isCanvasLocked = !Settings.instance.isCanvasLocked;
