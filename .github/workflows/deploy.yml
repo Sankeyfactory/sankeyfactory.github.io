@@ -18,11 +18,10 @@ jobs:
       with:
         node-version: 22.2.0
         cache: 'npm'
-    - run: npm install typescript
-    - run: npx tsc
-    - run: npx esbuild --platform=node src/Tools/SatisfactoryRecipeExporter/Exporter.ts --bundle --sourcemap --outfile=src/Tools/SatisfactoryRecipeExporter/Exporter.js
-    - run: node src/Tools/SatisfactoryRecipeExporter/Exporter.js
-    - run: npx esbuild src/main.ts --bundle --outfile=dist/script.js
+    - run: npm run install-deps
+    - run: npx run compile
+    - run: npm run export-satisfactory-data
+    - run: npx run build-app
 
     - name: Deploy with gh-pages
       run: |

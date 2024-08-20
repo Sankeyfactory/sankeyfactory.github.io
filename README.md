@@ -29,23 +29,21 @@ Once it is installed, you can use it for the project dependencies:
 
 ```bash
 # This will install typescript compiler project-locally.
-> npm install typescript
+> npm run install-deps
 ```
 
 ### Compile
 
 ```bash
 # Runs typescript compiler to check validity of the code.
-> npx tsc
+> npm run compile
 ```
 
 ### Generating Satisfactory data files
 
 ```bash
-# Builds tool on TypeScript to JS code.
-> npx esbuild --platform=node src/Tools/SatisfactoryRecipeExporter/Exporter.ts --bundle --sourcemap --outfile=src/Tools/SatisfactoryRecipeExporter/Exporter.js
-# Runs the JS code locally as a native application.
-> node src/Tools/SatisfactoryRecipeExporter/Exporter.js
+# Builds and runs the tool on NodeJS.
+> npm run export-satisfactory-data
 ```
 
 ### Exporting Satisfactory icons
@@ -55,12 +53,10 @@ First, you'll need to export original icons from the game. See [Extracting the g
 Once you have the icons, they can be automatically copied and renamed by a tool to `dist` folder.
 
 ```bash
-# Builds tool on TypeScript to JS code.
-> npx esbuild --platform=node src/Tools/SatisfactoryIconExporter/Exporter.ts --bundle --sourcemap --outfile=src/Tools/SatisfactoryIconExporter/Exporter.js
-# Runs the JS code locally as a native application.
+# Builds and runs the tool on NodeJS.
 # RESOURCES_DIR should be set to a path where you exported icons to.
 # For example: `RESOURCES_DIR=Path-To-FModel/Output/Exports/FactoryGame/Content`
-> RESOURCES_DIR=... node src/Tools/SatisfactoryIconExporter/Exporter.js
+> RESOURCES_DIR=... npm run export-satisfactory-icons
 ```
 
 > Note: RESOURCES_DIR is a environment variable and it can only be set this way on UNIX systems.
@@ -70,7 +66,7 @@ Once you have the icons, they can be automatically copied and renamed by a tool 
 
 ```bash
 # Builds application's TypeScript code to runnable by browsers JavaScript.
-> npx esbuild src/main.ts --bundle --outfile=dist/script.js
+> npm run build-app
 ```
 
 Once the web application is built, it can be viewed in browser by opening `dist/index.html` file. It doesn't need a server to run.
