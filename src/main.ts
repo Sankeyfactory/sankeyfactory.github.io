@@ -247,7 +247,7 @@ async function main()
         };
 
         let basicRecipesGroup = createRecipesGroup("Basic recipes");
-        let alternateRecipesGroup = createRecipesGroup("Ctrlernate recipes");
+        let alternateRecipesGroup = createRecipesGroup("Alternate recipes");
         let eventsRecipesGroup = createRecipesGroup("Events recipes");
 
         let createRecipeParser = (simpleRecipesGroup: HTMLDivElement) =>
