@@ -204,6 +204,7 @@ async function main()
 
     let tabSelectors = document.querySelector("div#tab-selectors")!;
     let recipeTabs = document.querySelector("div#recipe-tabs")!;
+    let confirmRecipeButton = document.querySelector("div#confirm-recipe")!;
 
     recipeTabs.addEventListener("click", () =>
     {
@@ -214,6 +215,8 @@ async function main()
     {
         let tabSelector = document.createElement("div");
         tabSelector.classList.add("tab-selector");
+
+        tabSelector.title = machine.displayName;
 
         let machineIcon = document.createElement("img");
         machineIcon.classList.add("machine-icon");
@@ -249,12 +252,12 @@ async function main()
                 recipeNode.classList.add("recipe");
                 recipeNode.title = recipe.displayName;
 
+                let isEventRecipe = false;
+
                 for (const product of recipe.products)
                 {
                     let itemIcon = document.createElement("img");
                     itemIcon.classList.add("item-icon");
-
-                    let isEventRecipe = false;
 
                     let resource = satisfactoryData.resources.find(
                         // I specify type because deploy fails otherwise for some reason.
@@ -267,34 +270,46 @@ async function main()
                     if (resource != undefined)
                     {
                         itemIcon.src = `GameData/SatisfactoryIcons/${resource.iconPath}`;
-                        isEventRecipe = resource.iconPath.startsWith("Events");
+                        if (!isEventRecipe)
+                        {
+                            isEventRecipe = resource.iconPath.startsWith("Events");
+                        }
                     }
 
                     itemIcon.alt = recipe.displayName;
                     itemIcon.loading = "lazy";
 
                     recipeNode.appendChild(itemIcon);
+                }
 
-                    recipeNode.addEventListener("click", (event) =>
-                    {
-                        document.dispatchEvent(new GameRecipeEvent(recipe, machine, "recipe-selected"));
-                        recipeNode.classList.add("selected");
-                        event.stopPropagation();
-                    });
+                recipeNode.addEventListener("click", (event) =>
+                {
+                    document.dispatchEvent(new GameRecipeEvent(recipe, machine, "recipe-selected"));
+                    recipeNode.classList.add("selected");
+                    event.stopPropagation();
+                });
 
-                    document.addEventListener("recipe-selected", () =>
-                    {
-                        recipeNode.classList.remove("selected");
-                    });
+                recipeNode.addEventListener("dblclick", (event) =>
+                {
+                    document.dispatchEvent(new GameRecipeEvent(recipe, machine, "recipe-selected"));
+                    recipeNode.classList.add("selected");
+                    confirmRecipeButton.dispatchEvent(new MouseEvent("click"));
 
-                    if (isEventRecipe)
-                    {
-                        eventsRecipesGroup.div.appendChild(recipeNode);
-                    }
-                    else
-                    {
-                        simpleRecipesGroup.appendChild(recipeNode);
-                    }
+                    event.stopPropagation();
+                });
+
+                document.addEventListener("recipe-selected", () =>
+                {
+                    recipeNode.classList.remove("selected");
+                });
+
+                if (isEventRecipe)
+                {
+                    eventsRecipesGroup.div.appendChild(recipeNode);
+                }
+                else
+                {
+                    simpleRecipesGroup.appendChild(recipeNode);
                 }
             };
         };
@@ -414,8 +429,6 @@ async function main()
             selectedRecipeDisplay.scrollTop = selectedRecipeDisplay.scrollHeight;
         }
     });
-
-    let confirmRecipeButton = document.querySelector("div#confirm-recipe")!;
 
     confirmRecipeButton.addEventListener("click", () =>
     {

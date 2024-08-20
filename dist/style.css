@@ -85,7 +85,6 @@ div.button {
     border: 2px solid var(--button-border);
 
     pointer-events: all;
-    user-select: none;
 }
 
 @keyframes animate-appearance {
@@ -112,6 +111,18 @@ div.button:hover {
     color: var(--foreground-accent);
 
     cursor: pointer;
+}
+
+div.button,
+svg#canvas,
+div.controls,
+#node-creation-modal div.title-row,
+#node-creation-modal div.content,
+div.context-menu {
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
 }
 
 /* Most upper-level containers */
@@ -146,8 +157,6 @@ svg#canvas {
 
     width: 100%;
     height: 100%;
-
-    user-select: none;
 }
 
 /* User help */
@@ -350,7 +359,6 @@ div.controls {
     gap: 8px;
 
     pointer-events: none;
-    user-select: none;
 }
 
 .controls div.row {
@@ -429,8 +437,6 @@ div#node-creation-modal {
     height: 64px;
 
     padding: 0 0 0 16px;
-
-    user-select: none;
 }
 
 #node-creation-modal .title-row h2.title {
@@ -482,8 +488,6 @@ div#node-creation-modal {
 
     min-height: 0;
     min-width: 0;
-
-    user-select: none;
 }
 
 #node-creation-modal div.columns {
@@ -555,6 +559,9 @@ div#node-creation-modal {
 #node-creation-modal .tab-selector img.machine-icon {
     height: 44px;
     width: 44px;
+
+    /* To disable image dragging */
+    pointer-events: none;
 }
 
 /* Node creation modal's recipe tabs */
@@ -631,6 +638,9 @@ div#node-creation-modal {
 
 #node-creation-modal .recipe img.item-icon {
     flex-grow: 1;
+
+    /* To disable image dragging */
+    pointer-events: none;
 }
 
 /* Node creation modal's selected recipe */
@@ -739,8 +749,6 @@ div.context-menu {
     padding: 4px;
 
     background-color: var(--background-lv1);
-
-    user-select: none;
 }
 
 .context-menu div.option {
