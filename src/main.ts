@@ -9,6 +9,8 @@ import { Point } from "./Point";
 import { MouseHandler } from "./MouseHandler";
 import { GameRecipe, GameRecipeEvent } from "./GameData/GameRecipe";
 import { GameMachine } from "./GameData/GameMachine";
+import { Settings } from "./Settings";
+import { CanvasContextMenu } from "./CanvasContextMenu";
 
 async function main()
 {
@@ -38,9 +40,14 @@ async function main()
         zoomRatioDisplay.textContent = `Zoom: ${zoomScale.toPrecision(2)}x`;
     });
 
+    Settings.instance.setPanContext(panContext);
+    MouseHandler.getInstance().setPanContext(panContext);
+
+    let nodeCreationPosition: Point;
+
     function createNode(recipe: GameRecipe, machine: GameMachine)
     {
-        const node = new SankeyNode(nodesGroup, new Point(50, 50), recipe, machine);
+        const node = new SankeyNode(nodesGroup, nodeCreationPosition, recipe, machine);
 
         node.nodeSvg.onmousedown = (event) =>
         {
@@ -51,38 +58,45 @@ async function main()
         };
     };
 
+    function openNodeCreation(nodePosition?: Point)
+    {
+        let pageCenter = {
+            x: document.documentElement.clientWidth / 2,
+            y: document.documentElement.clientHeight / 2
+        };
+
+        nodeCreationPosition = nodePosition ?? MouseHandler.clientToCanvasPosition(pageCenter);
+
+        nodeCreationContainer?.classList.remove("hidden");
+    }
+
     (document.querySelector("div.button#create-node") as HTMLDivElement).onclick = () =>
     {
-        let nodeCreationContainer = document.querySelector("div#node-creation-container");
-        nodeCreationContainer?.classList.remove("hidden");
+        openNodeCreation();
     };
 
-    let isLocked: boolean = false;
     let lockButton = document.querySelector("div.button#lock-viewport") as HTMLDivElement;
     let unlockedIcon = document.querySelector("div.button#lock-viewport>svg.unlocked") as SVGElement;
     let lockedIcon = document.querySelector("div.button#lock-viewport>svg.locked") as SVGElement;
 
     lockButton.onclick = () =>
     {
-        if (isLocked)
-        {
-            panContext.resume();
-            isLocked = false;
+        Settings.instance.isCanvasLocked = !Settings.instance.isCanvasLocked;
+    };
 
-            unlockedIcon.classList.remove("hidden");
-            lockedIcon.classList.add("hidden");
-        }
-        else
+    Settings.instance.addEventListener(Settings.isCanvasLockedChangedEvent, () =>
+    {
+        if (Settings.instance.isCanvasLocked)
         {
-            panContext.pause();
-            isLocked = true;
-
             unlockedIcon.classList.add("hidden");
             lockedIcon.classList.remove("hidden");
         }
-    };
-
-    MouseHandler.getInstance().setPanContext(panContext);
+        else
+        {
+            unlockedIcon.classList.remove("hidden");
+            lockedIcon.classList.add("hidden");
+        }
+    });
 
     window.addEventListener("keydown", (event) =>
     {
@@ -118,12 +132,51 @@ async function main()
 
     let nodeCreationContainer = document.querySelector("div#node-creation-container");
 
+    let canvas = document.querySelector("#canvas") as SVGElement;
+    let canvasContextMenu = new CanvasContextMenu();
+
+    canvasContextMenu.addMenuTo(canvas);
+
+    canvasContextMenu.addEventListener(CanvasContextMenu.createNodeOptionClickedEvent, () =>
+    {
+        let contextMenuPos = canvasContextMenu.openingPosition;
+
+        if (contextMenuPos != undefined)
+        {
+            contextMenuPos = MouseHandler.clientToCanvasPosition(contextMenuPos);
+        }
+
+        openNodeCreation(contextMenuPos);
+    });
+
+    canvasContextMenu.addEventListener(CanvasContextMenu.lockCanvasSwitchClickedEvent, () =>
+    {
+        Settings.instance.isCanvasLocked = !Settings.instance.isCanvasLocked;
+    });
+
+    Settings.instance.addEventListener(Settings.isCanvasLockedChangedEvent, () =>
+    {
+        canvasContextMenu.setCanvasLockedSwitchEnabled(Settings.instance.isCanvasLocked);
+    });
+
+    window.addEventListener("keydown", (event) =>
+    {
+        if (event.code === "Escape")
+        {
+            canvasContextMenu.closeMenu();
+        }
+    });
+
     window.addEventListener("keypress", (event) =>
     {
-        if (event.code === "KeyN")
+        if (event.code === "KeyN" && !canvasContextMenu.isMenuOpened)
         {
-            let nodeCreationContainer = document.querySelector("div#node-creation-container");
-            nodeCreationContainer?.classList.remove("hidden");
+            openNodeCreation();
+        }
+
+        if (event.code === "KeyL")
+        {
+            Settings.instance.isCanvasLocked = !Settings.instance.isCanvasLocked;
         }
     });
 

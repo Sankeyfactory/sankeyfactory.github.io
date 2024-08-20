@@ -31,7 +31,7 @@ export class SankeyLink
         firstSlot.addEventListener(SankeySlot.boundsChangedEvent, this.recalculate.bind(this));
         secondSlot.addEventListener(SankeySlot.boundsChangedEvent, this.recalculate.bind(this));
 
-        this._svgPath = SvgFactory.createSvgPath("link");
+        this._svgPath = SvgFactory.createSvgPath("link", "animate-appearance");
 
         this._resourceDisplay = this.createResourceDisplay({
             id: firstSlot.resourceId,

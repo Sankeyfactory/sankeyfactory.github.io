@@ -24,7 +24,10 @@ export class SankeyNode
         machine: GameMachine,
     )
     {
-        this.nodeSvgGroup = SvgFactory.createSvgGroup(position, "node");
+        this.nodeSvgGroup = SvgFactory.createSvgGroup({
+            x: position.x - SankeyNode.nodeWidth / 2 - SankeySlot.slotWidth,
+            y: position.y - SankeyNode.nodeHeight / 2
+        }, "node", "animate-appearance");
 
         this.nodeSvg = SvgFactory.createSvgRect({
             width: SankeyNode.nodeWidth,

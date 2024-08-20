@@ -73,8 +73,7 @@ export class MouseHandler
                 throw Error("Slot connecting line wasn't created.");
             }
 
-            const domPoint = new DOMPointReadOnly(event.clientX, event.clientY);
-            const svgMousePos = domPoint.matrixTransform(this.viewport.getScreenCTM()!.inverse());
+            const svgMousePos = MouseHandler.clientToCanvasPosition({ x: event.clientX, y: event.clientY });
 
             this.slotConnectingCurve = Curve.fromTwoPoints(
                 this.slotConnectingCurve.startPoint,
@@ -211,8 +210,7 @@ export class MouseHandler
             y: slotBounds.y + (slotBounds.height / 2)
         };
 
-        const domPoint = new DOMPointReadOnly(event.clientX, event.clientY);
-        const svgMousePos = domPoint.matrixTransform(this.viewport.getScreenCTM()!.inverse());
+        const svgMousePos = MouseHandler.clientToCanvasPosition({ x: event.clientX, y: event.clientY });
 
         this.slotConnectingCurve = Curve.fromTwoPoints(
             startPos,
@@ -242,6 +240,15 @@ export class MouseHandler
             this.lastMousePos.x = event.clientX;
             this.lastMousePos.y = event.clientY;
         }
+    }
+
+    public static clientToCanvasPosition(clientPosition: Point): Point
+    {
+        let viewport = document.querySelector("#viewport") as SVGGElement;
+
+        const domPoint = new DOMPointReadOnly(clientPosition.x, clientPosition.y);
+
+        return domPoint.matrixTransform(viewport.getScreenCTM()!.inverse());
     }
 
     private constructor()
