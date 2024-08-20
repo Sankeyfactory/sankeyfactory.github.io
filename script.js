@@ -2436,12 +2436,14 @@
     });
     let tabSelectors = document.querySelector("div#tab-selectors");
     let recipeTabs = document.querySelector("div#recipe-tabs");
+    let confirmRecipeButton = document.querySelector("div#confirm-recipe");
     recipeTabs.addEventListener("click", () => {
       document.dispatchEvent(new GameRecipeEvent(void 0, void 0, "recipe-selected"));
     });
     for (const machine of Satisfactory_default.machines) {
       let tabSelector = document.createElement("div");
       tabSelector.classList.add("tab-selector");
+      tabSelector.title = machine.displayName;
       let machineIcon = document.createElement("img");
       machineIcon.classList.add("machine-icon");
       machineIcon.src = `GameData/SatisfactoryIcons/${machine.iconPath}`;
@@ -2465,10 +2467,10 @@
           let recipeNode = document.createElement("div");
           recipeNode.classList.add("recipe");
           recipeNode.title = recipe.displayName;
+          let isEventRecipe = false;
           for (const product of recipe.products) {
             let itemIcon = document.createElement("img");
             itemIcon.classList.add("item-icon");
-            let isEventRecipe = false;
             let resource = Satisfactory_default.resources.find(
               // I specify type because deploy fails otherwise for some reason.
               (resource2) => {
@@ -2477,24 +2479,32 @@
             );
             if (resource != void 0) {
               itemIcon.src = `GameData/SatisfactoryIcons/${resource.iconPath}`;
-              isEventRecipe = resource.iconPath.startsWith("Events");
+              if (!isEventRecipe) {
+                isEventRecipe = resource.iconPath.startsWith("Events");
+              }
             }
             itemIcon.alt = recipe.displayName;
             itemIcon.loading = "lazy";
             recipeNode.appendChild(itemIcon);
-            recipeNode.addEventListener("click", (event) => {
-              document.dispatchEvent(new GameRecipeEvent(recipe, machine, "recipe-selected"));
-              recipeNode.classList.add("selected");
-              event.stopPropagation();
-            });
-            document.addEventListener("recipe-selected", () => {
-              recipeNode.classList.remove("selected");
-            });
-            if (isEventRecipe) {
-              eventsRecipesGroup.div.appendChild(recipeNode);
-            } else {
-              simpleRecipesGroup.appendChild(recipeNode);
-            }
+          }
+          recipeNode.addEventListener("click", (event) => {
+            document.dispatchEvent(new GameRecipeEvent(recipe, machine, "recipe-selected"));
+            recipeNode.classList.add("selected");
+            event.stopPropagation();
+          });
+          recipeNode.addEventListener("dblclick", (event) => {
+            document.dispatchEvent(new GameRecipeEvent(recipe, machine, "recipe-selected"));
+            recipeNode.classList.add("selected");
+            confirmRecipeButton.dispatchEvent(new MouseEvent("click"));
+            event.stopPropagation();
+          });
+          document.addEventListener("recipe-selected", () => {
+            recipeNode.classList.remove("selected");
+          });
+          if (isEventRecipe) {
+            eventsRecipesGroup.div.appendChild(recipeNode);
+          } else {
+            simpleRecipesGroup.appendChild(recipeNode);
           }
         };
       };
@@ -2577,7 +2587,6 @@
         selectedRecipeDisplay.scrollTop = selectedRecipeDisplay.scrollHeight;
       }
     });
-    let confirmRecipeButton = document.querySelector("div#confirm-recipe");
     confirmRecipeButton.addEventListener("click", () => {
       nodeCreationContainer?.classList.add("hidden");
       if (selectedRecipe != void 0 && selectedRecipeMachine != void 0) {
