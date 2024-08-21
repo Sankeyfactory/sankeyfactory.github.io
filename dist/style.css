@@ -392,6 +392,58 @@ div.controls {
     margin: 0;
 }
 
+/* Modal windows */
+
+.modal-window div.title-row {
+    display: flex;
+    align-items: center;
+
+    height: 64px;
+
+    padding: 0 0 0 16px;
+}
+
+.modal-window .title-row h2.title {
+    flex-grow: 1;
+
+    margin: 0;
+
+    font-size: 20px;
+    font-weight: 500;
+}
+
+.modal-window .title-row div.close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 64px;
+    height: 64px;
+
+    border-radius: 0 16px 0 0;
+
+    font-size: 20px;
+    font-weight: 500;
+}
+
+.modal-window .title-row .close svg {
+    width: 28px;
+    height: auto;
+    fill: var(--foreground);
+}
+
+.modal-window .title-row .close:hover svg {
+    fill: var(--foreground-accent);
+}
+
+.modal-window .title-row div.close:hover {
+    color: var(--foreground-accent);
+
+    background-color: var(--background-lv1);
+
+    cursor: pointer;
+}
+
 /* Node creation modal */
 
 div#node-creation-modal {
@@ -428,56 +480,6 @@ div#node-creation-modal {
 
         border-radius: 0;
     }
-}
-
-#node-creation-modal div.title-row {
-    display: flex;
-    align-items: center;
-
-    height: 64px;
-
-    padding: 0 0 0 16px;
-}
-
-#node-creation-modal .title-row h2.title {
-    flex-grow: 1;
-
-    margin: 0;
-
-    font-size: 20px;
-    font-weight: 500;
-}
-
-#node-creation-modal .title-row div.close {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    width: 64px;
-    height: 64px;
-
-    border-radius: 0 16px 0 0;
-
-    font-size: 20px;
-    font-weight: 500;
-}
-
-#node-creation-modal .title-row .close svg {
-    width: 28px;
-    height: auto;
-    fill: var(--foreground);
-}
-
-#node-creation-modal .title-row .close:hover svg {
-    fill: var(--foreground-accent);
-}
-
-#node-creation-modal .title-row div.close:hover {
-    color: var(--foreground-accent);
-
-    background-color: var(--background-lv1);
-
-    cursor: pointer;
 }
 
 #node-creation-modal div.content {
