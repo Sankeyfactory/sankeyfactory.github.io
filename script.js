@@ -1778,11 +1778,13 @@
       }
     }
     cancelConnectingSlots() {
-      this.firstConnectingSlot = void 0;
-      this.slotConnectingLine?.remove();
-      this.slotConnectingLine = void 0;
-      this.slotConnectingCurve = void 0;
-      this.mouseStatus = _MouseHandler.MouseStatus.Free;
+      if (this.mouseStatus == _MouseHandler.MouseStatus.ConnectingInputSlot || this.mouseStatus == _MouseHandler.MouseStatus.ConnectingOutputSlot) {
+        this.firstConnectingSlot = void 0;
+        this.slotConnectingLine?.remove();
+        this.slotConnectingLine = void 0;
+        this.slotConnectingCurve = void 0;
+        this.mouseStatus = _MouseHandler.MouseStatus.Free;
+      }
     }
     inputSlotClicked(event, targetSlot) {
       if (this.mouseStatus === _MouseHandler.MouseStatus.Free) {
@@ -2537,6 +2539,9 @@
     }
     document.querySelector("div.button#create-node").onclick = () => {
       openNodeCreation();
+    };
+    document.querySelector("div.button#cancel-linking").onclick = () => {
+      MouseHandler.getInstance().cancelConnectingSlots();
     };
     let lockButton = document.querySelector("div.button#lock-viewport");
     let unlockedIcon = document.querySelector("div.button#lock-viewport>svg.unlocked");
