@@ -29,7 +29,11 @@ async function main()
 
     let panContext = panzoom(viewport, {
         zoomDoubleClickSpeed: 1, // disables double click zoom
-        beforeMouseDown: () =>
+        beforeMouseDown: function ()
+        {
+            return !isHoldingCtrl;
+        },
+        beforeWheel: function ()
         {
             return !isHoldingCtrl;
         }
