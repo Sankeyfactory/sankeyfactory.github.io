@@ -104,11 +104,16 @@ export class MouseHandler
 
     public cancelConnectingSlots()
     {
-        this.firstConnectingSlot = undefined;
-        this.slotConnectingLine?.remove();
-        this.slotConnectingLine = undefined;
-        this.slotConnectingCurve = undefined;
-        this.mouseStatus = MouseHandler.MouseStatus.Free;
+        if (this.mouseStatus == MouseHandler.MouseStatus.ConnectingInputSlot
+            || this.mouseStatus == MouseHandler.MouseStatus.ConnectingOutputSlot
+        )
+        {
+            this.firstConnectingSlot = undefined;
+            this.slotConnectingLine?.remove();
+            this.slotConnectingLine = undefined;
+            this.slotConnectingCurve = undefined;
+            this.mouseStatus = MouseHandler.MouseStatus.Free;
+        }
     }
 
     public inputSlotClicked(event: MouseEvent, targetSlot: SankeySlotMissing)

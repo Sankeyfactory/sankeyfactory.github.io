@@ -76,6 +76,11 @@ async function main()
         openNodeCreation();
     };
 
+    (document.querySelector("div.button#cancel-linking") as HTMLDivElement).onclick = () =>
+    {
+        MouseHandler.getInstance().cancelConnectingSlots();
+    };
+
     let lockButton = document.querySelector("div.button#lock-viewport") as HTMLDivElement;
     let unlockedIcon = document.querySelector("div.button#lock-viewport>svg.unlocked") as SVGElement;
     let lockedIcon = document.querySelector("div.button#lock-viewport>svg.locked") as SVGElement;
