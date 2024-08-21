@@ -8,6 +8,8 @@
     --foreground: #eeeeee;
     --foreground-accent: #ffffff;
 
+    --dim-foreground: #909092;
+
     --border: #414143;
     --border-accent: #4a4a4c;
 
@@ -118,7 +120,8 @@ svg#canvas,
 div.controls,
 #node-creation-modal div.title-row,
 #node-creation-modal div.content,
-div.context-menu {
+div.context-menu,
+#machine-configuration-container {
     user-select: none;
     -moz-user-select: none;
     -webkit-user-select: none;
@@ -394,6 +397,15 @@ div.controls {
 
 /* Modal windows */
 
+div.modal-window {
+    display: flex;
+    flex-direction: column;
+
+    border-radius: 16px;
+
+    background-color: var(--background-lv0);
+}
+
 .modal-window div.title-row {
     display: flex;
     align-items: center;
@@ -447,17 +459,10 @@ div.controls {
 /* Node creation modal */
 
 div#node-creation-modal {
-    display: flex;
-    flex-direction: column;
-
     min-width: 80%;
     min-height: 80%;
     max-width: 80%;
     max-height: 80%;
-
-    border-radius: 16px;
-
-    background-color: var(--background-lv0);
 }
 
 @media screen and (max-width: 560px) {
@@ -790,4 +795,165 @@ div.context-menu {
 
 .context-menu .switch.enabled div.when-disabled {
     display: none;
+}
+
+/* Node configuration modal window */
+
+#machine-configuration-container .modal-window div.content {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+
+    padding: 16px;
+    padding-top: 0;
+
+    gap: 20px;
+
+    overflow-y: scroll;
+}
+
+#machine-configuration-container .modal-window div.row {
+    display: flex;
+}
+
+#machine-configuration-container .modal-window h3.group-title {
+    flex-grow: 1;
+    font-size: 16px;
+    font-weight: 500;
+    text-align: center;
+    margin: 0;
+}
+
+#machine-configuration-container .modal-window div.table {
+    display: flex;
+    flex-grow: 1;
+
+    gap: 8px;
+}
+
+#machine-configuration-container .modal-window .table div.column {
+    display: flex;
+    flex-direction: column;
+
+    max-width: 184px;
+
+    gap: 8px;
+}
+
+@media screen and (max-width: 800px) {
+    #machine-configuration-container .modal-window {
+        min-width: 100%;
+        min-height: 100%;
+        max-width: 100%;
+        max-height: 100%;
+
+        border-radius: 0;
+    }
+
+    #machine-configuration-container .modal-window div.table {
+        flex-direction: column;
+    }
+
+    #machine-configuration-container .modal-window .table div.column {
+        max-width: 100%;
+    }
+}
+
+#machine-configuration-container .modal-window .table .column div.title {
+    text-align: center;
+}
+
+#machine-configuration-container .modal-window .table .column div.edit {
+    display: flex;
+
+    height: 36px;
+}
+
+#machine-configuration-container .modal-window .table .column .edit div.icon-container {
+    display: flex;
+
+    box-sizing: border-box;
+
+    min-width: 36px;
+    min-height: 36px;
+    max-width: 36px;
+    max-height: 36px;
+
+    padding: 4px;
+    margin-right: 2px;
+
+    background-color: var(--background-lv1);
+
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+}
+
+#machine-configuration-container .modal-window .table .column .edit .icon-container svg {
+    fill: var(--foreground);
+}
+
+#machine-configuration-container .modal-window .table .column .edit input {
+    display: flex;
+
+    flex-grow: 1;
+
+    min-width: 0;
+
+    padding: 0 4px;
+
+    background-color: var(--background-lv1);
+
+    border: 2px solid var(--border);
+    border-right: 0;
+
+    font-size: 16px;
+}
+
+#machine-configuration-container .modal-window .table .column .edit div.units {
+    display: flex;
+    align-items: center;
+
+    min-width: fit-content;
+
+    padding: 4px;
+
+    background-color: var(--background-lv1);
+
+    border: 2px solid var(--border);
+    border-left: 0;
+
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+
+    color: var(--dim-foreground);
+}
+
+#machine-configuration-container .modal-window .table .column .edit input:focus,
+#machine-configuration-container .modal-window .table .column .edit input:focus~div.units {
+    outline: none;
+
+    background-color: var(--background-lv2);
+
+    border-color: var(--border-accent);
+}
+
+#machine-configuration-container .modal-window div.row.buttons {
+    display: flex;
+    justify-content: end;
+
+    padding: 16px;
+    padding-top: 0;
+
+    gap: 8px;
+}
+
+#machine-configuration-container .modal-window div.button {
+    display: flex;
+
+    box-sizing: border-box;
+
+    width: 120px;
+    padding: 12px;
+
+    border-radius: 8px;
 }
