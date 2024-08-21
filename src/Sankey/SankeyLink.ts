@@ -9,6 +9,7 @@ import { SvgFactory } from "../SVG/SvgFactory";
 import { SvgPathBuilder } from "../SVG/SvgPathBuilder";
 import { SankeySlot } from "./Slots/SankeySlot";
 import { Point } from '../Point';
+import { satisfactoryIconPath } from '../GameData/GameData';
 
 export class SankeyLink
 {
@@ -120,7 +121,7 @@ export class SankeyLink
 
         if (resourceDesc != undefined)
         {
-            icon.src = `GameData/SatisfactoryIcons/${resourceDesc.iconPath}`;
+            icon.src = satisfactoryIconPath(resourceDesc.iconPath);
             icon.alt = resourceDesc.displayName;
         }
 

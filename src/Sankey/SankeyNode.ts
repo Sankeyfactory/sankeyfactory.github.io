@@ -9,6 +9,8 @@ import { SvgFactory } from "../SVG/SvgFactory";
 import { GameRecipe } from "../GameData/GameRecipe";
 import { GameMachine } from "../GameData/GameMachine";
 import { NodeContextMenu } from '../ContextMenu/NodeContextMenu';
+import { NodeConfiguration } from './NodeConfiguration';
+import { satisfactoryIconPath, toItemsInMinute } from '../GameData/GameData';
 
 export class SankeyNode
 {
@@ -37,12 +39,7 @@ export class SankeyNode
             y: 0
         }, "machine");
 
-        let nodeContextMenu = new NodeContextMenu(this.nodeSvg);
-
-        nodeContextMenu.addEventListener(NodeContextMenu.deleteNodeOptionClickedEvent, () =>
-        {
-            this.delete();
-        });
+        this.configureContextMenu(recipe, machine);
 
         let totalInputResourcesAmount = recipe.ingredients
             .reduce((sum, ingredient) =>
@@ -187,7 +184,7 @@ export class SankeyNode
                 icon.classList.add("icon");
                 icon.loading = "lazy";
                 icon.alt = resource!.displayName;
-                icon.src = `GameData/SatisfactoryIcons/${resource!.iconPath}`;
+                icon.src = satisfactoryIconPath(resource!.iconPath);
                 icon.title = resource!.displayName;
 
                 let amount = document.createElement("p");
@@ -202,7 +199,7 @@ export class SankeyNode
 
 
 
-        recipeMachineIcon.src = `GameData/SatisfactoryIcons/${machine.iconPath}`;
+        recipeMachineIcon.src = satisfactoryIconPath(machine.iconPath);
         recipeMachineIcon.title = machine.displayName;
         recipeMachineIcon.alt = machine.displayName;
 
@@ -262,11 +259,27 @@ export class SankeyNode
         this.nodeSvgGroup.remove();
     }
 
+    private configureContextMenu(recipe: GameRecipe, machine: GameMachine): void
+    {
+        let nodeContextMenu = new NodeContextMenu(this.nodeSvg);
+
+        nodeContextMenu.addEventListener(NodeContextMenu.deleteNodeOptionClickedEvent, () =>
+        {
+            this.delete();
+        });
+
+        let configurator = new NodeConfiguration(recipe, machine);
+
+        let openConfigurator = function (event: Event)
+        {
+            configurator.openConfigurationWindow();
+            event.stopPropagation();
+        };
+
+        nodeContextMenu.addEventListener(NodeContextMenu.configureNodeOptionClickedEvent, openConfigurator);
+        this.nodeSvg.addEventListener("dblclick", openConfigurator);
+    }
+
     private _inputSlotGroups: SlotsGroup[] = [];
     private _outputSlotGroups: SlotsGroup[] = [];
-}
-
-export function toItemsInMinute(amount: number, consumingTime: number): number
-{
-    return (60 / consumingTime) * amount;
 }

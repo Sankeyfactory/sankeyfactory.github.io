@@ -20,6 +20,12 @@
     --active-button-border: #c47030;
 
     --dimming: #00000090;
+
+    --error: #f34e4e;
+
+    --disabled-button-background: #434343;
+    --disabled-button-foreground: #7E7E7E;
+    --disabled-button-border: #545454;
 }
 
 @font-face {
@@ -89,6 +95,46 @@ div.button {
     pointer-events: all;
 }
 
+div.button:hover {
+    background-color: var(--active-button-background);
+
+    border: 2px solid var(--active-button-border);
+
+    color: var(--foreground-accent);
+
+    cursor: pointer;
+}
+
+div.button.dimmed {
+    background-color: var(--background-lv1);
+
+    border-color: var(--border);
+}
+
+div.button.dimmed:hover {
+    background-color: var(--background-lv2);
+
+    border: 2px solid var(--border-accent);
+}
+
+div.button.disabled {
+    background-color: var(--disabled-button-background);
+    color: var(--disabled-button-foreground);
+
+    border-color: var(--disabled-button-border);
+
+    cursor: default;
+}
+
+div.button.disabled:hover {
+    background-color: var(--disabled-button-background);
+    color: var(--disabled-button-foreground);
+
+    border-color: var(--disabled-button-border);
+
+    cursor: default;
+}
+
 @keyframes animate-appearance {
     0% {
         filter: brightness(200%);
@@ -103,16 +149,6 @@ div.button {
     animation-name: animate-appearance;
     animation-timing-function: ease-in;
     animation-duration: 0.7s;
-}
-
-div.button:hover {
-    background-color: var(--active-button-background);
-
-    border: 2px solid var(--active-button-border);
-
-    color: var(--foreground-accent);
-
-    cursor: pointer;
 }
 
 div.button,
@@ -935,6 +971,13 @@ div.context-menu {
     background-color: var(--background-lv2);
 
     border-color: var(--border-accent);
+}
+
+#machine-configuration-container .modal-window .table .column .edit.error input,
+#machine-configuration-container .modal-window .table .column .edit.error div.units,
+#machine-configuration-container .modal-window .table .column .edit.error input:focus,
+#machine-configuration-container .modal-window .table .column .edit.error input:focus~div.units {
+    border-color: var(--error);
 }
 
 #machine-configuration-container .modal-window div.row.buttons {

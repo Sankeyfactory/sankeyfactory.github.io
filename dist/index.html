@@ -122,11 +122,11 @@
         </div>
     </div>
 
-    <div class="dimming hidden modal-window-container" id="machine-configuration-container">
+    <div class="dimming modal-window-container hidden" id="machine-configuration-container">
         <div class="modal-window">
             <div class="title-row">
                 <h2 class="title">Node configuration</h2>
-                <div class="close" id="node-creation-close">
+                <div class="close">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
                         <path
                             d="M480-424 284-228q-11 11-28 11t-28-11q-11-11-11-28t11-28l196-196-196-196q-11-11-11-28t11-28q11-11 28-11t28 11l196 196 196-196q11-11 28-11t28 11q11 11 11 28t-11 28L536-480l196 196q11 11 11 28t-11 28q-11 11-28 11t-28-11L480-424Z" />
@@ -138,68 +138,18 @@
                     <h3 class="group-title">Machines amount</h3>
                 </div>
                 <div class="row">
-                    <div class="table">
+                    <div class="table amount">
                         <div class="column machines">
                             <div class="title">Machines</div>
-                            <div class="edit">
-                                <div class="icon-container">
-                                    <img src="GameData/SatisfactoryIcons/Buildable/Factory/AssemblerMk1/AssemblerMk1.png"
-                                        alt="Machine" title="Machine">
-                                </div>
-                                <input type="text" value="1" />
-                                <div class="units"></div>
-                            </div>
                         </div>
                         <div class="column inputs">
                             <div class="title">Input</div>
-                            <div class="edit">
-                                <div class="icon-container">
-                                    <img src="GameData/SatisfactoryIcons/Resource/Parts/IronPlate/IronPlates.png"
-                                        alt="Item" title="Item">
-                                </div>
-                                <input type="text" value="30" />
-                                <div class="units">/min</div>
-                            </div>
-                            <div class="edit">
-                                <div class="icon-container">
-                                    <img src="GameData/SatisfactoryIcons/Resource/Parts/IronPlate/IronPlates.png"
-                                        alt="Item" title="Item">
-                                </div>
-                                <input type="text" value="30" />
-                                <div class="units">/min</div>
-                            </div>
                         </div>
                         <div class="column outputs">
                             <div class="title">Output</div>
-                            <div class="edit">
-                                <div class="icon-container">
-                                    <img src="GameData/SatisfactoryIcons/Resource/Parts/IronPlate/IronPlates.png"
-                                        alt="Item" title="Item">
-                                </div>
-                                <input type="text" value="30" />
-                                <div class="units">/min</div>
-                            </div>
-                            <div class="edit">
-                                <div class="icon-container">
-                                    <img src="GameData/SatisfactoryIcons/Resource/Parts/IronPlate/IronPlates.png"
-                                        alt="Item" title="Item">
-                                </div>
-                                <input type="text" value="30" />
-                                <div class="units">/min</div>
-                            </div>
                         </div>
                         <div class="column power">
                             <div class="title">Power</div>
-                            <div class="edit">
-                                <div class="icon-container">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
-                                        <path
-                                            d="M420-412H302q-14 0-20-12t2-23l203-295q5-7 12-9t15 1q8 3 11.5 9.5T528-726l-27 218h140q14 0 20 13t-3 24L431-199q-5 6-12 7.5t-14-1.5q-7-3-10.5-9t-2.5-14l28-196Z" />
-                                    </svg>
-                                </div>
-                                <input type="text" value="12" />
-                                <div class="units">MW</div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -208,74 +158,27 @@
                     <h3 class="group-title">Overclock (every machine)</h3>
                 </div>
                 <div class="row">
-                    <div class="table">
+                    <div class="table overclock">
                         <div class="column multipliers">
                             <div class="title">Multiplier</div>
-                            <div class="edit">
-                                <div class="icon-container">
-                                    <img src="GameData/SatisfactoryIcons/Resource/Environment/Crystal/PowerShard.png"
-                                        alt="Machine" title="Machine">
-                                </div>
-                                <input type="text" value="100" />
-                                <div class="units">%</div>
-                            </div>
                         </div>
                         <div class="column inputs">
                             <div class="title">Input</div>
-                            <div class="edit">
-                                <div class="icon-container">
-                                    <img src="GameData/SatisfactoryIcons/Resource/Parts/IronPlate/IronPlates.png"
-                                        alt="Item" title="Item">
-                                </div>
-                                <input type="text" value="30" />
-                                <div class="units">/min</div>
-                            </div>
-                            <div class="edit">
-                                <div class="icon-container">
-                                    <img src="GameData/SatisfactoryIcons/Resource/Parts/IronPlate/IronPlates.png"
-                                        alt="Item" title="Item">
-                                </div>
-                                <input type="text" value="30" />
-                                <div class="units">/min</div>
-                            </div>
                         </div>
                         <div class="column outputs">
                             <div class="title">Output</div>
-                            <div class="edit">
-                                <div class="icon-container">
-                                    <img src="GameData/SatisfactoryIcons/Resource/Parts/IronPlate/IronPlates.png"
-                                        alt="Item" title="Item">
-                                </div>
-                                <input type="text" value="30" />
-                                <div class="units">/min</div>
-                            </div>
-                            <div class="edit">
-                                <div class="icon-container">
-                                    <img src="GameData/SatisfactoryIcons/Resource/Parts/IronPlate/IronPlates.png"
-                                        alt="Item" title="Item">
-                                </div>
-                                <input type="text" value="30" />
-                                <div class="units">/min</div>
-                            </div>
                         </div>
                         <div class="column power">
                             <div class="title">Power</div>
-                            <div class="edit">
-                                <div class="icon-container">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
-                                        <path
-                                            d="M420-412H302q-14 0-20-12t2-23l203-295q5-7 12-9t15 1q8 3 11.5 9.5T528-726l-27 218h140q14 0 20 13t-3 24L431-199q-5 6-12 7.5t-14-1.5q-7-3-10.5-9t-2.5-14l28-196Z" />
-                                    </svg>
-                                </div>
-                                <input type="text" value="12" />
-                                <div class="units">MW</div>
-                            </div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="row buttons">
-                <div class="button">
+                <div class="button reset-button dimmed disabled">
+                    Reset
+                </div>
+                <div class="button apply-button">
                     Apply
                 </div>
             </div>
@@ -318,6 +221,13 @@
                         d="M280-120q-33 0-56.5-23.5T200-200v-520q-17 0-28.5-11.5T160-760q0-17 11.5-28.5T200-800h160q0-17 11.5-28.5T400-840h160q17 0 28.5 11.5T600-800h160q17 0 28.5 11.5T800-760q0 17-11.5 28.5T760-720v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM400-280q17 0 28.5-11.5T440-320v-280q0-17-11.5-28.5T400-640q-17 0-28.5 11.5T360-600v280q0 17 11.5 28.5T400-280Zm160 0q17 0 28.5-11.5T600-320v-280q0-17-11.5-28.5T560-640q-17 0-28.5 11.5T520-600v280q0 17 11.5 28.5T560-280ZM280-720v520-520Z" />
                 </svg>
                 <div class="text">Delete node</div>
+            </div>
+            <div class="option" id="configure-node-option">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                    <path
+                        d="M480-120q-17 0-28.5-11.5T440-160v-160q0-17 11.5-28.5T480-360q17 0 28.5 11.5T520-320v40h280q17 0 28.5 11.5T840-240q0 17-11.5 28.5T800-200H520v40q0 17-11.5 28.5T480-120Zm-320-80q-17 0-28.5-11.5T120-240q0-17 11.5-28.5T160-280h160q17 0 28.5 11.5T360-240q0 17-11.5 28.5T320-200H160Zm160-160q-17 0-28.5-11.5T280-400v-40H160q-17 0-28.5-11.5T120-480q0-17 11.5-28.5T160-520h120v-40q0-17 11.5-28.5T320-600q17 0 28.5 11.5T360-560v160q0 17-11.5 28.5T320-360Zm160-80q-17 0-28.5-11.5T440-480q0-17 11.5-28.5T480-520h320q17 0 28.5 11.5T840-480q0 17-11.5 28.5T800-440H480Zm160-160q-17 0-28.5-11.5T600-640v-160q0-17 11.5-28.5T640-840q17 0 28.5 11.5T680-800v40h120q17 0 28.5 11.5T840-720q0 17-11.5 28.5T800-680H680v40q0 17-11.5 28.5T640-600Zm-480-80q-17 0-28.5-11.5T120-720q0-17 11.5-28.5T160-760h320q17 0 28.5 11.5T520-720q0 17-11.5 28.5T480-680H160Z" />
+                </svg>
+                <div class="text">Configure</div>
             </div>
         </div>
     </div>

@@ -11,6 +11,7 @@ import { GameRecipe, GameRecipeEvent } from "./GameData/GameRecipe";
 import { GameMachine } from "./GameData/GameMachine";
 import { Settings } from "./Settings";
 import { CanvasContextMenu } from "./ContextMenu/CanvasContextMenu";
+import { satisfactoryIconPath } from "./GameData/GameData";
 
 async function main()
 {
@@ -227,7 +228,7 @@ async function main()
         let machineIcon = document.createElement("img");
         machineIcon.classList.add("machine-icon");
 
-        machineIcon.src = `GameData/SatisfactoryIcons/${machine.iconPath}`;
+        machineIcon.src = satisfactoryIconPath(machine.iconPath);
         machineIcon.alt = machine.displayName;
         machineIcon.loading = "lazy";
 
@@ -275,7 +276,7 @@ async function main()
 
                     if (resource != undefined)
                     {
-                        itemIcon.src = `GameData/SatisfactoryIcons/${resource.iconPath}`;
+                        itemIcon.src = satisfactoryIconPath(resource.iconPath);
                         if (!isEventRecipe)
                         {
                             isEventRecipe = resource.iconPath.startsWith("Events");
@@ -380,7 +381,7 @@ async function main()
             icon.classList.add("icon");
             icon.loading = "lazy";
             icon.alt = resource!.displayName;
-            icon.src = `GameData/SatisfactoryIcons/${resource!.iconPath}`;
+            icon.src = satisfactoryIconPath(resource!.iconPath);
             icon.title = resource!.displayName;
 
             let amount = document.createElement("p");
@@ -414,7 +415,7 @@ async function main()
             selectedRecipeName.innerText = recipe.displayName;
 
             let selectedRecipeMachine = document.querySelector("#selected-recipe-machine>div.machine>img.icon") as HTMLImageElement;
-            selectedRecipeMachine.src = `GameData/SatisfactoryIcons/${machine.iconPath}`;
+            selectedRecipeMachine.src = satisfactoryIconPath(machine.iconPath);
             selectedRecipeMachine.title = machine.displayName;
 
             document.querySelectorAll("#selected-recipe-input>div.resource").forEach(div => div.remove());
