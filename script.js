@@ -1614,6 +1614,14 @@
     }
   };
 
+  // src/GameData/GameData.ts
+  function satisfactoryIconPath(path) {
+    return `GameData/SatisfactoryIcons/${path}`;
+  }
+  function toItemsInMinute(amount, consumingTime) {
+    return 60 / consumingTime * amount;
+  }
+
   // src/Sankey/SankeyLink.ts
   var SankeyLink = class _SankeyLink {
     static connect(firstSlot, secondSlot, panContext) {
@@ -1685,7 +1693,7 @@
         }
       );
       if (resourceDesc != void 0) {
-        icon.src = `GameData/SatisfactoryIcons/${resourceDesc.iconPath}`;
+        icon.src = satisfactoryIconPath(resourceDesc.iconPath);
         icon.alt = resourceDesc.displayName;
       }
       let resourceAmount = document.createElement("div");
@@ -2065,12 +2073,190 @@
   // src/ContextMenu/NodeContextMenu.ts
   var NodeContextMenu = class _NodeContextMenu extends CustomContextMenu {
     static deleteNodeOptionClickedEvent = "delete-node-option-clicked";
+    static configureNodeOptionClickedEvent = "configure-node-option-clicked";
     constructor(ownerNode) {
       super(ownerNode, "node");
       this._deleteNodeOption = document.querySelector(`#${this.containerId} #delete-node-option`);
       this.setupMenuOption(this._deleteNodeOption, _NodeContextMenu.deleteNodeOptionClickedEvent);
+      this._configureNodeOption = document.querySelector(`#${this.containerId} #configure-node-option`);
+      this.setupMenuOption(this._configureNodeOption, _NodeContextMenu.configureNodeOptionClickedEvent);
     }
     _deleteNodeOption;
+    _configureNodeOption;
+  };
+
+  // src/Sankey/NodeConfiguration.ts
+  var NodeConfiguration = class _NodeConfiguration extends EventTarget {
+    constructor(recipe, machine) {
+      super();
+      let closeSelector = `#${_NodeConfiguration._modalContainer.id} .title-row .close`;
+      let closeButton = document.querySelector(closeSelector);
+      closeButton.addEventListener("click", () => {
+        this.closeConfigurationWindow();
+      });
+      window.addEventListener("keydown", (event) => {
+        if (event.code === "Escape" && this._isOpened) {
+          this.closeConfigurationWindow();
+        }
+      });
+      this.setupTableElements(recipe, machine);
+    }
+    openConfigurationWindow() {
+      _NodeConfiguration._machinesColumn.appendChild(this._machineConfigurator.htmlElement);
+      for (const configurator of this._amountConfigurators.inputsConfigurators) {
+        _NodeConfiguration._amountInputsColumn.appendChild(configurator.htmlElement);
+      }
+      for (const configurator of this._amountConfigurators.outputsConfigurators) {
+        _NodeConfiguration._amountOutputsColumn.appendChild(configurator.htmlElement);
+      }
+      _NodeConfiguration._amountPowerColumn.appendChild(
+        this._amountConfigurators.powerConfigurator.htmlElement
+      );
+      _NodeConfiguration._multipliersColumn.appendChild(this._overclockConfigurator.htmlElement);
+      for (const configurator of this._overclockConfigurators.inputsConfigurators) {
+        _NodeConfiguration._overclockInputsColumn.appendChild(configurator.htmlElement);
+      }
+      for (const configurator of this._overclockConfigurators.outputsConfigurators) {
+        _NodeConfiguration._overclockOutputsColumn.appendChild(configurator.htmlElement);
+      }
+      _NodeConfiguration._overclockPowerColumn.appendChild(
+        this._overclockConfigurators.powerConfigurator.htmlElement
+      );
+      _NodeConfiguration._modalContainer.classList.remove("hidden");
+      this._isOpened = true;
+    }
+    closeConfigurationWindow() {
+      this._machineConfigurator.htmlElement.remove();
+      this._overclockConfigurator.htmlElement.remove();
+      this._amountConfigurators.removeFromDom();
+      this._overclockConfigurators.removeFromDom();
+      _NodeConfiguration._modalContainer.classList.add("hidden");
+      this._isOpened = false;
+    }
+    setupTableElements(recipe, machine) {
+      let machineIcon = _NodeConfiguration.createImgIcon(machine.displayName, machine.iconPath);
+      this._machineConfigurator = _NodeConfiguration.generateConfigurator(machineIcon, 1, "");
+      let overclockIcon = _NodeConfiguration.createImgIcon(
+        "Overclock",
+        "Resource/Environment/Crystal/PowerShard.png"
+      );
+      this._overclockConfigurator = _NodeConfiguration.generateConfigurator(overclockIcon, 100, "%");
+      let createResourceConfigurators = function(resource, amountConfigurators, overclockConfigurators) {
+        let resourceDesc = Satisfactory_default.resources.find(
+          // I specify type because deploy fails otherwise for some reason.
+          (resourceData) => {
+            return resourceData.id == resource.id;
+          }
+        );
+        let resourceIcon1 = _NodeConfiguration.createImgIcon(resourceDesc.displayName, resourceDesc.iconPath);
+        let resourceIcon2 = _NodeConfiguration.createImgIcon(resourceDesc.displayName, resourceDesc.iconPath);
+        let itemsInMinute = toItemsInMinute(resource.amount, recipe.manufacturingDuration);
+        amountConfigurators.push(
+          _NodeConfiguration.generateConfigurator(resourceIcon1, itemsInMinute, "/min")
+        );
+        overclockConfigurators.push(
+          _NodeConfiguration.generateConfigurator(resourceIcon2, itemsInMinute, "/min")
+        );
+      };
+      recipe.ingredients.forEach((resource) => createResourceConfigurators(
+        resource,
+        this._amountConfigurators.inputsConfigurators,
+        this._overclockConfigurators.inputsConfigurators
+      ));
+      recipe.products.forEach((resource) => createResourceConfigurators(
+        resource,
+        this._amountConfigurators.outputsConfigurators,
+        this._overclockConfigurators.outputsConfigurators
+      ));
+      let powerIcon1 = _NodeConfiguration.createPowerSvgIcon();
+      let powerIcon2 = _NodeConfiguration.createPowerSvgIcon();
+      this._amountConfigurators.powerConfigurator = _NodeConfiguration.generateConfigurator(powerIcon1, machine.powerConsumption, "MW");
+      this._overclockConfigurators.powerConfigurator = _NodeConfiguration.generateConfigurator(powerIcon2, machine.powerConsumption, "MW");
+    }
+    static generateConfigurator(icon, initialValue, units) {
+      let editElement = document.createElement("div");
+      editElement.classList.add("edit");
+      let iconContainer = document.createElement("div");
+      iconContainer.classList.add("icon-container");
+      iconContainer.appendChild(icon);
+      let inputElement = document.createElement("input");
+      inputElement.value = `${initialValue}`;
+      let unitsElement = document.createElement("div");
+      unitsElement.classList.add("units");
+      unitsElement.innerText = units;
+      editElement.appendChild(iconContainer);
+      editElement.appendChild(inputElement);
+      editElement.appendChild(unitsElement);
+      return new Configurator(editElement, initialValue);
+    }
+    static createImgIcon(name, iconPath) {
+      let icon = document.createElement("img");
+      icon.src = satisfactoryIconPath(iconPath);
+      icon.alt = name;
+      icon.title = name;
+      return icon;
+    }
+    static createPowerSvgIcon() {
+      let icon = SvgFactory.createSvgElement("svg");
+      icon.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+      icon.setAttribute("viewBox", "0 -960 960 960");
+      let path = SvgFactory.createSvgPath();
+      path.setAttribute("d", "M420-412H302q-14 0-20-12t2-23l203-295q5-7 12-9t15 1q8 3 11.5 9.5T528-726l-27 218h140q14 0 20 13t-3 24L431-199q-5 6-12 7.5t-14-1.5q-7-3-10.5-9t-2.5-14l28-196Z");
+      icon.appendChild(path);
+      return icon;
+    }
+    _isOpened = false;
+    _machineConfigurator;
+    _overclockConfigurator;
+    _amountConfigurators = new Configurators();
+    _overclockConfigurators = new Configurators();
+    static _modalContainer = document.querySelector("#machine-configuration-container");
+    static _machinesColumn = document.querySelector(
+      `#${_NodeConfiguration._modalContainer.id} .table.amount>.column.machines`
+    );
+    static _amountInputsColumn = document.querySelector(
+      `#${_NodeConfiguration._modalContainer.id} .table.amount>.column.inputs`
+    );
+    static _amountOutputsColumn = document.querySelector(
+      `#${_NodeConfiguration._modalContainer.id} .table.amount>.column.outputs`
+    );
+    static _amountPowerColumn = document.querySelector(
+      `#${_NodeConfiguration._modalContainer.id} .table.amount>.column.power`
+    );
+    static _multipliersColumn = document.querySelector(
+      `#${_NodeConfiguration._modalContainer.id} .table.overclock>.column.multipliers`
+    );
+    static _overclockInputsColumn = document.querySelector(
+      `#${_NodeConfiguration._modalContainer.id} .table.overclock>.column.inputs`
+    );
+    static _overclockOutputsColumn = document.querySelector(
+      `#${_NodeConfiguration._modalContainer.id} .table.overclock>.column.outputs`
+    );
+    static _overclockPowerColumn = document.querySelector(
+      `#${_NodeConfiguration._modalContainer.id} .table.overclock>.column.power`
+    );
+  };
+  var Configurators = class {
+    inputsConfigurators = new Array();
+    outputsConfigurators = new Array();
+    powerConfigurator;
+    removeFromDom() {
+      for (const configurator of this.inputsConfigurators) {
+        configurator.htmlElement.remove();
+      }
+      for (const configurator of this.outputsConfigurators) {
+        configurator.htmlElement.remove();
+      }
+      if (this.powerConfigurator != void 0) {
+        this.powerConfigurator.htmlElement.remove();
+      }
+    }
+  };
+  var Configurator = class {
+    constructor(htmlElement, initialValue) {
+      this.htmlElement = htmlElement;
+      this.initialValue = initialValue;
+    }
   };
 
   // src/Sankey/SankeyNode.ts
@@ -2090,10 +2276,7 @@
         x: SankeySlot.slotWidth,
         y: 0
       }, "machine");
-      let nodeContextMenu = new NodeContextMenu(this.nodeSvg);
-      nodeContextMenu.addEventListener(NodeContextMenu.deleteNodeOptionClickedEvent, () => {
-        this.delete();
-      });
+      this.configureContextMenu(recipe, machine);
       let totalInputResourcesAmount = recipe.ingredients.reduce((sum, ingredient) => {
         return sum + toItemsInMinute(ingredient.amount, recipe.manufacturingDuration);
       }, 0);
@@ -2188,7 +2371,7 @@
           icon.classList.add("icon");
           icon.loading = "lazy";
           icon.alt = resource.displayName;
-          icon.src = `GameData/SatisfactoryIcons/${resource.iconPath}`;
+          icon.src = satisfactoryIconPath(resource.iconPath);
           icon.title = resource.displayName;
           let amount = document.createElement("p");
           amount.classList.add("amount");
@@ -2198,7 +2381,7 @@
           parentDiv.appendChild(resourceDiv);
         };
       };
-      recipeMachineIcon.src = `GameData/SatisfactoryIcons/${machine.iconPath}`;
+      recipeMachineIcon.src = satisfactoryIconPath(machine.iconPath);
       recipeMachineIcon.title = machine.displayName;
       recipeMachineIcon.alt = machine.displayName;
       recipe.ingredients.forEach(createResourceDisplay(recipeInputsProp, recipe.manufacturingDuration));
@@ -2233,12 +2416,22 @@
       }
       this.nodeSvgGroup.remove();
     }
+    configureContextMenu(recipe, machine) {
+      let nodeContextMenu = new NodeContextMenu(this.nodeSvg);
+      nodeContextMenu.addEventListener(NodeContextMenu.deleteNodeOptionClickedEvent, () => {
+        this.delete();
+      });
+      let configurator = new NodeConfiguration(recipe, machine);
+      let openConfigurator = function(event) {
+        configurator.openConfigurationWindow();
+        event.stopPropagation();
+      };
+      nodeContextMenu.addEventListener(NodeContextMenu.configureNodeOptionClickedEvent, openConfigurator);
+      this.nodeSvg.addEventListener("dblclick", openConfigurator);
+    }
     _inputSlotGroups = [];
     _outputSlotGroups = [];
   };
-  function toItemsInMinute(amount, consumingTime) {
-    return 60 / consumingTime * amount;
-  }
 
   // src/GameData/GameRecipe.ts
   var GameRecipeEvent = class extends Event {
@@ -2444,7 +2637,7 @@
       tabSelector.title = machine.displayName;
       let machineIcon = document.createElement("img");
       machineIcon.classList.add("machine-icon");
-      machineIcon.src = `GameData/SatisfactoryIcons/${machine.iconPath}`;
+      machineIcon.src = satisfactoryIconPath(machine.iconPath);
       machineIcon.alt = machine.displayName;
       machineIcon.loading = "lazy";
       let recipesTab = document.createElement("div");
@@ -2476,7 +2669,7 @@
               }
             );
             if (resource != void 0) {
-              itemIcon.src = `GameData/SatisfactoryIcons/${resource.iconPath}`;
+              itemIcon.src = satisfactoryIconPath(resource.iconPath);
               if (!isEventRecipe) {
                 isEventRecipe = resource.iconPath.startsWith("Events");
               }
@@ -2548,7 +2741,7 @@
         icon.classList.add("icon");
         icon.loading = "lazy";
         icon.alt = resource.displayName;
-        icon.src = `GameData/SatisfactoryIcons/${resource.iconPath}`;
+        icon.src = satisfactoryIconPath(resource.iconPath);
         icon.title = resource.displayName;
         let amount = document.createElement("p");
         amount.classList.add("amount");
@@ -2571,7 +2764,7 @@
         let selectedRecipeName = document.querySelector("#selected-recipe-name>div.text");
         selectedRecipeName.innerText = recipe.displayName;
         let selectedRecipeMachine2 = document.querySelector("#selected-recipe-machine>div.machine>img.icon");
-        selectedRecipeMachine2.src = `GameData/SatisfactoryIcons/${machine.iconPath}`;
+        selectedRecipeMachine2.src = satisfactoryIconPath(machine.iconPath);
         selectedRecipeMachine2.title = machine.displayName;
         document.querySelectorAll("#selected-recipe-input>div.resource").forEach((div) => div.remove());
         let selectedRecipeInput = document.querySelector("#selected-recipe-input");
