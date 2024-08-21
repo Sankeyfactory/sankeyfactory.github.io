@@ -2509,7 +2509,10 @@
     let panContext = (0, import_panzoom.default)(viewport, {
       zoomDoubleClickSpeed: 1,
       // disables double click zoom
-      beforeMouseDown: () => {
+      beforeMouseDown: function() {
+        return !isHoldingCtrl;
+      },
+      beforeWheel: function() {
         return !isHoldingCtrl;
       }
     });
