@@ -127,17 +127,11 @@ export class SlotsGroup extends EventTarget
     {
         if (this.type === "input")
         {
-            return new SankeySlotMissing(this, this.groupSvg, {
-                id: this.resource.id,
-                amount: this.resource.amount
-            });
+            return new SankeySlotMissing(this, this.groupSvg, { ...this.resource });
         }
         else if (this.type === "output")
         {
-            return new SankeySlotExceeding(this, this.groupSvg, {
-                id: this.resource.id,
-                amount: this.resource.amount
-            });
+            return new SankeySlotExceeding(this, this.groupSvg, { ...this.resource });
         }
         else
         {
