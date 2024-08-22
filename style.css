@@ -973,10 +973,10 @@ div.context-menu {
     border-color: var(--border-accent);
 }
 
-#machine-configuration-container .modal-window .table .column .edit.error input,
-#machine-configuration-container .modal-window .table .column .edit.error div.units,
-#machine-configuration-container .modal-window .table .column .edit.error input:focus,
-#machine-configuration-container .modal-window .table .column .edit.error input:focus~div.units {
+#machine-configuration-container .modal-window .table .column .edit input.error,
+#machine-configuration-container .modal-window .table .column .edit input.error~div.units,
+#machine-configuration-container .modal-window .table .column .edit input.error:focus,
+#machine-configuration-container .modal-window .table .column .edit input.error:focus~div.units {
     border-color: var(--error);
 }
 

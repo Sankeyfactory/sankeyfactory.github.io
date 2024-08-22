@@ -2089,6 +2089,8 @@
 
   // src/Sankey/NodeConfiguration.ts
   var NodeConfiguration = class _NodeConfiguration extends EventTarget {
+    static machinesAmountChangedEvent = "machines-amount-changed";
+    static overclockChangedEvent = "overclock-changed";
     constructor(recipe, machine) {
       super();
       let closeSelector = `#${_NodeConfiguration._modalContainer.id} .title-row .close`;
@@ -2137,13 +2139,23 @@
     }
     setupTableElements(recipe, machine) {
       let machineIcon = _NodeConfiguration.createImgIcon(machine.displayName, machine.iconPath);
-      this._machineConfigurator = _NodeConfiguration.generateConfigurator(machineIcon, 1, "");
+      this._machineConfigurator = this.generateConfigurator(
+        machineIcon,
+        1,
+        ""
+      );
+      this.setupMachinesAmountConfigurator(this._machineConfigurator.inputElement);
       let overclockIcon = _NodeConfiguration.createImgIcon(
         "Overclock",
         "Resource/Environment/Crystal/PowerShard.png"
       );
-      this._overclockConfigurator = _NodeConfiguration.generateConfigurator(overclockIcon, 100, "%");
-      let createResourceConfigurators = function(resource, amountConfigurators, overclockConfigurators) {
+      this._overclockConfigurator = this.generateConfigurator(
+        overclockIcon,
+        100,
+        "%"
+      );
+      this.setupOverclockConfigurator(this._overclockConfigurator.inputElement);
+      let createResourceConfigurators = (resource, amountConfigurators, overclockConfigurators) => {
         let resourceDesc = Satisfactory_default.resources.find(
           // I specify type because deploy fails otherwise for some reason.
           (resourceData) => {
@@ -2153,12 +2165,20 @@
         let resourceIcon1 = _NodeConfiguration.createImgIcon(resourceDesc.displayName, resourceDesc.iconPath);
         let resourceIcon2 = _NodeConfiguration.createImgIcon(resourceDesc.displayName, resourceDesc.iconPath);
         let itemsInMinute = toItemsInMinute(resource.amount, recipe.manufacturingDuration);
-        amountConfigurators.push(
-          _NodeConfiguration.generateConfigurator(resourceIcon1, itemsInMinute, "/min")
+        let amountConfigurator = this.generateConfigurator(
+          resourceIcon1,
+          itemsInMinute,
+          "/min"
         );
-        overclockConfigurators.push(
-          _NodeConfiguration.generateConfigurator(resourceIcon2, itemsInMinute, "/min")
+        this.setupAmountInOutConfigurator(amountConfigurator.inputElement, itemsInMinute);
+        amountConfigurators.push(amountConfigurator);
+        let overclockConfigurator = this.generateConfigurator(
+          resourceIcon2,
+          itemsInMinute,
+          "/min"
         );
+        this.setupOverclockInOutConfigurator(overclockConfigurator.inputElement, itemsInMinute);
+        overclockConfigurators.push(overclockConfigurator);
       };
       recipe.ingredients.forEach((resource) => createResourceConfigurators(
         resource,
@@ -2172,10 +2192,230 @@
       ));
       let powerIcon1 = _NodeConfiguration.createPowerSvgIcon();
       let powerIcon2 = _NodeConfiguration.createPowerSvgIcon();
-      this._amountConfigurators.powerConfigurator = _NodeConfiguration.generateConfigurator(powerIcon1, machine.powerConsumption, "MW");
-      this._overclockConfigurators.powerConfigurator = _NodeConfiguration.generateConfigurator(powerIcon2, machine.powerConsumption, "MW");
+      this._amountConfigurators.powerConfigurator = this.generateConfigurator(
+        powerIcon1,
+        machine.powerConsumption,
+        "MW"
+      );
+      this.setupAmountPowerConfigurator(
+        this._amountConfigurators.powerConfigurator.inputElement,
+        machine.powerConsumption,
+        machine.powerConsumptionExponent
+      );
+      this._overclockConfigurators.powerConfigurator = this.generateConfigurator(
+        powerIcon2,
+        machine.powerConsumption,
+        "MW"
+      );
+      this.setupOverclockPowerConfigurator(
+        this._overclockConfigurators.powerConfigurator.inputElement,
+        machine.powerConsumption,
+        machine.powerConsumptionExponent
+      );
     }
-    static generateConfigurator(icon, initialValue, units) {
+    static numberParser(str) {
+      let value1 = +str;
+      let value2 = Number.parseFloat(str);
+      if (Number.isNaN(value1) || Number.isNaN(value2) || value1 === 0) {
+        return NaN;
+      }
+      return value1;
+    }
+    setupMachinesAmountConfigurator(machinesAmount) {
+      machinesAmount.addEventListener("input", () => {
+        let value = _NodeConfiguration.numberParser(machinesAmount.value);
+        if (!Number.isNaN(value)) {
+          machinesAmount.classList.remove("error");
+          this.setMachinesAmount(value);
+        } else {
+          machinesAmount.classList.add("error");
+        }
+      });
+      let normalize = () => {
+        machinesAmount.classList.remove("error");
+        machinesAmount.value = `${+this.getMachinesAmount().toFixed(4)}`;
+      };
+      machinesAmount.addEventListener("blur", normalize);
+      machinesAmount.addEventListener("keydown", function(event) {
+        if (event.repeat) {
+          return;
+        }
+        if (event.key === "Enter") {
+          machinesAmount.blur();
+          normalize();
+        }
+      });
+      this.addEventListener(_NodeConfiguration.machinesAmountChangedEvent, () => {
+        let targetValue = this.getMachinesAmount();
+        machinesAmount.value = `${+targetValue.toFixed(4)}`;
+      });
+    }
+    setupOverclockConfigurator(overclock) {
+      overclock.addEventListener("input", () => {
+        let value = _NodeConfiguration.numberParser(overclock.value);
+        if (!Number.isNaN(value) && value >= 1 && value <= 250) {
+          overclock.classList.remove("error");
+          this.setOverclockRatio(value / 100);
+        } else {
+          overclock.classList.add("error");
+        }
+      });
+      let normalize = () => {
+        overclock.classList.remove("error");
+        let value = _NodeConfiguration.numberParser(overclock.value);
+        if (value < 1) {
+          overclock.value = "1";
+        } else if (value > 250) {
+          overclock.value = "250";
+        } else {
+          overclock.value = `${+(this.getOverclockRatio() * 100).toFixed(4)}`;
+        }
+      };
+      overclock.addEventListener("blur", normalize);
+      overclock.addEventListener("keydown", function(event) {
+        if (event.repeat) {
+          return;
+        }
+        if (event.key === "Enter") {
+          overclock.blur();
+        }
+      });
+      this.addEventListener(_NodeConfiguration.overclockChangedEvent, () => {
+        let targetValue = this.getOverclockRatio() * 100;
+        overclock.value = `${+targetValue.toFixed(4)}`;
+      });
+    }
+    setupAmountInOutConfigurator(amountInOut, initialValue) {
+      amountInOut.addEventListener("input", () => {
+        let value = _NodeConfiguration.numberParser(amountInOut.value);
+        if (!Number.isNaN(value)) {
+          amountInOut.classList.remove("error");
+          this.setMachinesAmount(value / initialValue / this.getOverclockRatio());
+        } else {
+          amountInOut.classList.add("error");
+        }
+      });
+      let normalize = () => {
+        amountInOut.classList.remove("error");
+        amountInOut.value = `${+(initialValue * this.getOverclockRatio() * this.getMachinesAmount()).toFixed(4)}`;
+      };
+      amountInOut.addEventListener("blur", normalize);
+      amountInOut.addEventListener("keydown", function(event) {
+        if (event.repeat) {
+          return;
+        }
+        if (event.key === "Enter") {
+          amountInOut.blur();
+        }
+      });
+      this.addEventListener(_NodeConfiguration.machinesAmountChangedEvent, () => {
+        let targetValue = +(initialValue * this.getOverclockRatio() * this.getMachinesAmount()).toFixed(4);
+        amountInOut.value = `${targetValue}`;
+      });
+      this.addEventListener(_NodeConfiguration.overclockChangedEvent, () => {
+        let targetValue = +(initialValue * this.getOverclockRatio() * this.getMachinesAmount()).toFixed(4);
+        amountInOut.value = `${targetValue}`;
+      });
+    }
+    setupAmountPowerConfigurator(amountPower, initialValue, powerExponent) {
+      amountPower.addEventListener("input", () => {
+        let value = _NodeConfiguration.numberParser(amountPower.value);
+        if (!Number.isNaN(value)) {
+          amountPower.classList.remove("error");
+          let initialOverclockedValue = initialValue * Math.pow(this.getOverclockRatio(), powerExponent);
+          this.setMachinesAmount(value / initialOverclockedValue);
+        } else {
+          amountPower.classList.add("error");
+        }
+      });
+      let normalize = () => {
+        amountPower.classList.remove("error");
+        let initialOverclockedValue = initialValue * Math.pow(this.getOverclockRatio(), powerExponent);
+        amountPower.value = `${+(initialOverclockedValue * this.getMachinesAmount()).toFixed(4)}`;
+      };
+      amountPower.addEventListener("blur", normalize);
+      amountPower.addEventListener("keydown", function(event) {
+        if (event.repeat) {
+          return;
+        }
+        if (event.key === "Enter") {
+          amountPower.blur();
+        }
+      });
+      this.addEventListener(_NodeConfiguration.machinesAmountChangedEvent, () => {
+        let initialOverclockedValue = initialValue * Math.pow(this.getOverclockRatio(), powerExponent);
+        let targetValue = +(initialOverclockedValue * this.getMachinesAmount()).toFixed(4);
+        amountPower.value = `${targetValue}`;
+      });
+      this.addEventListener(_NodeConfiguration.overclockChangedEvent, () => {
+        let initialOverclockedValue = initialValue * Math.pow(this.getOverclockRatio(), powerExponent);
+        let targetValue = +(initialOverclockedValue * this.getMachinesAmount()).toFixed(4);
+        amountPower.value = `${targetValue}`;
+      });
+    }
+    setupOverclockInOutConfigurator(overclockInOut, initialValue) {
+      overclockInOut.addEventListener("input", () => {
+        let value = _NodeConfiguration.numberParser(overclockInOut.value);
+        if (!Number.isNaN(value)) {
+          overclockInOut.classList.remove("error");
+          this.setOverclockRatio(value / initialValue);
+        } else {
+          overclockInOut.classList.add("error");
+        }
+      });
+      let normalize = () => {
+        overclockInOut.classList.remove("error");
+        overclockInOut.value = `${+(initialValue * this.getOverclockRatio()).toFixed(4)}`;
+      };
+      overclockInOut.addEventListener("blur", normalize);
+      overclockInOut.addEventListener("keydown", function(event) {
+        if (event.repeat) {
+          return;
+        }
+        if (event.key === "Enter") {
+          overclockInOut.blur();
+        }
+      });
+      this.addEventListener(_NodeConfiguration.machinesAmountChangedEvent, () => {
+        let targetValue = +(initialValue * this.getOverclockRatio()).toFixed(4);
+        overclockInOut.value = `${targetValue}`;
+      });
+      this.addEventListener(_NodeConfiguration.overclockChangedEvent, () => {
+        let targetValue = +(initialValue * this.getOverclockRatio()).toFixed(4);
+        overclockInOut.value = `${targetValue}`;
+      });
+    }
+    setupOverclockPowerConfigurator(overclockPower, initialValue, powerExponent) {
+      overclockPower.addEventListener("input", () => {
+        let value = _NodeConfiguration.numberParser(overclockPower.value);
+        if (!Number.isNaN(value)) {
+          overclockPower.classList.remove("error");
+          this.setOverclockRatio(Math.pow(value / initialValue, 1 / powerExponent));
+        } else {
+          overclockPower.classList.add("error");
+        }
+      });
+      let normalize = () => {
+        overclockPower.classList.remove("error");
+        overclockPower.value = `${+(initialValue * Math.pow(this.getOverclockRatio(), powerExponent)).toFixed(4)}`;
+      };
+      overclockPower.addEventListener("blur", normalize);
+      overclockPower.addEventListener("keydown", function(event) {
+        if (event.repeat) {
+          return;
+        }
+        if (event.key === "Enter") {
+          overclockPower.blur();
+        }
+      });
+      this.addEventListener(_NodeConfiguration.machinesAmountChangedEvent, () => {
+        overclockPower.value = `${+(initialValue * Math.pow(this.getOverclockRatio(), powerExponent)).toFixed(4)}`;
+      });
+      this.addEventListener(_NodeConfiguration.overclockChangedEvent, () => {
+        overclockPower.value = `${+(initialValue * Math.pow(this.getOverclockRatio(), powerExponent)).toFixed(4)}`;
+      });
+    }
+    generateConfigurator(icon, initialValue, units) {
       let editElement = document.createElement("div");
       editElement.classList.add("edit");
       let iconContainer = document.createElement("div");
@@ -2189,7 +2429,7 @@
       editElement.appendChild(iconContainer);
       editElement.appendChild(inputElement);
       editElement.appendChild(unitsElement);
-      return new Configurator(editElement, initialValue);
+      return new Configurator(editElement, inputElement, initialValue);
     }
     static createImgIcon(name, iconPath) {
       let icon = document.createElement("img");
@@ -2207,7 +2447,24 @@
       icon.appendChild(path);
       return icon;
     }
+    getMachinesAmount() {
+      return this._machinesAmount;
+    }
+    setMachinesAmount(value) {
+      this._machinesAmount = value;
+      this.dispatchEvent(new Event(_NodeConfiguration.machinesAmountChangedEvent));
+    }
+    getOverclockRatio() {
+      return this._overclockRatio;
+    }
+    setOverclockRatio(value) {
+      value = Math.min(2.5, Math.max(0.01, value));
+      this._overclockRatio = value;
+      this.dispatchEvent(new Event(_NodeConfiguration.overclockChangedEvent));
+    }
     _isOpened = false;
+    _machinesAmount = 1;
+    _overclockRatio = 1;
     _machineConfigurator;
     _overclockConfigurator;
     _amountConfigurators = new Configurators();
@@ -2255,8 +2512,9 @@
     }
   };
   var Configurator = class {
-    constructor(htmlElement, initialValue) {
+    constructor(htmlElement, inputElement, initialValue) {
       this.htmlElement = htmlElement;
+      this.inputElement = inputElement;
       this.initialValue = initialValue;
     }
   };
@@ -2518,7 +2776,7 @@
     });
     panContext.on("zoom", () => {
       let zoomScale = panContext.getTransform()?.scale ?? 1;
-      zoomRatioDisplay.textContent = `Zoom: ${zoomScale.toPrecision(2)}x`;
+      zoomRatioDisplay.textContent = `Zoom: ${zoomScale.toFixed(2)}x`;
     });
     Settings.instance.setPanContext(panContext);
     MouseHandler.getInstance().setPanContext(panContext);
@@ -2753,7 +3011,7 @@
         icon.title = resource.displayName;
         let amount = document.createElement("p");
         amount.classList.add("amount");
-        amount.innerText = `${+(60 / craftingTime * recipeResource.amount).toPrecision(3)}`;
+        amount.innerText = `${+(60 / craftingTime * recipeResource.amount).toFixed(3)}`;
         resourceDiv.appendChild(icon);
         resourceDiv.appendChild(amount);
         parentDiv.appendChild(resourceDiv);
