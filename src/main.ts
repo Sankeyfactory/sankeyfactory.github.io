@@ -183,7 +183,13 @@ async function main()
 
     window.addEventListener("keypress", (event) =>
     {
-        if (event.code === "KeyN" && !canvasContextMenu.isMenuOpened)
+        let anyModalOpened = false;
+        document.querySelectorAll(".modal-window-container").forEach((modal) =>
+        {
+            anyModalOpened ||= !modal.classList.contains("hidden");
+        });
+
+        if (event.code === "KeyN" && !canvasContextMenu.isMenuOpened && !anyModalOpened)
         {
             openNodeCreation();
         }
