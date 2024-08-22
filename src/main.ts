@@ -42,7 +42,7 @@ async function main()
     panContext.on('zoom', () =>
     {
         let zoomScale = panContext.getTransform()?.scale ?? 1.0;
-        zoomRatioDisplay.textContent = `Zoom: ${zoomScale.toPrecision(2)}x`;
+        zoomRatioDisplay.textContent = `Zoom: ${zoomScale.toFixed(2)}x`;
     });
 
     Settings.instance.setPanContext(panContext);
@@ -395,7 +395,7 @@ async function main()
 
             let amount = document.createElement("p");
             amount.classList.add("amount");
-            amount.innerText = `${+((60 / craftingTime) * recipeResource.amount).toPrecision(3)}`;
+            amount.innerText = `${+((60 / craftingTime) * recipeResource.amount).toFixed(3)}`;
 
             resourceDiv.appendChild(icon);
             resourceDiv.appendChild(amount);
