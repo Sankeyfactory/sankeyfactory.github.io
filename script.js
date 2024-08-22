@@ -2264,9 +2264,9 @@
         overclock.classList.remove("error");
         let value = _NodeConfiguration.numberParser(overclock.value);
         if (value < 1) {
-          overclock.value = "1";
+          this.setOverclockRatio(1 / 100);
         } else if (value > 250) {
-          overclock.value = "250";
+          this.setOverclockRatio(250 / 100);
         } else {
           overclock.value = `${+(this.getOverclockRatio() * 100).toFixed(4)}`;
         }
