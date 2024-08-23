@@ -4,7 +4,7 @@ import satisfactoryData from '../../dist/GameData/Satisfactory.json';
 
 import { Point } from "../Point";
 import { SankeySlot } from "./Slots/SankeySlot";
-import { SlotsGroup } from "./SlotsGroup";
+import { SlotsGroup, SlotsGroupType } from "./SlotsGroup";
 import { SvgFactory } from "../SVG/SvgFactory";
 import { GameRecipe } from "../GameData/GameRecipe";
 import { GameMachine } from "../GameData/GameMachine";
@@ -16,8 +16,6 @@ export class SankeyNode
 {
     public nodeSvg: SVGElement;
     public nodeSvgGroup: SVGGElement;
-
-    public static readonly nodeHeight = 260;
     public static readonly nodeWidth = 60;
 
     constructor(
@@ -27,77 +25,44 @@ export class SankeyNode
         machine: GameMachine,
     )
     {
+        this._recipe = { ...recipe };
+        this._height = SankeyNode._nodeHeight;
+
+
+        let sumResources = (sum: number, product: RecipeResource) =>
+            sum + this.toItemsInMinute(product.amount);
+
+        this._inputResourcesAmount = this._recipe.ingredients.reduce(sumResources, 0);
+        this._outputResourcesAmount = this._recipe.products.reduce(sumResources, 0);
+
+
         this.nodeSvgGroup = SvgFactory.createSvgGroup({
             x: position.x - SankeyNode.nodeWidth / 2 - SankeySlot.slotWidth,
-            y: position.y - SankeyNode.nodeHeight / 2
+            y: position.y - this.height / 2
         }, "node", "animate-appearance");
 
         this.nodeSvg = SvgFactory.createSvgRect({
             width: SankeyNode.nodeWidth,
-            height: SankeyNode.nodeHeight,
+            height: this.height,
             x: SankeySlot.slotWidth,
             y: 0
         }, "machine");
 
+
+        this._inputSlotGroups = this.createGroups("input", recipe.ingredients);
+        this._outputSlotGroups = this.createGroups("output", recipe.products);
+
+
         this.configureContextMenu(recipe, machine);
 
-        let totalInputResourcesAmount = recipe.ingredients
-            .reduce((sum, ingredient) =>
-            {
-                return sum + toItemsInMinute(ingredient.amount, recipe.manufacturingDuration);
-            }, 0);
 
-        let totalOutputResourcesAmount = recipe.products
-            .reduce((sum, product) =>
-            {
-                return sum + toItemsInMinute(product.amount, recipe.manufacturingDuration);
-            }, 0);
-
-        let nextInputGroupY = 0;
-
-        for (const ingredient of recipe.ingredients)
-        {
-            let newGroup = new SlotsGroup(
-                this,
-                "input",
-                {
-                    id: ingredient.id,
-                    amount: toItemsInMinute(ingredient.amount, recipe.manufacturingDuration)
-                },
-                totalInputResourcesAmount,
-                nextInputGroupY
-            );
-
-            this._inputSlotGroups.push(newGroup);
-
-            nextInputGroupY += newGroup.expectedHeight;
-        }
-
-        let nextOutputGroupY = 0;
-
-        for (const product of recipe.products)
-        {
-            let newGroup = new SlotsGroup(
-                this,
-                "output",
-                {
-                    id: product.id,
-                    amount: toItemsInMinute(product.amount, recipe.manufacturingDuration)
-                },
-                totalOutputResourcesAmount,
-                nextOutputGroupY);
-
-            this._outputSlotGroups.push(newGroup);
-
-            nextOutputGroupY += newGroup.expectedHeight;
-        }
 
         let foreignObject = SvgFactory.createSvgForeignObject();
 
         foreignObject.setAttribute("x", "10");
         foreignObject.setAttribute("y", "0");
         foreignObject.setAttribute("width", `${SankeyNode.nodeWidth}`);
-        foreignObject.setAttribute("height", `${SankeyNode.nodeHeight}`);
+        foreignObject.setAttribute("height", `${this.height}`);
 
 
         let recipeContainer = document.createElement("div");
@@ -166,7 +131,7 @@ export class SankeyNode
 
 
 
-        let createResourceDisplay = (parentDiv: HTMLDivElement, craftingTime: number) =>
+        let createResourceDisplay = function (parentDiv: HTMLDivElement, craftingTime: number) 
         {
             return (recipeResource: RecipeResource) =>
             {
@@ -218,6 +183,21 @@ export class SankeyNode
         parentGroup.appendChild(this.nodeSvgGroup);
     }
 
+    public delete()
+    {
+        for (const slotsGroup of this._inputSlotGroups)
+        {
+            slotsGroup.delete();
+        }
+
+        for (const slotsGroup of this._outputSlotGroups)
+        {
+            slotsGroup.delete();
+        }
+
+        this.nodeSvgGroup.remove();
+    }
+
     public get position(): Point
     {
         let transform = this.nodeSvgGroup.getAttribute("transform") ?? "translate(0, 0)";
@@ -244,19 +224,29 @@ export class SankeyNode
         }
     }
 
-    public delete()
+    public get height(): number
     {
-        for (const slotsGroup of this._inputSlotGroups)
-        {
-            slotsGroup.delete();
-        }
+        return this._height;
+    }
 
-        for (const slotsGroup of this._outputSlotGroups)
-        {
-            slotsGroup.delete();
-        }
+    public get inputResourcesAmount(): number
+    {
+        return this._inputResourcesAmount;
+    }
 
-        this.nodeSvgGroup.remove();
+    private set inputResourcesAmount(inputResourcesAmount: number)
+    {
+        this._inputResourcesAmount = inputResourcesAmount;
+    }
+
+    public get outputResourcesAmount(): number
+    {
+        return this._outputResourcesAmount;
+    }
+
+    private set outputResourcesAmount(outputResourcesAmount: number)
+    {
+        this._outputResourcesAmount = outputResourcesAmount;
     }
 
     private configureContextMenu(recipe: GameRecipe, machine: GameMachine): void
@@ -272,7 +262,7 @@ export class SankeyNode
 
         let openConfigurator = (event: Event) =>
         {
-            configurator.openConfigurationWindow(this._machinesAmount, this._overclockRatio);
+            configurator.openConfigurationWindow(this.machinesAmount, this.overclockRatio);
             event.stopPropagation();
         };
 
@@ -281,14 +271,80 @@ export class SankeyNode
 
         configurator.addEventListener(NodeConfiguration.configurationUpdatedEvent, () =>
         {
-            this._machinesAmount = configurator.machinesAmount;
-            this._overclockRatio = configurator.overclockRatio;
+            this.machinesAmount = configurator.machinesAmount;
+            this.overclockRatio = configurator.overclockRatio;
         });
     }
+
+    private createGroups(type: SlotsGroupType, resources: RecipeResource[]): SlotsGroup[]
+    {
+        let result: SlotsGroup[] = [];
+        let nextGroupY = 0;
+
+        for (const resource of resources)
+        {
+            let newGroup = new SlotsGroup(
+                this,
+                type,
+                { id: resource.id, amount: this.toItemsInMinute(resource.amount) },
+                nextGroupY
+            );
+
+            result.push(newGroup);
+
+            nextGroupY += newGroup.height;
+        }
+
+        return result;
+    }
+
+    private toItemsInMinute(amount: number)
+    {
+        return toItemsInMinute(amount, this._recipe.manufacturingDuration);
+    }
+
+    private get machinesAmount(): number
+    {
+        return this._machinesAmount;
+    }
+
+    private set machinesAmount(value: number)
+    {
+        let difference = value / this._machinesAmount;
+
+        this._machinesAmount = value;
+
+        this.inputResourcesAmount *= difference;
+        this.outputResourcesAmount *= difference;
+    }
+
+    private get overclockRatio(): number
+    {
+        return this._overclockRatio;
+    }
+
+    private set overclockRatio(value: number)
+    {
+        let difference = value / this._overclockRatio;
+
+        this._overclockRatio = value;
+
+        this.inputResourcesAmount *= difference;
+        this.outputResourcesAmount *= difference;
+    }
+
+    private _recipe: GameRecipe;
+
+    private _inputResourcesAmount: number;
+    private _outputResourcesAmount: number;
+
+    private _machinesAmount = 1;
+    private _overclockRatio = 1;
+
+    private _height: number;
 
     private _inputSlotGroups: SlotsGroup[] = [];
     private _outputSlotGroups: SlotsGroup[] = [];
 
-    private _machinesAmount = 1;
-    private _overclockRatio = 1;
+    private static readonly _nodeHeight = 260;
 }

@@ -17,18 +17,20 @@ export abstract class SankeySlot extends EventTarget
     {
         super();
 
-        this._resource = resource;
+        this._resource = { ...resource };
         this._parentGroup = slotsGroup;
 
         let dimensions: Rectangle = {
             width: SankeySlot.slotWidth,
-            height: slotsGroup.expectedHeight * (this._resource.amount / slotsGroup.resourcesAmount),
+            height: 0,
             x: 0,
             y: 0
         };
 
         this._slotSvgRect = SvgFactory.createSvgRect(dimensions, ...classes);
         slotsGroupSvg.appendChild(this.slotSvgRect);
+
+        this.updateHeight();
     }
 
     public setYPosition(yPosition: number): void
@@ -54,10 +56,7 @@ export abstract class SankeySlot extends EventTarget
     {
         this._resource.amount = resourcesAmount;
 
-        this.slotSvgRect.setAttribute(
-            "height",
-            `${this._parentGroup.expectedHeight * (resourcesAmount / this._parentGroup.resourcesAmount)}`
-        );
+        this.updateHeight();
 
         this.dispatchEvent(new Event(SankeySlot.boundsChangedEvent));
     }
@@ -70,6 +69,18 @@ export abstract class SankeySlot extends EventTarget
     public get slotSvgRect(): SVGRectElement
     {
         return this._slotSvgRect;
+    }
+
+    public updateHeight(): void
+    {
+        let resourcesQuotient = this.resourcesAmount / this._parentGroup.resourcesAmount;
+
+        this.slotSvgRect.setAttribute(
+            "height",
+            `${this._parentGroup.height * (resourcesQuotient)}`
+        );
+
+        this.dispatchEvent(new Event(SankeySlot.boundsChangedEvent));
     }
 
     protected get parentGroup(): SlotsGroup

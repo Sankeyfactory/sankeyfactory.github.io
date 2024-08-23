@@ -7,7 +7,7 @@ import { SvgFactory } from "../SVG/SvgFactory";
 import { InputSankeySlot } from "./Slots/InputSankeySlot";
 import { OutputSankeySlot } from "./Slots/OutputSankeySlot";
 
-type SlotsGroupType = "input" | "output";
+export type SlotsGroupType = "input" | "output";
 
 export class SlotsGroup extends EventTarget
 {
@@ -17,17 +17,13 @@ export class SlotsGroup extends EventTarget
         node: SankeyNode,
         type: SlotsGroupType,
         resource: RecipeResource,
-        nodeResourcesAmount: number,
         startY: number)
     {
         super();
 
         this._type = type;
-        this._resourceId = resource.id;
-        this._resourcesAmount = resource.amount;
-
-        let nodeHeight = +(node.nodeSvg.getAttribute("height") ?? 0);
-        this._expectedHeight = nodeHeight * (resource.amount / nodeResourcesAmount);
+        this._resource = { ...resource };
+        this._parentNode = node;
 
         let position = type === "input"
             ? new Point(0, startY)
@@ -59,15 +55,15 @@ export class SlotsGroup extends EventTarget
         if (this._type === "input")
         {
             newSlot = new InputSankeySlot(this, this._groupSvg, {
-                id: this._resourceId,
-                amount: resourcesAmount,
+                id: this.resourceId,
+                amount: resourcesAmount
             });
         }
         else if (this._type === "output")
         {
             newSlot = new OutputSankeySlot(this, this._groupSvg, {
-                id: this._resourceId,
-                amount: resourcesAmount,
+                id: this.resourceId,
+                amount: resourcesAmount
             });
         }
         else
@@ -102,14 +98,62 @@ export class SlotsGroup extends EventTarget
         this._groupSvg.remove();
     }
 
-    public get expectedHeight(): number
+    public get height(): number
     {
-        return this._expectedHeight;
+        let parentResourcesAmount: number;
+
+        if (this._type == "input")
+        {
+            parentResourcesAmount = this._parentNode.inputResourcesAmount;
+        }
+        else
+        {
+            parentResourcesAmount = this._parentNode.outputResourcesAmount;
+        }
+
+        return this._parentNode.height * (this.resourcesAmount / parentResourcesAmount);
     }
 
     public get resourcesAmount(): number
     {
-        return this._resourcesAmount;
+        return this._resource.amount;
+    }
+
+    public set resourcesAmount(value: number)
+    {
+        let subtractedResources = this._resource.amount - value;
+
+        if (subtractedResources > 0)
+        {
+            {
+                let smallerValue = Math.min(subtractedResources, this._lastSlot.resourcesAmount);
+
+                subtractedResources -= smallerValue;
+                this._lastSlot.resourcesAmount -= smallerValue;
+            }
+
+            for (let i = this._slots.length - 1; i > 0 && subtractedResources > 0; --i)
+            {
+                let slot = this._slots[i];
+
+                let smallerValue = Math.min(subtractedResources, slot.resourcesAmount);
+
+                subtractedResources -= smallerValue;
+                slot.resourcesAmount -= smallerValue;
+
+                if (slot.resourcesAmount === 0)
+                {
+                    slot.delete();
+                }
+            }
+        }
+
+        this._resource.amount = value;
+    }
+
+    public get resourceId(): string
+    {
+        return this._resource.id;
     }
 
     private updateSlotPositions(): void
@@ -148,13 +192,12 @@ export class SlotsGroup extends EventTarget
 
     private _type: SlotsGroupType;
 
-    private readonly _resourceId: string;
-    private _resourcesAmount: number;
+    private _resource: RecipeResource;
 
     private _slots: SankeySlot[] = [];
     private _lastSlot: SankeySlotExceeding | SankeySlotMissing;
 
     private _groupSvg: SVGGElement;
 
-    private _expectedHeight: number;
+    private _parentNode: SankeyNode;
 }
