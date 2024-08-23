@@ -29,17 +29,19 @@ export class SankeyLink
         this._secondSlot = secondSlot;
         this._panContext = panContext;
 
-        function pushResourcesAmount(from: SankeySlot, to: SankeySlot)
+        let pushResourcesAmount = (from: SankeySlot, to: SankeySlot) =>
         {
             if (to.resourcesAmount >= from.resourcesAmount)
             {
                 to.resourcesAmount = from.resourcesAmount;
+
+                this._resourceAmountDisplay.innerText = `${+(to.resourcesAmount).toFixed(4)}`;
             }
             else
             {
                 throw Error("Increasing link's resources amount not yet implemented.");
             }
-        }
+        };
 
         firstSlot.addEventListener(SankeySlot.boundsChangedEvent, this.recalculate.bind(this));
         secondSlot.addEventListener(SankeySlot.boundsChangedEvent, this.recalculate.bind(this));
@@ -142,12 +144,12 @@ export class SankeyLink
             icon.alt = resourceDesc.displayName;
         }
 
-        let resourceAmount = document.createElement("div");
-        resourceAmount.classList.add("resource-amount");
-        resourceAmount.innerText = `${resource.amount}/min`;
+        this._resourceAmountDisplay = document.createElement("div");
+        this._resourceAmountDisplay.classList.add("resource-amount");
+        this._resourceAmountDisplay.innerText = `${resource.amount}/min`;
 
         container.appendChild(icon);
-        container.appendChild(resourceAmount);
+        container.appendChild(this._resourceAmountDisplay);
         foreignObject.appendChild(container);
 
         return foreignObject;
@@ -172,6 +174,7 @@ export class SankeyLink
     private _svgPath: SVGPathElement;
 
     private _resourceDisplay: SVGForeignObjectElement;
+    private _resourceAmountDisplay!: HTMLDivElement;
 
     private _isDeleted = false;
 }
