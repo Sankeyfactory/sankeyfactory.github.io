@@ -1896,7 +1896,7 @@
     constructor(slotsGroup, slotsGroupSvg, resource) {
       super(slotsGroup, slotsGroupSvg, resource, "exceeding");
       this.slotSvgRect.addEventListener("click", (event) => {
-        if (!event.altKey) {
+        if (!event.ctrlKey) {
           MouseHandler.getInstance().outputSlotClicked(event, this);
         }
       });
@@ -1918,7 +1918,7 @@
     constructor(slotsGroup, slotsGroupSvg, resource) {
       super(slotsGroup, slotsGroupSvg, resource, "missing");
       this.slotSvgRect.addEventListener("click", (event) => {
-        if (!event.altKey) {
+        if (!event.ctrlKey) {
           MouseHandler.getInstance().inputSlotClicked(event, this);
         }
       });
@@ -2620,7 +2620,6 @@
       });
       let configurator = new NodeConfiguration(recipe, machine);
       let openConfigurator = (event) => {
-        console.log(`Settings: ${this._machinesAmount} machines at ${this._overclockRatio * 100}%`);
         configurator.openConfigurationWindow(this._machinesAmount, this._overclockRatio);
         event.stopPropagation();
       };
