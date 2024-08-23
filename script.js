@@ -1478,16 +1478,17 @@
     static deletionEvent = "deleted";
     constructor(slotsGroup, slotsGroupSvg, resource, ...classes) {
       super();
-      this._resource = resource;
+      this._resource = { ...resource };
       this._parentGroup = slotsGroup;
       let dimensions = {
         width: _SankeySlot.slotWidth,
-        height: slotsGroup.maxHeight * (this._resource.amount / slotsGroup.resource.amount),
+        height: 0,
         x: 0,
         y: 0
       };
       this._slotSvgRect = SvgFactory.createSvgRect(dimensions, ...classes);
       slotsGroupSvg.appendChild(this.slotSvgRect);
+      this.updateHeight();
     }
     setYPosition(yPosition) {
       this.slotSvgRect.setAttribute("y", `${yPosition}`);
@@ -1502,10 +1503,7 @@
     }
     set resourcesAmount(resourcesAmount) {
       this._resource.amount = resourcesAmount;
-      this.slotSvgRect.setAttribute(
-        "height",
-        `${this._parentGroup.maxHeight * (resourcesAmount / this._parentGroup.resource.amount)}`
-      );
+      this.updateHeight();
       this.dispatchEvent(new Event(_SankeySlot.boundsChangedEvent));
     }
     get resourceId() {
@@ -1513,6 +1511,14 @@
     }
     get slotSvgRect() {
       return this._slotSvgRect;
+    }
+    updateHeight() {
+      let resourcesQuotient = this.resourcesAmount / this._parentGroup.resourcesAmount;
+      this.slotSvgRect.setAttribute(
+        "height",
+        `${this._parentGroup.height * resourcesQuotient}`
+      );
+      this.dispatchEvent(new Event(_SankeySlot.boundsChangedEvent));
     }
     get parentGroup() {
       return this._parentGroup;
@@ -1931,80 +1937,115 @@
   // src/Sankey/SlotsGroup.ts
   var SlotsGroup = class _SlotsGroup extends EventTarget {
     static boundsChangedEvent = "bounds-changed";
-    type;
-    maxHeight;
-    resource;
-    constructor(node, type, resource, nodeResourcesAmount, startY) {
+    constructor(node, type, resource, startY) {
       super();
-      this.type = type;
-      this.resource = resource;
-      let nodeHeight = +(node.nodeSvg.getAttribute("height") ?? 0);
-      this.maxHeight = nodeHeight * (resource.amount / nodeResourcesAmount);
+      this._type = type;
+      this._resource = { ...resource };
+      this._parentNode = node;
       let position = type === "input" ? new Point(0, startY) : new Point(SankeyNode.nodeWidth + SankeySlot.slotWidth, startY);
-      this.groupSvg = SvgFactory.createSvgGroup(position, `${type}-slots`);
-      this.lastSlot = this.initializeLastSlot();
-      node.nodeSvgGroup.appendChild(this.groupSvg);
+      this._groupSvg = SvgFactory.createSvgGroup(position, `${type}-slots`);
+      this._lastSlot = this.initializeLastSlot(resource);
+      node.nodeSvgGroup.appendChild(this._groupSvg);
       this.addEventListener(_SlotsGroup.boundsChangedEvent, () => {
-        for (const slot of this.slots) {
+        for (const slot of this._slots) {
           slot.dispatchEvent(new Event(SankeySlot.boundsChangedEvent));
         }
       });
     }
     addSlot(resourcesAmount) {
-      resourcesAmount = Math.min(resourcesAmount, this.lastSlot.resourcesAmount);
-      this.lastSlot.resourcesAmount -= resourcesAmount;
+      resourcesAmount = Math.min(resourcesAmount, this._lastSlot.resourcesAmount);
+      this._lastSlot.resourcesAmount -= resourcesAmount;
       let newSlot;
-      if (this.type === "input") {
-        newSlot = new InputSankeySlot(this, this.groupSvg, {
-          id: this.resource.id,
+      if (this._type === "input") {
+        newSlot = new InputSankeySlot(this, this._groupSvg, {
+          id: this.resourceId,
           amount: resourcesAmount
         });
-      } else if (this.type === "output") {
-        newSlot = new OutputSankeySlot(this, this.groupSvg, {
-          id: this.resource.id,
+      } else if (this._type === "output") {
+        newSlot = new OutputSankeySlot(this, this._groupSvg, {
+          id: this.resourceId,
           amount: resourcesAmount
         });
       } else {
         throw Error("Unexpected slots group type");
       }
-      this.slots.push(newSlot);
+      this._slots.push(newSlot);
       newSlot.addEventListener(SankeySlot.deletionEvent, () => {
-        let index = this.slots.findIndex((slot) => Object.is(slot, newSlot));
-        this.slots.splice(index, 1);
+        let index = this._slots.findIndex((slot) => Object.is(slot, newSlot));
+        this._slots.splice(index, 1);
         this.updateSlotPositions();
       });
       this.updateSlotPositions();
       return newSlot;
     }
     delete() {
-      while (this.slots.length !== 0) {
-        this.slots[0].delete();
+      while (this._slots.length !== 0) {
+        this._slots[0].delete();
       }
-      this.groupSvg.remove();
+      this._groupSvg.remove();
+    }
+    get height() {
+      let parentResourcesAmount;
+      if (this._type == "input") {
+        parentResourcesAmount = this._parentNode.inputResourcesAmount;
+      } else {
+        parentResourcesAmount = this._parentNode.outputResourcesAmount;
+      }
+      return this._parentNode.height * (this.resourcesAmount / parentResourcesAmount);
+    }
+    get resourcesAmount() {
+      return this._resource.amount;
+    }
+    set resourcesAmount(value) {
+      let subtractedResources = this._resource.amount - value;
+      if (subtractedResources > 0) {
+        {
+          let smallerValue = Math.min(subtractedResources, this._lastSlot.resourcesAmount);
+          subtractedResources -= smallerValue;
+          this._lastSlot.resourcesAmount -= smallerValue;
+        }
+        for (let i = this._slots.length - 1; i > 0 && subtractedResources > 0; --i) {
+          let slot = this._slots[i];
+          let smallerValue = Math.min(subtractedResources, slot.resourcesAmount);
+          subtractedResources -= smallerValue;
+          slot.resourcesAmount -= smallerValue;
+          if (slot.resourcesAmount === 0) {
+            slot.delete();
+          }
+        }
+      }
+      this._resource.amount = value;
+    }
+    get resourceId() {
+      return this._resource.id;
     }
     updateSlotPositions() {
-      let freeResourcesAmount = this.resource.amount;
+      let freeResourcesAmount = this.resourcesAmount;
       let nextYPosition = 0;
-      for (const slot of this.slots) {
+      for (const slot of this._slots) {
         slot.setYPosition(nextYPosition);
         freeResourcesAmount -= slot.resourcesAmount;
         nextYPosition += +(slot.slotSvgRect.getAttribute("height") ?? 0);
       }
-      this.lastSlot.setYPosition(nextYPosition);
-      this.lastSlot.resourcesAmount = freeResourcesAmount;
+      this._lastSlot.setYPosition(nextYPosition);
+      this._lastSlot.resourcesAmount = freeResourcesAmount;
     }
-    initializeLastSlot() {
-      if (this.type === "input") {
-        return new SankeySlotMissing(this, this.groupSvg, { ...this.resource });
-      } else if (this.type === "output") {
-        return new SankeySlotExceeding(this, this.groupSvg, { ...this.resource });
+    /** Should be called only once. */
+    initializeLastSlot(resource) {
+      if (this._type === "input") {
+        return new SankeySlotMissing(this, this._groupSvg, { ...resource });
+      } else if (this._type === "output") {
+        return new SankeySlotExceeding(this, this._groupSvg, { ...resource });
       } else {
         throw Error("Unexpected slots group type");
       }
     }
-    groupSvg;
-    lastSlot;
-    slots = [];
+    _type;
+    _resource;
+    _slots = [];
+    _lastSlot;
+    _groupSvg;
+    _parentNode;
   };
 
   // src/ContextMenu/CustomContextMenu.ts
@@ -2460,61 +2501,31 @@
   var SankeyNode = class _SankeyNode {
     nodeSvg;
     nodeSvgGroup;
-    static nodeHeight = 260;
     static nodeWidth = 60;
     constructor(parentGroup, position, recipe, machine) {
+      this._recipe = { ...recipe };
+      this._height = _SankeyNode._nodeHeight;
+      let sumResources = (sum, product) => sum + this.toItemsInMinute(product.amount);
+      this._inputResourcesAmount = this._recipe.ingredients.reduce(sumResources, 0);
+      this._outputResourcesAmount = this._recipe.products.reduce(sumResources, 0);
       this.nodeSvgGroup = SvgFactory.createSvgGroup({
         x: position.x - _SankeyNode.nodeWidth / 2 - SankeySlot.slotWidth,
-        y: position.y - _SankeyNode.nodeHeight / 2
+        y: position.y - this.height / 2
       }, "node", "animate-appearance");
       this.nodeSvg = SvgFactory.createSvgRect({
         width: _SankeyNode.nodeWidth,
-        height: _SankeyNode.nodeHeight,
+        height: this.height,
         x: SankeySlot.slotWidth,
         y: 0
       }, "machine");
+      this._inputSlotGroups = this.createGroups("input", recipe.ingredients);
+      this._outputSlotGroups = this.createGroups("output", recipe.products);
       this.configureContextMenu(recipe, machine);
-      let totalInputResourcesAmount = recipe.ingredients.reduce((sum, ingredient) => {
-        return sum + toItemsInMinute(ingredient.amount, recipe.manufacturingDuration);
-      }, 0);
-      let totalOutputResourcesAmount = recipe.products.reduce((sum, product) => {
-        return sum + toItemsInMinute(product.amount, recipe.manufacturingDuration);
-      }, 0);
-      let nextInputGroupY = 0;
-      for (const ingredient of recipe.ingredients) {
-        let newGroup = new SlotsGroup(
-          this,
-          "input",
-          {
-            id: ingredient.id,
-            amount: toItemsInMinute(ingredient.amount, recipe.manufacturingDuration)
-          },
-          totalInputResourcesAmount,
-          nextInputGroupY
-        );
-        this._inputSlotGroups.push(newGroup);
-        nextInputGroupY += newGroup.maxHeight;
-      }
-      let nextOutputGroupY = 0;
-      for (const product of recipe.products) {
-        let newGroup = new SlotsGroup(
-          this,
-          "output",
-          {
-            id: product.id,
-            amount: toItemsInMinute(product.amount, recipe.manufacturingDuration)
-          },
-          totalOutputResourcesAmount,
-          nextOutputGroupY
-        );
-        this._outputSlotGroups.push(newGroup);
-        nextOutputGroupY += newGroup.maxHeight;
-      }
       let foreignObject = SvgFactory.createSvgForeignObject();
       foreignObject.setAttribute("x", "10");
       foreignObject.setAttribute("y", "0");
       foreignObject.setAttribute("width", `${_SankeyNode.nodeWidth}`);
-      foreignObject.setAttribute("height", `${_SankeyNode.nodeHeight}`);
+      foreignObject.setAttribute("height", `${this.height}`);
       let recipeContainer = document.createElement("div");
       recipeContainer.classList.add("recipe-container");
       let recipeMachineProp = document.createElement("div");
@@ -2555,7 +2566,7 @@
       recipeContainer.appendChild(recipeOutputsProp);
       recipeContainer.appendChild(recipePowerProp);
       foreignObject.appendChild(recipeContainer);
-      let createResourceDisplay = (parentDiv, craftingTime) => {
+      let createResourceDisplay = function(parentDiv, craftingTime) {
         return (recipeResource) => {
           let resource = Satisfactory_default.resources.find(
             (el) => {
@@ -2588,6 +2599,15 @@
       this.nodeSvgGroup.appendChild(foreignObject);
       parentGroup.appendChild(this.nodeSvgGroup);
     }
+    delete() {
+      for (const slotsGroup of this._inputSlotGroups) {
+        slotsGroup.delete();
+      }
+      for (const slotsGroup of this._outputSlotGroups) {
+        slotsGroup.delete();
+      }
+      this.nodeSvgGroup.remove();
+    }
     get position() {
       let transform = this.nodeSvgGroup.getAttribute("transform") ?? "translate(0, 0)";
       let transformRegex = /translate\((?<x>-?\d+(?:\.\d+)?), ?(?<y>-?\d+(?:\.\d+)?)\)/;
@@ -2604,14 +2624,20 @@
         group.dispatchEvent(new Event(SlotsGroup.boundsChangedEvent));
       }
     }
-    delete() {
-      for (const slotsGroup of this._inputSlotGroups) {
-        slotsGroup.delete();
-      }
-      for (const slotsGroup of this._outputSlotGroups) {
-        slotsGroup.delete();
-      }
-      this.nodeSvgGroup.remove();
+    get height() {
+      return this._height;
+    }
+    get inputResourcesAmount() {
+      return this._inputResourcesAmount;
+    }
+    set inputResourcesAmount(inputResourcesAmount) {
+      this._inputResourcesAmount = inputResourcesAmount;
+    }
+    get outputResourcesAmount() {
+      return this._outputResourcesAmount;
+    }
+    set outputResourcesAmount(outputResourcesAmount) {
+      this._outputResourcesAmount = outputResourcesAmount;
     }
     configureContextMenu(recipe, machine) {
       let nodeContextMenu = new NodeContextMenu(this.nodeSvg);
@@ -2620,20 +2646,61 @@
       });
       let configurator = new NodeConfiguration(recipe, machine);
       let openConfigurator = (event) => {
-        configurator.openConfigurationWindow(this._machinesAmount, this._overclockRatio);
+        configurator.openConfigurationWindow(this.machinesAmount, this.overclockRatio);
         event.stopPropagation();
       };
       nodeContextMenu.addEventListener(NodeContextMenu.configureNodeOptionClickedEvent, openConfigurator);
       this.nodeSvg.addEventListener("dblclick", openConfigurator);
       configurator.addEventListener(NodeConfiguration.configurationUpdatedEvent, () => {
-        this._machinesAmount = configurator.machinesAmount;
-        this._overclockRatio = configurator.overclockRatio;
+        this.machinesAmount = configurator.machinesAmount;
+        this.overclockRatio = configurator.overclockRatio;
       });
     }
-    _inputSlotGroups = [];
-    _outputSlotGroups = [];
+    createGroups(type, resources) {
+      let result = [];
+      let nextGroupY = 0;
+      for (const resource of resources) {
+        let newGroup = new SlotsGroup(
+          this,
+          type,
+          { id: resource.id, amount: this.toItemsInMinute(resource.amount) },
+          nextGroupY
+        );
+        result.push(newGroup);
+        nextGroupY += newGroup.height;
+      }
+      return result;
+    }
+    toItemsInMinute(amount) {
+      return toItemsInMinute(amount, this._recipe.manufacturingDuration);
+    }
+    get machinesAmount() {
+      return this._machinesAmount;
+    }
+    set machinesAmount(value) {
+      let difference = value / this._machinesAmount;
+      this._machinesAmount = value;
+      this.inputResourcesAmount *= difference;
+      this.outputResourcesAmount *= difference;
+    }
+    get overclockRatio() {
+      return this._overclockRatio;
+    }
+    set overclockRatio(value) {
+      let difference = value / this._overclockRatio;
+      this._overclockRatio = value;
+      this.inputResourcesAmount *= difference;
+      this.outputResourcesAmount *= difference;
+    }
+    _recipe;
+    _inputResourcesAmount;
+    _outputResourcesAmount;
     _machinesAmount = 1;
     _overclockRatio = 1;
+    _height;
+    _inputSlotGroups = [];
+    _outputSlotGroups = [];
+    static _nodeHeight = 260;
   };
 
   // src/GameData/GameRecipe.ts
