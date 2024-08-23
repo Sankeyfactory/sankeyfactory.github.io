@@ -1643,13 +1643,14 @@
       this._firstSlot = firstSlot;
       this._secondSlot = secondSlot;
       this._panContext = panContext;
-      function pushResourcesAmount(from, to) {
+      let pushResourcesAmount = (from, to) => {
         if (to.resourcesAmount >= from.resourcesAmount) {
           to.resourcesAmount = from.resourcesAmount;
+          this._resourceAmountDisplay.innerText = `${+to.resourcesAmount.toFixed(4)}`;
         } else {
           throw Error("Increasing link's resources amount not yet implemented.");
         }
-      }
+      };
       firstSlot.addEventListener(SankeySlot.boundsChangedEvent, this.recalculate.bind(this));
       secondSlot.addEventListener(SankeySlot.boundsChangedEvent, this.recalculate.bind(this));
       firstSlot.addEventListener(SankeySlot.deletionEvent, this.delete.bind(this, secondSlot));
@@ -1714,11 +1715,11 @@
         icon.src = satisfactoryIconPath(resourceDesc.iconPath);
         icon.alt = resourceDesc.displayName;
       }
-      let resourceAmount = document.createElement("div");
-      resourceAmount.classList.add("resource-amount");
-      resourceAmount.innerText = `${resource.amount}/min`;
+      this._resourceAmountDisplay = document.createElement("div");
+      this._resourceAmountDisplay.classList.add("resource-amount");
+      this._resourceAmountDisplay.innerText = `${resource.amount}/min`;
       container.appendChild(icon);
-      container.appendChild(resourceAmount);
+      container.appendChild(this._resourceAmountDisplay);
       foreignObject.appendChild(container);
       return foreignObject;
     }
@@ -1735,6 +1736,7 @@
     _panContext;
     _svgPath;
     _resourceDisplay;
+    _resourceAmountDisplay;
     _isDeleted = false;
   };
 
