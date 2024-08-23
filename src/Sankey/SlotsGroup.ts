@@ -82,6 +82,11 @@ export class SlotsGroup extends EventTarget
             this.updateSlotPositions();
         });
 
+        newSlot.addEventListener(SankeySlot.resourcesAmountChangedEvent, () =>
+        {
+            this.updateSlotPositions();
+        });
+
         this.updateSlotPositions();
 
         return newSlot;
@@ -132,7 +137,7 @@ export class SlotsGroup extends EventTarget
                 this._lastSlot.resourcesAmount -= smallerValue;
             }
 
-            for (let i = this._slots.length - 1; i > 0 && subtractedResources > 0; --i)
+            for (let i = this._slots.length - 1; i >= 0 && subtractedResources > 0; --i)
             {
                 let slot = this._slots[i];
 
@@ -149,6 +154,7 @@ export class SlotsGroup extends EventTarget
         }
 
         this._resource.amount = value;
+        this.updateSlotPositions();
     }
 
     public get resourceId(): string
@@ -164,6 +170,7 @@ export class SlotsGroup extends EventTarget
         for (const slot of this._slots)
         {
             slot.setYPosition(nextYPosition);
+            slot.updateHeight();
 
             freeResourcesAmount -= slot.resourcesAmount;
             nextYPosition += +(slot.slotSvgRect.getAttribute("height") ?? 0);

@@ -29,11 +29,28 @@ export class SankeyLink
         this._secondSlot = secondSlot;
         this._panContext = panContext;
 
+        function pushResourcesAmount(from: SankeySlot, to: SankeySlot)
+        {
+            if (to.resourcesAmount >= from.resourcesAmount)
+            {
+                to.resourcesAmount = from.resourcesAmount;
+            }
+            else
+            {
+                throw Error("Increasing link's resources amount not yet implemented.");
+            }
+        }
+
         firstSlot.addEventListener(SankeySlot.boundsChangedEvent, this.recalculate.bind(this));
         secondSlot.addEventListener(SankeySlot.boundsChangedEvent, this.recalculate.bind(this));
 
         firstSlot.addEventListener(SankeySlot.deletionEvent, this.delete.bind(this, secondSlot));
         secondSlot.addEventListener(SankeySlot.deletionEvent, this.delete.bind(this, firstSlot));
+
+        firstSlot.addEventListener(SankeySlot.resourcesAmountChangedEvent, () =>
+            pushResourcesAmount(firstSlot, secondSlot));
+        secondSlot.addEventListener(SankeySlot.resourcesAmountChangedEvent, () =>
+            pushResourcesAmount(secondSlot, firstSlot));
 
         this._svgPath = SvgFactory.createSvgPath("link", "animate-appearance");
 

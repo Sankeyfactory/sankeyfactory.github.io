@@ -19,6 +19,11 @@ export class SankeySlotMissing extends InputSankeySlot
                 MouseHandler.getInstance().inputSlotClicked(event, this);
             }
         });
+
+        this.slotSvgRect.addEventListener("dblclick", (event) =>
+        {
+            event.stopPropagation();
+        });
     }
 
     public splitOffSlot(resourcesAmount: number): SankeySlot

@@ -8,6 +8,7 @@ export abstract class SankeySlot extends EventTarget
 
     public static readonly boundsChangedEvent = "bounds-changed";
     public static readonly deletionEvent = "deleted";
+    public static readonly resourcesAmountChangedEvent = "resources-amount-changed";
 
     constructor(
         slotsGroup: SlotsGroup,
@@ -54,11 +55,14 @@ export abstract class SankeySlot extends EventTarget
 
     public set resourcesAmount(resourcesAmount: number)
     {
-        this._resource.amount = resourcesAmount;
+        if (this._resource.amount != resourcesAmount)
+        {
+            this._resource.amount = resourcesAmount;
 
-        this.updateHeight();
+            this.updateHeight();
 
-        this.dispatchEvent(new Event(SankeySlot.boundsChangedEvent));
+            this.dispatchEvent(new Event(SankeySlot.resourcesAmountChangedEvent));
+        }
     }
 
     public get resourceId(): string

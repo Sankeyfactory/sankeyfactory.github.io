@@ -303,6 +303,22 @@ export class SankeyNode
         return toItemsInMinute(amount, this._recipe.manufacturingDuration);
     }
 
+    private multiplyResourcesAmount(multiplier: number)
+    {
+        this.inputResourcesAmount *= multiplier;
+        this.outputResourcesAmount *= multiplier;
+
+        for (const slotsGroup of this._inputSlotGroups)
+        {
+            slotsGroup.resourcesAmount *= multiplier;
+        }
+
+        for (const slotsGroup of this._outputSlotGroups)
+        {
+            slotsGroup.resourcesAmount *= multiplier;
+        }
+    }
+
     private get machinesAmount(): number
     {
         return this._machinesAmount;
@@ -310,12 +326,9 @@ export class SankeyNode
 
     private set machinesAmount(value: number)
     {
-        let difference = value / this._machinesAmount;
+        this.multiplyResourcesAmount(value / this._machinesAmount);
 
         this._machinesAmount = value;
-
-        this.inputResourcesAmount *= difference;
-        this.outputResourcesAmount *= difference;
     }
 
     private get overclockRatio(): number
@@ -325,12 +338,9 @@ export class SankeyNode
 
     private set overclockRatio(value: number)
     {
-        let difference = value / this._overclockRatio;
+        this.multiplyResourcesAmount(value / this._overclockRatio);
 
         this._overclockRatio = value;
-
-        this.inputResourcesAmount *= difference;
-        this.outputResourcesAmount *= difference;
     }
 
     private _recipe: GameRecipe;
