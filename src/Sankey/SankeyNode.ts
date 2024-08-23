@@ -270,16 +270,27 @@ export class SankeyNode
 
         let configurator = new NodeConfiguration(recipe, machine);
 
-        let openConfigurator = function (event: Event)
+        let openConfigurator = (event: Event) =>
         {
-            configurator.openConfigurationWindow();
+            console.log(`Settings: ${this._machinesAmount} machines at ${this._overclockRatio * 100}%`);
+
+            configurator.openConfigurationWindow(this._machinesAmount, this._overclockRatio);
             event.stopPropagation();
         };
 
         nodeContextMenu.addEventListener(NodeContextMenu.configureNodeOptionClickedEvent, openConfigurator);
         this.nodeSvg.addEventListener("dblclick", openConfigurator);
+
+        configurator.addEventListener(NodeConfiguration.configurationUpdatedEvent, () =>
+        {
+            this._machinesAmount = configurator.machinesAmount;
+            this._overclockRatio = configurator.overclockRatio;
+        });
     }
 
     private _inputSlotGroups: SlotsGroup[] = [];
     private _outputSlotGroups: SlotsGroup[] = [];
+
+    private _machinesAmount = 1;
+    private _overclockRatio = 1;
 }

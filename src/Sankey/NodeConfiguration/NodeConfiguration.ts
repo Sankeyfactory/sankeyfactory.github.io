@@ -13,6 +13,8 @@ export class NodeConfiguration extends EventTarget
     public static readonly machinesAmountChangedEvent = "machines-amount-changed";
     public static readonly overclockChangedEvent = "overclock-changed";
 
+    public static readonly configurationUpdatedEvent = "configuration-updated";
+
     public constructor(recipe: GameRecipe, machine: GameMachine)
     {
         super();
@@ -22,22 +24,74 @@ export class NodeConfiguration extends EventTarget
 
         closeButton.addEventListener("click", () =>
         {
-            this.closeConfigurationWindow();
-        });
-
-        window.addEventListener("keydown", (event) =>
-        {
-            if (event.code === "Escape" && this._isOpened)
+            if (this._isOpened)
             {
                 this.closeConfigurationWindow();
             }
         });
 
+        window.addEventListener("keydown", (event) =>
+        {
+            if (this._isOpened && event.code === "Escape")
+            {
+                this.closeConfigurationWindow();
+            }
+
+            if (event.key === "Enter")
+            {
+                this.confirmConfiguration();
+            }
+
+            event.stopPropagation();
+        });
+
         this.setupTableElements(recipe, machine);
+
+        let updateResetButton = () =>
+        {
+            if (this._isOpened)
+            {
+                if (this.machinesAmount !== this._openingMachinesAmount
+                    || this.overclockRatio !== this._openingOverclockRatio)
+                {
+                    NodeConfiguration._resetButton.classList.remove("disabled");
+                }
+                else
+                {
+                    NodeConfiguration._resetButton.classList.add("disabled");
+                }
+            }
+        };
+
+        this.addEventListener(NodeConfiguration.machinesAmountChangedEvent, updateResetButton);
+        this.addEventListener(NodeConfiguration.overclockChangedEvent, updateResetButton);
+
+        NodeConfiguration._resetButton.addEventListener("click", () =>
+        {
+            if (this._isOpened)
+            {
+                this.machinesAmount = this._openingMachinesAmount;
+                this.overclockRatio = this._openingOverclockRatio;
+            }
+        });
+
+        NodeConfiguration._applyButton.addEventListener("click", () =>
+        {
+            if (this._isOpened)
+            {
+                this.confirmConfiguration();
+            }
+        });
     }
 
-    public openConfigurationWindow(): void
+    public openConfigurationWindow(openingMachinesAmount: number, openingOverclockRatio: number): void
     {
+        this._openingMachinesAmount = openingMachinesAmount;
+        this._openingOverclockRatio = openingOverclockRatio;
+
+        this.machinesAmount = this._openingMachinesAmount;
+        this.overclockRatio = this._openingOverclockRatio;
+
         // Machines amount group
 
         NodeConfiguration._machinesColumn.appendChild(this._machineConfigurator!);
@@ -74,7 +128,10 @@ export class NodeConfiguration extends EventTarget
 
         // Modal window
 
+        NodeConfiguration._resetButton.classList.add("disabled");
+
         NodeConfiguration._modalContainer.classList.remove("hidden");
+
         this._isOpened = true;
     }
 
@@ -89,10 +146,17 @@ export class NodeConfiguration extends EventTarget
         this._isOpened = false;
     }
 
+    private confirmConfiguration(): void
+    {
+        this.dispatchEvent(new Event(NodeConfiguration.configurationUpdatedEvent));
+
+        this.closeConfigurationWindow();
+    }
+
     private setupTableElements(recipe: GameRecipe, machine: GameMachine)
     {
-        let minOverclockRatio = NodeConfiguration.minOverclockRatio;
-        let maxOverclockRatio = NodeConfiguration.maxOverclockRatio;
+        let minOverclockRatio = NodeConfiguration._minOverclockRatio;
+        let maxOverclockRatio = NodeConfiguration._maxOverclockRatio;
 
         this._machineConfigurator = new ConfiguratorBuilder(this)
             .setIconImage(machine.displayName, machine.iconPath)
@@ -227,7 +291,7 @@ export class NodeConfiguration extends EventTarget
             .build();
     }
 
-    private get machinesAmount(): number
+    public get machinesAmount(): number
     {
         return this._machinesAmount;
     }
@@ -241,7 +305,7 @@ export class NodeConfiguration extends EventTarget
         }
     }
 
-    private get overclockRatio(): number
+    public get overclockRatio(): number
     {
         return this._overclockRatio;
     }
@@ -250,8 +314,8 @@ export class NodeConfiguration extends EventTarget
     {
         if (value !== this._overclockRatio)
         {
-            let min = NodeConfiguration.minOverclockRatio;
-            let max = NodeConfiguration.maxOverclockRatio;
+            let min = NodeConfiguration._minOverclockRatio;
+            let max = NodeConfiguration._maxOverclockRatio;
 
             value = Math.min(max, Math.max(min, value));
             this._overclockRatio = value;
@@ -260,11 +324,23 @@ export class NodeConfiguration extends EventTarget
         }
     }
 
+    private static queryModalSuccessor(query: string): Element
+    {
+        let fullQuery = `#${NodeConfiguration._modalContainer.id} ${query}`;
+        let element = document.querySelector(fullQuery);
+
+        if (element == null)
+        {
+            throw Error(`Couldn't find required element: ${fullQuery}`);
+        }
+
+        return element;
+    }
+
     private static getColumn(group: string, column: string): HTMLDivElement
     {
-        return document.querySelector(
-            `#${NodeConfiguration._modalContainer.id} .table.${group}>.column.${column}`
-        ) as HTMLDivElement;
+        let query = `.table.${group}>.column.${column}`;
+        return NodeConfiguration.queryModalSuccessor(query) as HTMLDivElement;
     }
 
     private _isOpened = false;
@@ -272,26 +348,34 @@ export class NodeConfiguration extends EventTarget
     private _machinesAmount = 1;
     private _overclockRatio = 1;
 
+    private _openingMachinesAmount = this._machinesAmount;
+    private _openingOverclockRatio = this._overclockRatio;
+
     private _machineConfigurator?: HTMLDivElement;
     private _overclockConfigurator?: HTMLDivElement;
     private _amountConfigurators = new Configurators();
     private _overclockConfigurators = new Configurators();
 
-    private static minOverclockRatio = 0.01;
-    private static maxOverclockRatio = 2.50;
+    private static readonly _minOverclockRatio = 0.01;
+    private static readonly _maxOverclockRatio = 2.50;
 
-    private static _modalContainer =
+    private static readonly _modalContainer =
         document.querySelector("#machine-configuration-container") as HTMLDivElement;
 
-    private static _machinesColumn = NodeConfiguration.getColumn("amount", "machines");
-    private static _amountInputsColumn = NodeConfiguration.getColumn("amount", "inputs");
-    private static _amountOutputsColumn = NodeConfiguration.getColumn("amount", "outputs");
-    private static _amountPowerColumn = NodeConfiguration.getColumn("amount", "power");
+    private static readonly _machinesColumn = NodeConfiguration.getColumn("amount", "machines");
+    private static readonly _amountInputsColumn = NodeConfiguration.getColumn("amount", "inputs");
+    private static readonly _amountOutputsColumn = NodeConfiguration.getColumn("amount", "outputs");
+    private static readonly _amountPowerColumn = NodeConfiguration.getColumn("amount", "power");
 
-    private static _multipliersColumn = NodeConfiguration.getColumn("overclock", "multipliers");
-    private static _overclockInputsColumn = NodeConfiguration.getColumn("overclock", "inputs");
-    private static _overclockOutputsColumn = NodeConfiguration.getColumn("overclock", "outputs");
-    private static _overclockPowerColumn = NodeConfiguration.getColumn("overclock", "power");
+    private static readonly _multipliersColumn = NodeConfiguration.getColumn("overclock", "multipliers");
+    private static readonly _overclockInputsColumn = NodeConfiguration.getColumn("overclock", "inputs");
+    private static readonly _overclockOutputsColumn = NodeConfiguration.getColumn("overclock", "outputs");
+    private static readonly _overclockPowerColumn = NodeConfiguration.getColumn("overclock", "power");
+
+    private static readonly _resetButton =
+        NodeConfiguration.queryModalSuccessor(".reset-button") as HTMLDivElement;
+    private static readonly _applyButton =
+        NodeConfiguration.queryModalSuccessor(".apply-button") as HTMLDivElement;
 }
 
 

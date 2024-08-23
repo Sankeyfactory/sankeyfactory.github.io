@@ -94,6 +94,8 @@ export class ConfiguratorBuilder
             {
                 this._inputElement.blur();
             }
+
+            event.stopPropagation();
         });
 
         return this._editElement;
@@ -181,7 +183,7 @@ export class ConfiguratorBuilder
 
         icon.appendChild(path);
 
-        this._iconContainer.title = "Power";
+        this._iconContainer.title = "Power consumption";
 
         this._iconContainer.appendChild(icon);
 
