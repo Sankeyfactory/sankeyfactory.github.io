@@ -70,7 +70,7 @@ export class SankeyNode
 
             this._inputSlotGroups.push(newGroup);
 
-            nextInputGroupY += newGroup.maxHeight;
+            nextInputGroupY += newGroup.expectedHeight;
         }
 
         let nextOutputGroupY = 0;
@@ -89,7 +89,7 @@ export class SankeyNode
 
             this._outputSlotGroups.push(newGroup);
 
-            nextOutputGroupY += newGroup.maxHeight;
+            nextOutputGroupY += newGroup.expectedHeight;
         }
 
         let foreignObject = SvgFactory.createSvgForeignObject();

@@ -22,7 +22,7 @@ export abstract class SankeySlot extends EventTarget
 
         let dimensions: Rectangle = {
             width: SankeySlot.slotWidth,
-            height: slotsGroup.maxHeight * (this._resource.amount / slotsGroup.resource.amount),
+            height: slotsGroup.expectedHeight * (this._resource.amount / slotsGroup.resourcesAmount),
             x: 0,
             y: 0
         };
@@ -56,7 +56,7 @@ export abstract class SankeySlot extends EventTarget
 
         this.slotSvgRect.setAttribute(
             "height",
-            `${this._parentGroup.maxHeight * (resourcesAmount / this._parentGroup.resource.amount)}`
+            `${this._parentGroup.expectedHeight * (resourcesAmount / this._parentGroup.resourcesAmount)}`
         );
 
         this.dispatchEvent(new Event(SankeySlot.boundsChangedEvent));
