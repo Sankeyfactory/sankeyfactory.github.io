@@ -246,9 +246,13 @@ export class NodeConfiguration extends EventTarget
 
         this.addEventListener(NodeConfiguration.machinesAmountChangedEvent, () =>
         {
-            let targetValue = this.getMachinesAmount();
+            // Prevent changing the input user currently changes.
+            if (!Object.is(document.activeElement, machinesAmount))
+            {
+                let targetValue = this.getMachinesAmount();
 
-            machinesAmount.value = `${+(targetValue).toFixed(4)}`;
+                machinesAmount.value = `${+(targetValue).toFixed(4)}`;
+            }
         });
     }
 
@@ -302,9 +306,13 @@ export class NodeConfiguration extends EventTarget
 
         this.addEventListener(NodeConfiguration.overclockChangedEvent, () =>
         {
-            let targetValue = this.getOverclockRatio() * 100;
+            // Prevent changing the input user currently changes.
+            if (!Object.is(document.activeElement, overclock))
+            {
+                let targetValue = this.getOverclockRatio() * 100;
 
-            overclock.value = `${+(targetValue).toFixed(4)}`;
+                overclock.value = `${+(targetValue).toFixed(4)}`;
+            }
         });
     }
 
@@ -346,16 +354,24 @@ export class NodeConfiguration extends EventTarget
 
         this.addEventListener(NodeConfiguration.machinesAmountChangedEvent, () =>
         {
-            let targetValue = +(initialValue * this.getOverclockRatio() * this.getMachinesAmount()).toFixed(4);
+            // Prevent changing the input user currently changes.
+            if (!Object.is(document.activeElement, amountInOut))
+            {
+                let targetValue = +(initialValue * this.getOverclockRatio() * this.getMachinesAmount()).toFixed(4);
 
-            amountInOut.value = `${targetValue}`;
+                amountInOut.value = `${targetValue}`;
+            }
         });
 
         this.addEventListener(NodeConfiguration.overclockChangedEvent, () =>
         {
-            let targetValue = +(initialValue * this.getOverclockRatio() * this.getMachinesAmount()).toFixed(4);
+            // Prevent changing the input user currently changes.
+            if (!Object.is(document.activeElement, amountInOut))
+            {
+                let targetValue = +(initialValue * this.getOverclockRatio() * this.getMachinesAmount()).toFixed(4);
 
-            amountInOut.value = `${targetValue}`;
+                amountInOut.value = `${targetValue}`;
+            }
         });
     }
 
@@ -407,22 +423,30 @@ export class NodeConfiguration extends EventTarget
 
         this.addEventListener(NodeConfiguration.machinesAmountChangedEvent, () =>
         {
-            let initialOverclockedValue =
-                (initialValue * Math.pow((this.getOverclockRatio()), powerExponent));
+            // Prevent changing the input user currently changes.
+            if (!Object.is(document.activeElement, amountPower))
+            {
+                let initialOverclockedValue =
+                    (initialValue * Math.pow((this.getOverclockRatio()), powerExponent));
 
-            let targetValue = +(initialOverclockedValue * this.getMachinesAmount()).toFixed(4);
+                let targetValue = +(initialOverclockedValue * this.getMachinesAmount()).toFixed(4);
 
-            amountPower.value = `${targetValue}`;
+                amountPower.value = `${targetValue}`;
+            }
         });
 
         this.addEventListener(NodeConfiguration.overclockChangedEvent, () =>
         {
-            let initialOverclockedValue =
-                (initialValue * Math.pow((this.getOverclockRatio()), powerExponent));
+            // Prevent changing the input user currently changes.
+            if (!Object.is(document.activeElement, amountPower))
+            {
+                let initialOverclockedValue =
+                    (initialValue * Math.pow((this.getOverclockRatio()), powerExponent));
 
-            let targetValue = +(initialOverclockedValue * this.getMachinesAmount()).toFixed(4);
+                let targetValue = +(initialOverclockedValue * this.getMachinesAmount()).toFixed(4);
 
-            amountPower.value = `${targetValue}`;
+                amountPower.value = `${targetValue}`;
+            }
         });
     }
 
@@ -462,18 +486,15 @@ export class NodeConfiguration extends EventTarget
             }
         });
 
-        this.addEventListener(NodeConfiguration.machinesAmountChangedEvent, () =>
-        {
-            let targetValue = +(initialValue * this.getOverclockRatio()).toFixed(4);
-
-            overclockInOut.value = `${targetValue}`;
-        });
-
         this.addEventListener(NodeConfiguration.overclockChangedEvent, () =>
         {
-            let targetValue = +(initialValue * this.getOverclockRatio()).toFixed(4);
+            // Prevent changing the input user currently changes.
+            if (!Object.is(document.activeElement, overclockInOut))
+            {
+                let targetValue = +(initialValue * this.getOverclockRatio()).toFixed(4);
 
-            overclockInOut.value = `${targetValue}`;
+                overclockInOut.value = `${targetValue}`;
+            }
         });
     }
 
@@ -517,16 +538,14 @@ export class NodeConfiguration extends EventTarget
             }
         });
 
-        this.addEventListener(NodeConfiguration.machinesAmountChangedEvent, () =>
-        {
-            overclockPower.value =
-                `${+(initialValue * Math.pow(this.getOverclockRatio(), powerExponent)).toFixed(4)}`;
-        });
-
         this.addEventListener(NodeConfiguration.overclockChangedEvent, () =>
         {
-            overclockPower.value =
-                `${+(initialValue * Math.pow(this.getOverclockRatio(), powerExponent)).toFixed(4)}`;
+            // Prevent changing the input user currently changes.
+            if (!Object.is(document.activeElement, overclockPower))
+            {
+                overclockPower.value =
+                    `${+(initialValue * Math.pow(this.getOverclockRatio(), powerExponent)).toFixed(4)}`;
+            }
         });
     }
 
@@ -590,8 +609,11 @@ export class NodeConfiguration extends EventTarget
 
     private setMachinesAmount(value: number)
     {
-        this._machinesAmount = value;
-        this.dispatchEvent(new Event(NodeConfiguration.machinesAmountChangedEvent));
+        if (value !== this._machinesAmount)
+        {
+            this._machinesAmount = value;
+            this.dispatchEvent(new Event(NodeConfiguration.machinesAmountChangedEvent));
+        }
     }
 
     private getOverclockRatio(): number
@@ -601,9 +623,12 @@ export class NodeConfiguration extends EventTarget
 
     private setOverclockRatio(value: number)
     {
-        value = Math.min(2.5, Math.max(0.01, value));
-        this._overclockRatio = value;
-        this.dispatchEvent(new Event(NodeConfiguration.overclockChangedEvent));
+        if (value !== this._overclockRatio)
+        {
+            value = Math.min(2.5, Math.max(0.01, value));
+            this._overclockRatio = value;
+            this.dispatchEvent(new Event(NodeConfiguration.overclockChangedEvent));
+        }
     }
 
     private _isOpened = false;
