@@ -2246,8 +2246,10 @@
         }
       });
       this.addEventListener(_NodeConfiguration.machinesAmountChangedEvent, () => {
-        let targetValue = this.getMachinesAmount();
-        machinesAmount.value = `${+targetValue.toFixed(4)}`;
+        if (!Object.is(document.activeElement, machinesAmount)) {
+          let targetValue = this.getMachinesAmount();
+          machinesAmount.value = `${+targetValue.toFixed(4)}`;
+        }
       });
     }
     setupOverclockConfigurator(overclock) {
@@ -2281,8 +2283,10 @@
         }
       });
       this.addEventListener(_NodeConfiguration.overclockChangedEvent, () => {
-        let targetValue = this.getOverclockRatio() * 100;
-        overclock.value = `${+targetValue.toFixed(4)}`;
+        if (!Object.is(document.activeElement, overclock)) {
+          let targetValue = this.getOverclockRatio() * 100;
+          overclock.value = `${+targetValue.toFixed(4)}`;
+        }
       });
     }
     setupAmountInOutConfigurator(amountInOut, initialValue) {
@@ -2309,12 +2313,16 @@
         }
       });
       this.addEventListener(_NodeConfiguration.machinesAmountChangedEvent, () => {
-        let targetValue = +(initialValue * this.getOverclockRatio() * this.getMachinesAmount()).toFixed(4);
-        amountInOut.value = `${targetValue}`;
+        if (!Object.is(document.activeElement, amountInOut)) {
+          let targetValue = +(initialValue * this.getOverclockRatio() * this.getMachinesAmount()).toFixed(4);
+          amountInOut.value = `${targetValue}`;
+        }
       });
       this.addEventListener(_NodeConfiguration.overclockChangedEvent, () => {
-        let targetValue = +(initialValue * this.getOverclockRatio() * this.getMachinesAmount()).toFixed(4);
-        amountInOut.value = `${targetValue}`;
+        if (!Object.is(document.activeElement, amountInOut)) {
+          let targetValue = +(initialValue * this.getOverclockRatio() * this.getMachinesAmount()).toFixed(4);
+          amountInOut.value = `${targetValue}`;
+        }
       });
     }
     setupAmountPowerConfigurator(amountPower, initialValue, powerExponent) {
@@ -2343,14 +2351,18 @@
         }
       });
       this.addEventListener(_NodeConfiguration.machinesAmountChangedEvent, () => {
-        let initialOverclockedValue = initialValue * Math.pow(this.getOverclockRatio(), powerExponent);
-        let targetValue = +(initialOverclockedValue * this.getMachinesAmount()).toFixed(4);
-        amountPower.value = `${targetValue}`;
+        if (!Object.is(document.activeElement, amountPower)) {
+          let initialOverclockedValue = initialValue * Math.pow(this.getOverclockRatio(), powerExponent);
+          let targetValue = +(initialOverclockedValue * this.getMachinesAmount()).toFixed(4);
+          amountPower.value = `${targetValue}`;
+        }
       });
       this.addEventListener(_NodeConfiguration.overclockChangedEvent, () => {
-        let initialOverclockedValue = initialValue * Math.pow(this.getOverclockRatio(), powerExponent);
-        let targetValue = +(initialOverclockedValue * this.getMachinesAmount()).toFixed(4);
-        amountPower.value = `${targetValue}`;
+        if (!Object.is(document.activeElement, amountPower)) {
+          let initialOverclockedValue = initialValue * Math.pow(this.getOverclockRatio(), powerExponent);
+          let targetValue = +(initialOverclockedValue * this.getMachinesAmount()).toFixed(4);
+          amountPower.value = `${targetValue}`;
+        }
       });
     }
     setupOverclockInOutConfigurator(overclockInOut, initialValue) {
@@ -2376,13 +2388,11 @@
           overclockInOut.blur();
         }
       });
-      this.addEventListener(_NodeConfiguration.machinesAmountChangedEvent, () => {
-        let targetValue = +(initialValue * this.getOverclockRatio()).toFixed(4);
-        overclockInOut.value = `${targetValue}`;
-      });
       this.addEventListener(_NodeConfiguration.overclockChangedEvent, () => {
-        let targetValue = +(initialValue * this.getOverclockRatio()).toFixed(4);
-        overclockInOut.value = `${targetValue}`;
+        if (!Object.is(document.activeElement, overclockInOut)) {
+          let targetValue = +(initialValue * this.getOverclockRatio()).toFixed(4);
+          overclockInOut.value = `${targetValue}`;
+        }
       });
     }
     setupOverclockPowerConfigurator(overclockPower, initialValue, powerExponent) {
@@ -2408,11 +2418,10 @@
           overclockPower.blur();
         }
       });
-      this.addEventListener(_NodeConfiguration.machinesAmountChangedEvent, () => {
-        overclockPower.value = `${+(initialValue * Math.pow(this.getOverclockRatio(), powerExponent)).toFixed(4)}`;
-      });
       this.addEventListener(_NodeConfiguration.overclockChangedEvent, () => {
-        overclockPower.value = `${+(initialValue * Math.pow(this.getOverclockRatio(), powerExponent)).toFixed(4)}`;
+        if (!Object.is(document.activeElement, overclockPower)) {
+          overclockPower.value = `${+(initialValue * Math.pow(this.getOverclockRatio(), powerExponent)).toFixed(4)}`;
+        }
       });
     }
     generateConfigurator(icon, initialValue, units) {
@@ -2451,16 +2460,20 @@
       return this._machinesAmount;
     }
     setMachinesAmount(value) {
-      this._machinesAmount = value;
-      this.dispatchEvent(new Event(_NodeConfiguration.machinesAmountChangedEvent));
+      if (value !== this._machinesAmount) {
+        this._machinesAmount = value;
+        this.dispatchEvent(new Event(_NodeConfiguration.machinesAmountChangedEvent));
+      }
     }
     getOverclockRatio() {
       return this._overclockRatio;
     }
     setOverclockRatio(value) {
-      value = Math.min(2.5, Math.max(0.01, value));
-      this._overclockRatio = value;
-      this.dispatchEvent(new Event(_NodeConfiguration.overclockChangedEvent));
+      if (value !== this._overclockRatio) {
+        value = Math.min(2.5, Math.max(0.01, value));
+        this._overclockRatio = value;
+        this.dispatchEvent(new Event(_NodeConfiguration.overclockChangedEvent));
+      }
     }
     _isOpened = false;
     _machinesAmount = 1;
