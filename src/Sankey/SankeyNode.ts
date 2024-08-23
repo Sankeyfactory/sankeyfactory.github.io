@@ -272,8 +272,6 @@ export class SankeyNode
 
         let openConfigurator = (event: Event) =>
         {
-            console.log(`Settings: ${this._machinesAmount} machines at ${this._overclockRatio * 100}%`);
-
             configurator.openConfigurationWindow(this._machinesAmount, this._overclockRatio);
             event.stopPropagation();
         };

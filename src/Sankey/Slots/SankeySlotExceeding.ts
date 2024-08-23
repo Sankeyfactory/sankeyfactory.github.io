@@ -14,7 +14,7 @@ export class SankeySlotExceeding extends OutputSankeySlot
 
         this.slotSvgRect.addEventListener("click", (event) =>
         {
-            if (!event.altKey)
+            if (!event.ctrlKey)
             {
                 MouseHandler.getInstance().outputSlotClicked(event, this);
             }

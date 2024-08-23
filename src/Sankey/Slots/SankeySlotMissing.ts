@@ -14,7 +14,7 @@ export class SankeySlotMissing extends InputSankeySlot
 
         this.slotSvgRect.addEventListener("click", (event) =>
         {
-            if (!event.altKey)
+            if (!event.ctrlKey)
             {
                 MouseHandler.getInstance().inputSlotClicked(event, this);
             }
