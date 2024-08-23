@@ -9,7 +9,7 @@ import { SvgFactory } from "../SVG/SvgFactory";
 import { GameRecipe } from "../GameData/GameRecipe";
 import { GameMachine } from "../GameData/GameMachine";
 import { NodeContextMenu } from '../ContextMenu/NodeContextMenu';
-import { NodeConfiguration } from './NodeConfiguration';
+import { NodeConfiguration } from './NodeConfiguration/NodeConfiguration';
 import { satisfactoryIconPath, toItemsInMinute } from '../GameData/GameData';
 
 export class SankeyNode
