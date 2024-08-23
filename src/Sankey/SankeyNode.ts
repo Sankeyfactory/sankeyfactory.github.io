@@ -1,7 +1,3 @@
-// Ignore import error as the file only appears on launch of the exporting tool.
-// @ts-ignore
-import satisfactoryData from '../../dist/GameData/Satisfactory.json';
-
 import { Point } from "../Point";
 import { SankeySlot } from "./Slots/SankeySlot";
 import { SlotsGroup, SlotsGroupType } from "./SlotsGroup";
@@ -10,7 +6,8 @@ import { GameRecipe } from "../GameData/GameRecipe";
 import { GameMachine } from "../GameData/GameMachine";
 import { NodeContextMenu } from '../ContextMenu/NodeContextMenu';
 import { NodeConfiguration } from './NodeConfiguration/NodeConfiguration';
-import { satisfactoryIconPath, toItemsInMinute } from '../GameData/GameData';
+import { toItemsInMinute } from '../GameData/GameData';
+import { NodeResourceDisplay } from './NodeResourceDisplay';
 
 export class SankeyNode
 {
@@ -28,13 +25,11 @@ export class SankeyNode
         this._recipe = { ...recipe };
         this._height = SankeyNode._nodeHeight;
 
-
         let sumResources = (sum: number, product: RecipeResource) =>
             sum + this.toItemsInMinute(product.amount);
 
         this._inputResourcesAmount = this._recipe.ingredients.reduce(sumResources, 0);
         this._outputResourcesAmount = this._recipe.products.reduce(sumResources, 0);
-
 
         this.nodeSvgGroup = SvgFactory.createSvgGroup({
             x: position.x - SankeyNode.nodeWidth / 2 - SankeySlot.slotWidth,
@@ -48,138 +43,21 @@ export class SankeyNode
             y: 0
         }, "machine");
 
-
         this._inputSlotGroups = this.createGroups("input", recipe.ingredients);
         this._outputSlotGroups = this.createGroups("output", recipe.products);
 
-
         this.configureContextMenu(recipe, machine);
 
-
-
-        let foreignObject = SvgFactory.createSvgForeignObject();
-
-        foreignObject.setAttribute("x", "10");
-        foreignObject.setAttribute("y", "0");
-        foreignObject.setAttribute("width", `${SankeyNode.nodeWidth}`);
-        foreignObject.setAttribute("height", `${this.height}`);
-
-
-        let recipeContainer = document.createElement("div");
-        recipeContainer.classList.add("recipe-container");
-
-
-        let recipeMachineProp = document.createElement("div");
-        recipeMachineProp.classList.add("property");
-
-        let recipeMachineTitle = document.createElement("div");
-        recipeMachineTitle.classList.add("title");
-        recipeMachineTitle.innerText = "Machine";
-
-        let recipeMachineValue = document.createElement("div");
-        recipeMachineValue.classList.add("machine");
-
-        let recipeMachineIcon = document.createElement("img");
-        recipeMachineIcon.classList.add("icon");
-
-
-        let recipeInputsProp = document.createElement("div");
-        recipeInputsProp.classList.add("property");
-
-        let recipeInputsTitle = document.createElement("div");
-        recipeInputsTitle.classList.add("title");
-        recipeInputsTitle.innerText = "Input/min";
-
-
-        let recipeOutputsProp = document.createElement("div");
-        recipeOutputsProp.classList.add("property");
-
-        let recipeOutputsTitle = document.createElement("div");
-        recipeOutputsTitle.classList.add("title");
-        recipeOutputsTitle.innerText = "Output/min";
-
-
-        let recipePowerProp = document.createElement("div");
-        recipePowerProp.classList.add("property");
-
-        let recipePowerTitle = document.createElement("div");
-        recipePowerTitle.classList.add("title");
-        recipePowerTitle.innerText = "Power";
-
-        let recipePowerText = document.createElement("div");
-        recipePowerText.classList.add("text");
-
-
-
-        recipeMachineValue.appendChild(recipeMachineIcon);
-        recipeMachineProp.appendChild(recipeMachineTitle);
-        recipeMachineProp.appendChild(recipeMachineValue);
-
-        recipeInputsProp.appendChild(recipeInputsTitle);
-
-        recipeOutputsProp.appendChild(recipeOutputsTitle);
-
-        recipePowerProp.appendChild(recipePowerTitle);
-        recipePowerProp.appendChild(recipePowerText);
-
-        recipeContainer.appendChild(recipeMachineProp);
-        recipeContainer.appendChild(recipeInputsProp);
-        recipeContainer.appendChild(recipeOutputsProp);
-        recipeContainer.appendChild(recipePowerProp);
-
-        foreignObject.appendChild(recipeContainer);
-
-
-
-        let createResourceDisplay = function (parentDiv: HTMLDivElement, craftingTime: number) 
-        {
-            return (recipeResource: RecipeResource) =>
-            {
-                let resource = satisfactoryData.resources.find(
-                    (el: typeof satisfactoryData.resources[0]) =>
-                    {
-                        return el.id === recipeResource.id;
-                    }
-                );
-
-                let resourceDiv = document.createElement("div");
-                resourceDiv.classList.add("resource");
-
-                let icon = document.createElement("img");
-                icon.classList.add("icon");
-                icon.loading = "lazy";
-                icon.alt = resource!.displayName;
-                icon.src = satisfactoryIconPath(resource!.iconPath);
-                icon.title = resource!.displayName;
-
-                let amount = document.createElement("p");
-                amount.classList.add("amount");
-                amount.innerText = `${+((60 / craftingTime) * recipeResource.amount).toPrecision(3)}`;
-
-                resourceDiv.appendChild(icon);
-                resourceDiv.appendChild(amount);
-                parentDiv.appendChild(resourceDiv);
-            };
-        };
-
-
-
-        recipeMachineIcon.src = satisfactoryIconPath(machine.iconPath);
-        recipeMachineIcon.title = machine.displayName;
-        recipeMachineIcon.alt = machine.displayName;
-
-        recipe.ingredients.forEach(createResourceDisplay(recipeInputsProp, recipe.manufacturingDuration));
-
-        recipe.products.forEach(createResourceDisplay(recipeOutputsProp, recipe.manufacturingDuration));
-
-        recipePowerText.innerText = `${machine.powerConsumption} MW`;
-
-
+        this._resourceDisplay = new NodeResourceDisplay(recipe, machine);
+        this._resourceDisplay.setBounds({
+            x: 10,
+            y: 0,
+            width: SankeyNode.nodeWidth,
+            height: this.height
+        });
 
         this.nodeSvgGroup.appendChild(this.nodeSvg);
-
-        this.nodeSvgGroup.appendChild(foreignObject);
-
+        this._resourceDisplay.appendTo(this.nodeSvgGroup);
         parentGroup.appendChild(this.nodeSvgGroup);
     }
 
@@ -355,6 +233,7 @@ export class SankeyNode
 
     private _inputSlotGroups: SlotsGroup[] = [];
     private _outputSlotGroups: SlotsGroup[] = [];
+    private _resourceDisplay: NodeResourceDisplay;
 
     private static readonly _nodeHeight = 260;
 }
