@@ -2087,7 +2087,169 @@
     _configureNodeOption;
   };
 
-  // src/Sankey/NodeConfiguration.ts
+  // src/Sankey/NodeConfiguration/Configurator.ts
+  var Configurators = class {
+    inputsConfigurators = new Array();
+    outputsConfigurators = new Array();
+    powerConfigurator;
+    removeFromDom() {
+      for (const configurator of this.inputsConfigurators) {
+        configurator.remove();
+      }
+      for (const configurator of this.outputsConfigurators) {
+        configurator.remove();
+      }
+      if (this.powerConfigurator != void 0) {
+        this.powerConfigurator.remove();
+      }
+    }
+  };
+
+  // src/Sankey/NodeConfiguration/ConfiguratorBuilder.ts
+  var ConfiguratorBuilder = class _ConfiguratorBuilder {
+    constructor(nodeConfig) {
+      this._nodeConfig = nodeConfig;
+      this._editElement = document.createElement("div");
+      this._editElement.classList.add("edit");
+      this._iconContainer = document.createElement("div");
+      this._iconContainer.classList.add("icon-container");
+      this._inputElement = document.createElement("input");
+      this._unitsElement = document.createElement("div");
+      this._unitsElement.classList.add("units");
+      this._editElement.appendChild(this._iconContainer);
+      this._editElement.appendChild(this._inputElement);
+      this._editElement.appendChild(this._unitsElement);
+    }
+    build() {
+      if (this._minimumGetter == void 0 || this._maximumGetter == void 0 || this._relatedPropertyGetter == void 0 || this._relatedPropertySetter == void 0) {
+        throw Error("Configurator builder can't build without required fields");
+      }
+      let meetsTheMinimum = (value) => {
+        let minimum = this._minimumGetter();
+        return minimum == void 0 || value >= minimum;
+      };
+      let meetsTheMaximum = (value) => {
+        let maximum = this._maximumGetter();
+        return maximum == void 0 || value <= maximum;
+      };
+      let toFixed = _ConfiguratorBuilder.configuratorToFixed;
+      this._inputElement.addEventListener("input", () => {
+        let value = _ConfiguratorBuilder.numberParser(this._inputElement.value);
+        if (value != void 0 && meetsTheMinimum(value) && meetsTheMaximum(value)) {
+          this._inputElement.classList.remove("error");
+          this._relatedPropertySetter(toFixed(value));
+        } else {
+          this._inputElement.classList.add("error");
+        }
+      });
+      this._inputElement.addEventListener("blur", () => {
+        this._inputElement.classList.remove("error");
+        let value = _ConfiguratorBuilder.numberParser(this._inputElement.value);
+        if (value != void 0) {
+          if (!meetsTheMinimum(value)) {
+            this._relatedPropertySetter(this._minimumGetter());
+          } else if (!meetsTheMaximum(value)) {
+            this._relatedPropertySetter(this._maximumGetter());
+          }
+        }
+        this._inputElement.value = `${toFixed(this._relatedPropertyGetter())}`;
+      });
+      this._inputElement.addEventListener("keydown", (event) => {
+        if (event.repeat) {
+          return;
+        }
+        if (event.key === "Enter") {
+          this._inputElement.blur();
+        }
+      });
+      return this._editElement;
+    }
+    subscribeToMachinesAmount() {
+      this._nodeConfig.addEventListener(
+        NodeConfiguration.machinesAmountChangedEvent,
+        this.updateInputValue.bind(this)
+      );
+      return this;
+    }
+    subscribeToOverclock() {
+      this._nodeConfig.addEventListener(
+        NodeConfiguration.overclockChangedEvent,
+        this.updateInputValue.bind(this)
+      );
+      return this;
+    }
+    setMinimum(minimumGetter) {
+      this._minimumGetter = minimumGetter;
+      return this;
+    }
+    setMaximum(maximumGetter) {
+      this._maximumGetter = maximumGetter;
+      return this;
+    }
+    setRelatedProperty(getter, setter) {
+      this._relatedPropertyGetter = getter;
+      this._relatedPropertySetter = setter;
+      return this;
+    }
+    setInitialValue(initialValue) {
+      this._inputElement.value = `${initialValue}`;
+      return this;
+    }
+    setUnits(units) {
+      this._unitsElement.innerText = units;
+      return this;
+    }
+    setIconImage(name, iconPath) {
+      let icon = document.createElement("img");
+      icon.src = satisfactoryIconPath(iconPath);
+      icon.alt = name;
+      this._iconContainer.title = name;
+      this._iconContainer.appendChild(icon);
+      return this;
+    }
+    setPowerSvgIcon() {
+      let icon = SvgFactory.createSvgElement("svg");
+      icon.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+      icon.setAttribute("viewBox", "0 -960 960 960");
+      let path = SvgFactory.createSvgPath();
+      path.setAttribute("d", "M420-412H302q-14 0-20-12t2-23l203-295q5-7 12-9t15 1q8 3 11.5 9.5T528-726l-27 218h140q14 0 20 13t-3 24L431-199q-5 6-12 7.5t-14-1.5q-7-3-10.5-9t-2.5-14l28-196Z");
+      icon.appendChild(path);
+      this._iconContainer.title = "Power";
+      this._iconContainer.appendChild(icon);
+      return this;
+    }
+    updateInputValue() {
+      if (this._relatedPropertyGetter == void 0) {
+        throw Error("Configurator builder can't build without required fields");
+      }
+      if (!Object.is(document.activeElement, this._inputElement)) {
+        let toFixed = _ConfiguratorBuilder.configuratorToFixed;
+        this._inputElement.value = `${toFixed(this._relatedPropertyGetter())}`;
+      }
+    }
+    static configuratorToFixed(value) {
+      return +value.toFixed(4);
+    }
+    static numberParser(str) {
+      let value1 = +str;
+      let value2 = Number.parseFloat(str);
+      if (Number.isNaN(value1) || Number.isNaN(value2)) {
+        return void 0;
+      }
+      return value1;
+    }
+    _nodeConfig;
+    _editElement;
+    _iconContainer;
+    _inputElement;
+    _unitsElement;
+    _minimumGetter;
+    _maximumGetter;
+    _relatedPropertyGetter;
+    _relatedPropertySetter;
+  };
+
+  // src/Sankey/NodeConfiguration/NodeConfiguration.ts
   var NodeConfiguration = class _NodeConfiguration extends EventTarget {
     static machinesAmountChangedEvent = "machines-amount-changed";
     static overclockChangedEvent = "overclock-changed";
@@ -2106,55 +2268,48 @@
       this.setupTableElements(recipe, machine);
     }
     openConfigurationWindow() {
-      _NodeConfiguration._machinesColumn.appendChild(this._machineConfigurator.htmlElement);
+      _NodeConfiguration._machinesColumn.appendChild(this._machineConfigurator);
       for (const configurator of this._amountConfigurators.inputsConfigurators) {
-        _NodeConfiguration._amountInputsColumn.appendChild(configurator.htmlElement);
+        _NodeConfiguration._amountInputsColumn.appendChild(configurator);
       }
       for (const configurator of this._amountConfigurators.outputsConfigurators) {
-        _NodeConfiguration._amountOutputsColumn.appendChild(configurator.htmlElement);
+        _NodeConfiguration._amountOutputsColumn.appendChild(configurator);
       }
       _NodeConfiguration._amountPowerColumn.appendChild(
-        this._amountConfigurators.powerConfigurator.htmlElement
+        this._amountConfigurators.powerConfigurator
       );
-      _NodeConfiguration._multipliersColumn.appendChild(this._overclockConfigurator.htmlElement);
+      _NodeConfiguration._multipliersColumn.appendChild(this._overclockConfigurator);
       for (const configurator of this._overclockConfigurators.inputsConfigurators) {
-        _NodeConfiguration._overclockInputsColumn.appendChild(configurator.htmlElement);
+        _NodeConfiguration._overclockInputsColumn.appendChild(configurator);
       }
       for (const configurator of this._overclockConfigurators.outputsConfigurators) {
-        _NodeConfiguration._overclockOutputsColumn.appendChild(configurator.htmlElement);
+        _NodeConfiguration._overclockOutputsColumn.appendChild(configurator);
       }
       _NodeConfiguration._overclockPowerColumn.appendChild(
-        this._overclockConfigurators.powerConfigurator.htmlElement
+        this._overclockConfigurators.powerConfigurator
       );
       _NodeConfiguration._modalContainer.classList.remove("hidden");
       this._isOpened = true;
     }
     closeConfigurationWindow() {
-      this._machineConfigurator.htmlElement.remove();
-      this._overclockConfigurator.htmlElement.remove();
+      this._machineConfigurator.remove();
+      this._overclockConfigurator.remove();
       this._amountConfigurators.removeFromDom();
       this._overclockConfigurators.removeFromDom();
       _NodeConfiguration._modalContainer.classList.add("hidden");
       this._isOpened = false;
     }
     setupTableElements(recipe, machine) {
-      let machineIcon = _NodeConfiguration.createImgIcon(machine.displayName, machine.iconPath);
-      this._machineConfigurator = this.generateConfigurator(
-        machineIcon,
-        1,
-        ""
-      );
-      this.setupMachinesAmountConfigurator(this._machineConfigurator.inputElement);
-      let overclockIcon = _NodeConfiguration.createImgIcon(
-        "Overclock",
-        "Resource/Environment/Crystal/PowerShard.png"
-      );
-      this._overclockConfigurator = this.generateConfigurator(
-        overclockIcon,
-        100,
-        "%"
-      );
-      this.setupOverclockConfigurator(this._overclockConfigurator.inputElement);
+      let minOverclockRatio = _NodeConfiguration.minOverclockRatio;
+      let maxOverclockRatio = _NodeConfiguration.maxOverclockRatio;
+      this._machineConfigurator = new ConfiguratorBuilder(this).setIconImage(machine.displayName, machine.iconPath).setInitialValue(1).setUnits("").setMinimum(() => 1e-4).setMaximum(() => void 0).setRelatedProperty(
+        () => this.machinesAmount,
+        (value) => this.machinesAmount = value
+      ).subscribeToMachinesAmount().build();
+      this._overclockConfigurator = new ConfiguratorBuilder(this).setIconImage("Overclock", "Resource/Environment/Crystal/PowerShard.png").setInitialValue(100).setUnits("%").setMinimum(() => minOverclockRatio * 100).setMaximum(() => maxOverclockRatio * 100).setRelatedProperty(
+        () => this.overclockRatio * 100,
+        (value) => this.overclockRatio = value / 100
+      ).subscribeToOverclock().build();
       let createResourceConfigurators = (resource, amountConfigurators, overclockConfigurators) => {
         let resourceDesc = Satisfactory_default.resources.find(
           // I specify type because deploy fails otherwise for some reason.
@@ -2162,22 +2317,19 @@
             return resourceData.id == resource.id;
           }
         );
-        let resourceIcon1 = _NodeConfiguration.createImgIcon(resourceDesc.displayName, resourceDesc.iconPath);
-        let resourceIcon2 = _NodeConfiguration.createImgIcon(resourceDesc.displayName, resourceDesc.iconPath);
+        if (resourceDesc == void 0) {
+          throw Error(`Couldn't find resource descriptor for "${resource.id}"`);
+        }
         let itemsInMinute = toItemsInMinute(resource.amount, recipe.manufacturingDuration);
-        let amountConfigurator = this.generateConfigurator(
-          resourceIcon1,
-          itemsInMinute,
-          "/min"
-        );
-        this.setupAmountInOutConfigurator(amountConfigurator.inputElement, itemsInMinute);
+        let amountConfigurator = new ConfiguratorBuilder(this).setIconImage(resourceDesc.displayName, resourceDesc.iconPath).setInitialValue(itemsInMinute).setUnits("/min").setMinimum(() => 1e-4).setMaximum(() => void 0).setRelatedProperty(
+          () => itemsInMinute * this.overclockRatio * this.machinesAmount,
+          (value) => this.machinesAmount = value / itemsInMinute / this.overclockRatio
+        ).subscribeToMachinesAmount().subscribeToOverclock().build();
+        let overclockConfigurator = new ConfiguratorBuilder(this).setIconImage(resourceDesc.displayName, resourceDesc.iconPath).setInitialValue(itemsInMinute).setUnits("/min").setMinimum(() => itemsInMinute * minOverclockRatio).setMaximum(() => itemsInMinute * maxOverclockRatio).setRelatedProperty(
+          () => itemsInMinute * this.overclockRatio,
+          (value) => this.overclockRatio = value / itemsInMinute
+        ).subscribeToOverclock().build();
         amountConfigurators.push(amountConfigurator);
-        let overclockConfigurator = this.generateConfigurator(
-          resourceIcon2,
-          itemsInMinute,
-          "/min"
-        );
-        this.setupOverclockInOutConfigurator(overclockConfigurator.inputElement, itemsInMinute);
         overclockConfigurators.push(overclockConfigurator);
       };
       recipe.ingredients.forEach((resource) => createResourceConfigurators(
@@ -2190,290 +2342,49 @@
         this._amountConfigurators.outputsConfigurators,
         this._overclockConfigurators.outputsConfigurators
       ));
-      let powerIcon1 = _NodeConfiguration.createPowerSvgIcon();
-      let powerIcon2 = _NodeConfiguration.createPowerSvgIcon();
-      this._amountConfigurators.powerConfigurator = this.generateConfigurator(
-        powerIcon1,
-        machine.powerConsumption,
-        "MW"
-      );
-      this.setupAmountPowerConfigurator(
-        this._amountConfigurators.powerConfigurator.inputElement,
-        machine.powerConsumption,
-        machine.powerConsumptionExponent
-      );
-      this._overclockConfigurators.powerConfigurator = this.generateConfigurator(
-        powerIcon2,
-        machine.powerConsumption,
-        "MW"
-      );
-      this.setupOverclockPowerConfigurator(
-        this._overclockConfigurators.powerConfigurator.inputElement,
-        machine.powerConsumption,
-        machine.powerConsumptionExponent
-      );
-    }
-    static numberParser(str) {
-      let value1 = +str;
-      let value2 = Number.parseFloat(str);
-      if (Number.isNaN(value1) || Number.isNaN(value2) || value1 === 0) {
-        return NaN;
-      }
-      return value1;
-    }
-    setupMachinesAmountConfigurator(machinesAmount) {
-      machinesAmount.addEventListener("input", () => {
-        let value = _NodeConfiguration.numberParser(machinesAmount.value);
-        if (!Number.isNaN(value)) {
-          machinesAmount.classList.remove("error");
-          this.setMachinesAmount(value);
-        } else {
-          machinesAmount.classList.add("error");
-        }
-      });
-      let normalize = () => {
-        machinesAmount.classList.remove("error");
-        machinesAmount.value = `${+this.getMachinesAmount().toFixed(4)}`;
+      let overclockedPower = (power, overclockRatio) => {
+        return power * Math.pow(overclockRatio, machine.powerConsumptionExponent);
       };
-      machinesAmount.addEventListener("blur", normalize);
-      machinesAmount.addEventListener("keydown", function(event) {
-        if (event.repeat) {
-          return;
-        }
-        if (event.key === "Enter") {
-          machinesAmount.blur();
-          normalize();
-        }
-      });
-      this.addEventListener(_NodeConfiguration.machinesAmountChangedEvent, () => {
-        if (!Object.is(document.activeElement, machinesAmount)) {
-          let targetValue = this.getMachinesAmount();
-          machinesAmount.value = `${+targetValue.toFixed(4)}`;
-        }
-      });
-    }
-    setupOverclockConfigurator(overclock) {
-      overclock.addEventListener("input", () => {
-        let value = _NodeConfiguration.numberParser(overclock.value);
-        if (!Number.isNaN(value) && value >= 1 && value <= 250) {
-          overclock.classList.remove("error");
-          this.setOverclockRatio(value / 100);
-        } else {
-          overclock.classList.add("error");
-        }
-      });
-      let normalize = () => {
-        overclock.classList.remove("error");
-        let value = _NodeConfiguration.numberParser(overclock.value);
-        if (value < 1) {
-          this.setOverclockRatio(1 / 100);
-        } else if (value > 250) {
-          this.setOverclockRatio(250 / 100);
-        } else {
-          overclock.value = `${+(this.getOverclockRatio() * 100).toFixed(4)}`;
-        }
+      let overclockFromPower = (power) => {
+        return Math.pow(power / machine.powerConsumption, 1 / machine.powerConsumptionExponent);
       };
-      overclock.addEventListener("blur", normalize);
-      overclock.addEventListener("keydown", function(event) {
-        if (event.repeat) {
-          return;
-        }
-        if (event.key === "Enter") {
-          overclock.blur();
-        }
-      });
-      this.addEventListener(_NodeConfiguration.overclockChangedEvent, () => {
-        if (!Object.is(document.activeElement, overclock)) {
-          let targetValue = this.getOverclockRatio() * 100;
-          overclock.value = `${+targetValue.toFixed(4)}`;
-        }
-      });
-    }
-    setupAmountInOutConfigurator(amountInOut, initialValue) {
-      amountInOut.addEventListener("input", () => {
-        let value = _NodeConfiguration.numberParser(amountInOut.value);
-        if (!Number.isNaN(value)) {
-          amountInOut.classList.remove("error");
-          this.setMachinesAmount(value / initialValue / this.getOverclockRatio());
-        } else {
-          amountInOut.classList.add("error");
-        }
-      });
-      let normalize = () => {
-        amountInOut.classList.remove("error");
-        amountInOut.value = `${+(initialValue * this.getOverclockRatio() * this.getMachinesAmount()).toFixed(4)}`;
+      let getInitialOverclockedPower = () => {
+        return overclockedPower(machine.powerConsumption, this.overclockRatio);
       };
-      amountInOut.addEventListener("blur", normalize);
-      amountInOut.addEventListener("keydown", function(event) {
-        if (event.repeat) {
-          return;
-        }
-        if (event.key === "Enter") {
-          amountInOut.blur();
-        }
-      });
-      this.addEventListener(_NodeConfiguration.machinesAmountChangedEvent, () => {
-        if (!Object.is(document.activeElement, amountInOut)) {
-          let targetValue = +(initialValue * this.getOverclockRatio() * this.getMachinesAmount()).toFixed(4);
-          amountInOut.value = `${targetValue}`;
-        }
-      });
-      this.addEventListener(_NodeConfiguration.overclockChangedEvent, () => {
-        if (!Object.is(document.activeElement, amountInOut)) {
-          let targetValue = +(initialValue * this.getOverclockRatio() * this.getMachinesAmount()).toFixed(4);
-          amountInOut.value = `${targetValue}`;
-        }
-      });
+      this._amountConfigurators.powerConfigurator = new ConfiguratorBuilder(this).setPowerSvgIcon().setInitialValue(machine.powerConsumption).setUnits("MW").setMinimum(() => 1e-4).setMaximum(() => void 0).setRelatedProperty(
+        () => getInitialOverclockedPower() * this.machinesAmount,
+        (value) => this.machinesAmount = value / getInitialOverclockedPower()
+      ).subscribeToMachinesAmount().subscribeToOverclock().build();
+      this._overclockConfigurators.powerConfigurator = new ConfiguratorBuilder(this).setPowerSvgIcon().setInitialValue(machine.powerConsumption).setUnits("MW").setMinimum(() => overclockedPower(machine.powerConsumption, minOverclockRatio)).setMaximum(() => overclockedPower(machine.powerConsumption, maxOverclockRatio)).setRelatedProperty(
+        () => overclockedPower(machine.powerConsumption, this.overclockRatio),
+        (value) => this.overclockRatio = overclockFromPower(value)
+      ).subscribeToOverclock().build();
     }
-    setupAmountPowerConfigurator(amountPower, initialValue, powerExponent) {
-      amountPower.addEventListener("input", () => {
-        let value = _NodeConfiguration.numberParser(amountPower.value);
-        if (!Number.isNaN(value)) {
-          amountPower.classList.remove("error");
-          let initialOverclockedValue = initialValue * Math.pow(this.getOverclockRatio(), powerExponent);
-          this.setMachinesAmount(value / initialOverclockedValue);
-        } else {
-          amountPower.classList.add("error");
-        }
-      });
-      let normalize = () => {
-        amountPower.classList.remove("error");
-        let initialOverclockedValue = initialValue * Math.pow(this.getOverclockRatio(), powerExponent);
-        amountPower.value = `${+(initialOverclockedValue * this.getMachinesAmount()).toFixed(4)}`;
-      };
-      amountPower.addEventListener("blur", normalize);
-      amountPower.addEventListener("keydown", function(event) {
-        if (event.repeat) {
-          return;
-        }
-        if (event.key === "Enter") {
-          amountPower.blur();
-        }
-      });
-      this.addEventListener(_NodeConfiguration.machinesAmountChangedEvent, () => {
-        if (!Object.is(document.activeElement, amountPower)) {
-          let initialOverclockedValue = initialValue * Math.pow(this.getOverclockRatio(), powerExponent);
-          let targetValue = +(initialOverclockedValue * this.getMachinesAmount()).toFixed(4);
-          amountPower.value = `${targetValue}`;
-        }
-      });
-      this.addEventListener(_NodeConfiguration.overclockChangedEvent, () => {
-        if (!Object.is(document.activeElement, amountPower)) {
-          let initialOverclockedValue = initialValue * Math.pow(this.getOverclockRatio(), powerExponent);
-          let targetValue = +(initialOverclockedValue * this.getMachinesAmount()).toFixed(4);
-          amountPower.value = `${targetValue}`;
-        }
-      });
-    }
-    setupOverclockInOutConfigurator(overclockInOut, initialValue) {
-      overclockInOut.addEventListener("input", () => {
-        let value = _NodeConfiguration.numberParser(overclockInOut.value);
-        if (!Number.isNaN(value)) {
-          overclockInOut.classList.remove("error");
-          this.setOverclockRatio(value / initialValue);
-        } else {
-          overclockInOut.classList.add("error");
-        }
-      });
-      let normalize = () => {
-        overclockInOut.classList.remove("error");
-        overclockInOut.value = `${+(initialValue * this.getOverclockRatio()).toFixed(4)}`;
-      };
-      overclockInOut.addEventListener("blur", normalize);
-      overclockInOut.addEventListener("keydown", function(event) {
-        if (event.repeat) {
-          return;
-        }
-        if (event.key === "Enter") {
-          overclockInOut.blur();
-        }
-      });
-      this.addEventListener(_NodeConfiguration.overclockChangedEvent, () => {
-        if (!Object.is(document.activeElement, overclockInOut)) {
-          let targetValue = +(initialValue * this.getOverclockRatio()).toFixed(4);
-          overclockInOut.value = `${targetValue}`;
-        }
-      });
-    }
-    setupOverclockPowerConfigurator(overclockPower, initialValue, powerExponent) {
-      overclockPower.addEventListener("input", () => {
-        let value = _NodeConfiguration.numberParser(overclockPower.value);
-        if (!Number.isNaN(value)) {
-          overclockPower.classList.remove("error");
-          this.setOverclockRatio(Math.pow(value / initialValue, 1 / powerExponent));
-        } else {
-          overclockPower.classList.add("error");
-        }
-      });
-      let normalize = () => {
-        overclockPower.classList.remove("error");
-        overclockPower.value = `${+(initialValue * Math.pow(this.getOverclockRatio(), powerExponent)).toFixed(4)}`;
-      };
-      overclockPower.addEventListener("blur", normalize);
-      overclockPower.addEventListener("keydown", function(event) {
-        if (event.repeat) {
-          return;
-        }
-        if (event.key === "Enter") {
-          overclockPower.blur();
-        }
-      });
-      this.addEventListener(_NodeConfiguration.overclockChangedEvent, () => {
-        if (!Object.is(document.activeElement, overclockPower)) {
-          overclockPower.value = `${+(initialValue * Math.pow(this.getOverclockRatio(), powerExponent)).toFixed(4)}`;
-        }
-      });
-    }
-    generateConfigurator(icon, initialValue, units) {
-      let editElement = document.createElement("div");
-      editElement.classList.add("edit");
-      let iconContainer = document.createElement("div");
-      iconContainer.classList.add("icon-container");
-      iconContainer.appendChild(icon);
-      let inputElement = document.createElement("input");
-      inputElement.value = `${initialValue}`;
-      let unitsElement = document.createElement("div");
-      unitsElement.classList.add("units");
-      unitsElement.innerText = units;
-      editElement.appendChild(iconContainer);
-      editElement.appendChild(inputElement);
-      editElement.appendChild(unitsElement);
-      return new Configurator(editElement, inputElement, initialValue);
-    }
-    static createImgIcon(name, iconPath) {
-      let icon = document.createElement("img");
-      icon.src = satisfactoryIconPath(iconPath);
-      icon.alt = name;
-      icon.title = name;
-      return icon;
-    }
-    static createPowerSvgIcon() {
-      let icon = SvgFactory.createSvgElement("svg");
-      icon.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-      icon.setAttribute("viewBox", "0 -960 960 960");
-      let path = SvgFactory.createSvgPath();
-      path.setAttribute("d", "M420-412H302q-14 0-20-12t2-23l203-295q5-7 12-9t15 1q8 3 11.5 9.5T528-726l-27 218h140q14 0 20 13t-3 24L431-199q-5 6-12 7.5t-14-1.5q-7-3-10.5-9t-2.5-14l28-196Z");
-      icon.appendChild(path);
-      return icon;
-    }
-    getMachinesAmount() {
+    get machinesAmount() {
       return this._machinesAmount;
     }
-    setMachinesAmount(value) {
+    set machinesAmount(value) {
       if (value !== this._machinesAmount) {
         this._machinesAmount = value;
         this.dispatchEvent(new Event(_NodeConfiguration.machinesAmountChangedEvent));
       }
     }
-    getOverclockRatio() {
+    get overclockRatio() {
       return this._overclockRatio;
     }
-    setOverclockRatio(value) {
+    set overclockRatio(value) {
       if (value !== this._overclockRatio) {
-        value = Math.min(2.5, Math.max(0.01, value));
+        let min = _NodeConfiguration.minOverclockRatio;
+        let max = _NodeConfiguration.maxOverclockRatio;
+        value = Math.min(max, Math.max(min, value));
         this._overclockRatio = value;
         this.dispatchEvent(new Event(_NodeConfiguration.overclockChangedEvent));
       }
+    }
+    static getColumn(group, column) {
+      return document.querySelector(
+        `#${_NodeConfiguration._modalContainer.id} .table.${group}>.column.${column}`
+      );
     }
     _isOpened = false;
     _machinesAmount = 1;
@@ -2482,54 +2393,17 @@
     _overclockConfigurator;
     _amountConfigurators = new Configurators();
     _overclockConfigurators = new Configurators();
+    static minOverclockRatio = 0.01;
+    static maxOverclockRatio = 2.5;
     static _modalContainer = document.querySelector("#machine-configuration-container");
-    static _machinesColumn = document.querySelector(
-      `#${_NodeConfiguration._modalContainer.id} .table.amount>.column.machines`
-    );
-    static _amountInputsColumn = document.querySelector(
-      `#${_NodeConfiguration._modalContainer.id} .table.amount>.column.inputs`
-    );
-    static _amountOutputsColumn = document.querySelector(
-      `#${_NodeConfiguration._modalContainer.id} .table.amount>.column.outputs`
-    );
-    static _amountPowerColumn = document.querySelector(
-      `#${_NodeConfiguration._modalContainer.id} .table.amount>.column.power`
-    );
-    static _multipliersColumn = document.querySelector(
-      `#${_NodeConfiguration._modalContainer.id} .table.overclock>.column.multipliers`
-    );
-    static _overclockInputsColumn = document.querySelector(
-      `#${_NodeConfiguration._modalContainer.id} .table.overclock>.column.inputs`
-    );
-    static _overclockOutputsColumn = document.querySelector(
-      `#${_NodeConfiguration._modalContainer.id} .table.overclock>.column.outputs`
-    );
-    static _overclockPowerColumn = document.querySelector(
-      `#${_NodeConfiguration._modalContainer.id} .table.overclock>.column.power`
-    );
-  };
-  var Configurators = class {
-    inputsConfigurators = new Array();
-    outputsConfigurators = new Array();
-    powerConfigurator;
-    removeFromDom() {
-      for (const configurator of this.inputsConfigurators) {
-        configurator.htmlElement.remove();
-      }
-      for (const configurator of this.outputsConfigurators) {
-        configurator.htmlElement.remove();
-      }
-      if (this.powerConfigurator != void 0) {
-        this.powerConfigurator.htmlElement.remove();
-      }
-    }
-  };
-  var Configurator = class {
-    constructor(htmlElement, inputElement, initialValue) {
-      this.htmlElement = htmlElement;
-      this.inputElement = inputElement;
-      this.initialValue = initialValue;
-    }
+    static _machinesColumn = _NodeConfiguration.getColumn("amount", "machines");
+    static _amountInputsColumn = _NodeConfiguration.getColumn("amount", "inputs");
+    static _amountOutputsColumn = _NodeConfiguration.getColumn("amount", "outputs");
+    static _amountPowerColumn = _NodeConfiguration.getColumn("amount", "power");
+    static _multipliersColumn = _NodeConfiguration.getColumn("overclock", "multipliers");
+    static _overclockInputsColumn = _NodeConfiguration.getColumn("overclock", "inputs");
+    static _overclockOutputsColumn = _NodeConfiguration.getColumn("overclock", "outputs");
+    static _overclockPowerColumn = _NodeConfiguration.getColumn("overclock", "power");
   };
 
   // src/Sankey/SankeyNode.ts
