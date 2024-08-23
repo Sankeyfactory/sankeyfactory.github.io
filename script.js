@@ -2522,6 +2522,102 @@
     static _applyButton = _NodeConfiguration.queryModalSuccessor(".apply-button");
   };
 
+  // src/Sankey/NodeResourceDisplay.ts
+  var NodeResourceDisplay = class {
+    constructor(recipe, machine) {
+      this._recipe = recipe;
+      this._displayContainer = SvgFactory.createSvgForeignObject();
+      let recipeContainer = this.createHtmlElement("div", "recipe-container");
+      this.createMachineDisplay(recipeContainer, machine);
+      this.createInputsDisplay(recipeContainer, recipe);
+      this.createOutputsDisplay(recipeContainer, recipe);
+      this.createPowerDisplay(recipeContainer, machine.powerConsumption);
+      this._displayContainer.appendChild(recipeContainer);
+    }
+    setBounds(bounds) {
+      this._displayContainer.setAttribute("x", `${bounds.x}`);
+      this._displayContainer.setAttribute("y", `${bounds.y}`);
+      this._displayContainer.setAttribute("width", `${bounds.width}`);
+      this._displayContainer.setAttribute("height", `${bounds.height}`);
+    }
+    appendTo(element) {
+      element.appendChild(this._displayContainer);
+    }
+    createMachineDisplay(parent, machine) {
+      let machineDisplay = this.createHtmlElement("div", "property");
+      let title = this.createHtmlElement("div", "title");
+      let value = this.createHtmlElement("div", "machine");
+      let machineIcon = this.createHtmlElement("img", "icon");
+      title.innerText = "Machine";
+      machineIcon.src = satisfactoryIconPath(machine.iconPath);
+      machineIcon.title = machine.displayName;
+      machineIcon.alt = machine.displayName;
+      value.appendChild(machineIcon);
+      machineDisplay.appendChild(title);
+      machineDisplay.appendChild(value);
+      parent.appendChild(machineDisplay);
+    }
+    createInputsDisplay(parent, recipe) {
+      let inputsDisplay = this.createHtmlElement("div", "property");
+      let title = this.createHtmlElement("div", "title");
+      title.innerText = "Input/min";
+      inputsDisplay.appendChild(title);
+      recipe.ingredients.forEach(this.createResourceDisplay(inputsDisplay));
+      parent.appendChild(inputsDisplay);
+    }
+    createOutputsDisplay(parent, recipe) {
+      let outputsDisplay = this.createHtmlElement("div", "property");
+      let title = this.createHtmlElement("div", "title");
+      title.innerText = "Output/min";
+      outputsDisplay.appendChild(title);
+      recipe.products.forEach(this.createResourceDisplay(outputsDisplay));
+      parent.appendChild(outputsDisplay);
+    }
+    createPowerDisplay(parent, powerConsumption) {
+      let powerDisplay = this.createHtmlElement("div", "property");
+      let title = this.createHtmlElement("div", "title");
+      let text = this.createHtmlElement("div", "text");
+      title.innerText = "Power";
+      powerDisplay.appendChild(title);
+      powerDisplay.appendChild(text);
+      text.innerText = `${powerConsumption} MW`;
+      parent.appendChild(powerDisplay);
+    }
+    createResourceDisplay(parentDiv) {
+      return (recipeResource) => {
+        let resource = Satisfactory_default.resources.find(
+          (el) => {
+            return el.id === recipeResource.id;
+          }
+        );
+        let resourceDiv = document.createElement("div");
+        resourceDiv.classList.add("resource");
+        let icon = document.createElement("img");
+        icon.classList.add("icon");
+        icon.loading = "lazy";
+        icon.alt = resource.displayName;
+        icon.src = satisfactoryIconPath(resource.iconPath);
+        icon.title = resource.displayName;
+        let amount = document.createElement("p");
+        amount.classList.add("amount");
+        amount.innerText = `${+this.toItemsInMinute(recipeResource.amount).toPrecision(3)}`;
+        resourceDiv.appendChild(icon);
+        resourceDiv.appendChild(amount);
+        parentDiv.appendChild(resourceDiv);
+      };
+    }
+    toItemsInMinute(amount) {
+      return toItemsInMinute(amount, this._recipe.manufacturingDuration);
+    }
+    createHtmlElement(tag, ...classes) {
+      let element = document.createElement(tag);
+      element.classList.add(...classes);
+      return element;
+    }
+    _recipe;
+    _displayContainer;
+  };
+
   // src/Sankey/SankeyNode.ts
   var SankeyNode = class _SankeyNode {
     nodeSvg;
@@ -2546,82 +2642,15 @@
       this._inputSlotGroups = this.createGroups("input", recipe.ingredients);
       this._outputSlotGroups = this.createGroups("output", recipe.products);
       this.configureContextMenu(recipe, machine);
-      let foreignObject = SvgFactory.createSvgForeignObject();
-      foreignObject.setAttribute("x", "10");
-      foreignObject.setAttribute("y", "0");
-      foreignObject.setAttribute("width", `${_SankeyNode.nodeWidth}`);
-      foreignObject.setAttribute("height", `${this.height}`);
-      let recipeContainer = document.createElement("div");
-      recipeContainer.classList.add("recipe-container");
-      let recipeMachineProp = document.createElement("div");
-      recipeMachineProp.classList.add("property");
-      let recipeMachineTitle = document.createElement("div");
-      recipeMachineTitle.classList.add("title");
-      recipeMachineTitle.innerText = "Machine";
-      let recipeMachineValue = document.createElement("div");
-      recipeMachineValue.classList.add("machine");
-      let recipeMachineIcon = document.createElement("img");
-      recipeMachineIcon.classList.add("icon");
-      let recipeInputsProp = document.createElement("div");
-      recipeInputsProp.classList.add("property");
-      let recipeInputsTitle = document.createElement("div");
-      recipeInputsTitle.classList.add("title");
-      recipeInputsTitle.innerText = "Input/min";
-      let recipeOutputsProp = document.createElement("div");
-      recipeOutputsProp.classList.add("property");
-      let recipeOutputsTitle = document.createElement("div");
-      recipeOutputsTitle.classList.add("title");
-      recipeOutputsTitle.innerText = "Output/min";
-      let recipePowerProp = document.createElement("div");
-      recipePowerProp.classList.add("property");
-      let recipePowerTitle = document.createElement("div");
-      recipePowerTitle.classList.add("title");
-      recipePowerTitle.innerText = "Power";
-      let recipePowerText = document.createElement("div");
-      recipePowerText.classList.add("text");
-      recipeMachineValue.appendChild(recipeMachineIcon);
-      recipeMachineProp.appendChild(recipeMachineTitle);
-      recipeMachineProp.appendChild(recipeMachineValue);
-      recipeInputsProp.appendChild(recipeInputsTitle);
-      recipeOutputsProp.appendChild(recipeOutputsTitle);
-      recipePowerProp.appendChild(recipePowerTitle);
-      recipePowerProp.appendChild(recipePowerText);
-      recipeContainer.appendChild(recipeMachineProp);
-      recipeContainer.appendChild(recipeInputsProp);
-      recipeContainer.appendChild(recipeOutputsProp);
-      recipeContainer.appendChild(recipePowerProp);
-      foreignObject.appendChild(recipeContainer);
-      let createResourceDisplay = function(parentDiv, craftingTime) {
-        return (recipeResource) => {
-          let resource = Satisfactory_default.resources.find(
-            (el) => {
-              return el.id === recipeResource.id;
-            }
-          );
-          let resourceDiv = document.createElement("div");
-          resourceDiv.classList.add("resource");
-          let icon = document.createElement("img");
-          icon.classList.add("icon");
-          icon.loading = "lazy";
-          icon.alt = resource.displayName;
-          icon.src = satisfactoryIconPath(resource.iconPath);
-          icon.title = resource.displayName;
-          let amount = document.createElement("p");
-          amount.classList.add("amount");
-          amount.innerText = `${+(60 / craftingTime * recipeResource.amount).toPrecision(3)}`;
-          resourceDiv.appendChild(icon);
-          resourceDiv.appendChild(amount);
-          parentDiv.appendChild(resourceDiv);
-        };
-      };
-      recipeMachineIcon.src = satisfactoryIconPath(machine.iconPath);
-      recipeMachineIcon.title = machine.displayName;
-      recipeMachineIcon.alt = machine.displayName;
-      recipe.ingredients.forEach(createResourceDisplay(recipeInputsProp, recipe.manufacturingDuration));
-      recipe.products.forEach(createResourceDisplay(recipeOutputsProp, recipe.manufacturingDuration));
-      recipePowerText.innerText = `${machine.powerConsumption} MW`;
+      this._resourceDisplay = new NodeResourceDisplay(recipe, machine);
+      this._resourceDisplay.setBounds({
+        x: 10,
+        y: 0,
+        width: _SankeyNode.nodeWidth,
+        height: this.height
+      });
       this.nodeSvgGroup.appendChild(this.nodeSvg);
-      this.nodeSvgGroup.appendChild(foreignObject);
+      this._resourceDisplay.appendTo(this.nodeSvgGroup);
       parentGroup.appendChild(this.nodeSvgGroup);
     }
     delete() {
@@ -2731,6 +2760,7 @@
     _height;
     _inputSlotGroups = [];
     _outputSlotGroups = [];
+    _resourceDisplay;
     static _nodeHeight = 260;
   };
 
