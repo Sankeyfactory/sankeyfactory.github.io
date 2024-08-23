@@ -1476,6 +1476,7 @@
     static slotWidth = 10;
     static boundsChangedEvent = "bounds-changed";
     static deletionEvent = "deleted";
+    static resourcesAmountChangedEvent = "resources-amount-changed";
     constructor(slotsGroup, slotsGroupSvg, resource, ...classes) {
       super();
       this._resource = { ...resource };
@@ -1502,9 +1503,11 @@
       return this._resource.amount;
     }
     set resourcesAmount(resourcesAmount) {
-      this._resource.amount = resourcesAmount;
-      this.updateHeight();
-      this.dispatchEvent(new Event(_SankeySlot.boundsChangedEvent));
+      if (this._resource.amount != resourcesAmount) {
+        this._resource.amount = resourcesAmount;
+        this.updateHeight();
+        this.dispatchEvent(new Event(_SankeySlot.resourcesAmountChangedEvent));
+      }
     }
     get resourceId() {
       return this._resource.id;
@@ -1640,10 +1643,19 @@
       this._firstSlot = firstSlot;
       this._secondSlot = secondSlot;
       this._panContext = panContext;
+      function pushResourcesAmount(from, to) {
+        if (to.resourcesAmount >= from.resourcesAmount) {
+          to.resourcesAmount = from.resourcesAmount;
+        } else {
+          throw Error("Increasing link's resources amount not yet implemented.");
+        }
+      }
       firstSlot.addEventListener(SankeySlot.boundsChangedEvent, this.recalculate.bind(this));
       secondSlot.addEventListener(SankeySlot.boundsChangedEvent, this.recalculate.bind(this));
       firstSlot.addEventListener(SankeySlot.deletionEvent, this.delete.bind(this, secondSlot));
       secondSlot.addEventListener(SankeySlot.deletionEvent, this.delete.bind(this, firstSlot));
+      firstSlot.addEventListener(SankeySlot.resourcesAmountChangedEvent, () => pushResourcesAmount(firstSlot, secondSlot));
+      secondSlot.addEventListener(SankeySlot.resourcesAmountChangedEvent, () => pushResourcesAmount(secondSlot, firstSlot));
       this._svgPath = SvgFactory.createSvgPath("link", "animate-appearance");
       this._resourceDisplay = this.createResourceDisplay({
         id: firstSlot.resourceId,
@@ -1906,6 +1918,9 @@
           MouseHandler.getInstance().outputSlotClicked(event, this);
         }
       });
+      this.slotSvgRect.addEventListener("dblclick", (event) => {
+        event.stopPropagation();
+      });
     }
     splitOffSlot(resourcesAmount) {
       return this.parentGroup.addSlot(resourcesAmount);
@@ -1927,6 +1942,9 @@
         if (!event.ctrlKey) {
           MouseHandler.getInstance().inputSlotClicked(event, this);
         }
+      });
+      this.slotSvgRect.addEventListener("dblclick", (event) => {
+        event.stopPropagation();
       });
     }
     splitOffSlot(resourcesAmount) {
@@ -1975,6 +1993,9 @@
         this._slots.splice(index, 1);
         this.updateSlotPositions();
       });
+      newSlot.addEventListener(SankeySlot.resourcesAmountChangedEvent, () => {
+        this.updateSlotPositions();
+      });
       this.updateSlotPositions();
       return newSlot;
     }
@@ -2004,7 +2025,7 @@
           subtractedResources -= smallerValue;
           this._lastSlot.resourcesAmount -= smallerValue;
         }
-        for (let i = this._slots.length - 1; i > 0 && subtractedResources > 0; --i) {
+        for (let i = this._slots.length - 1; i >= 0 && subtractedResources > 0; --i) {
           let slot = this._slots[i];
           let smallerValue = Math.min(subtractedResources, slot.resourcesAmount);
           subtractedResources -= smallerValue;
@@ -2015,6 +2036,7 @@
         }
       }
       this._resource.amount = value;
+      this.updateSlotPositions();
     }
     get resourceId() {
       return this._resource.id;
@@ -2024,6 +2046,7 @@
       let nextYPosition = 0;
       for (const slot of this._slots) {
         slot.setYPosition(nextYPosition);
+        slot.updateHeight();
         freeResourcesAmount -= slot.resourcesAmount;
         nextYPosition += +(slot.slotSvgRect.getAttribute("height") ?? 0);
       }
@@ -2674,23 +2697,29 @@
     toItemsInMinute(amount) {
       return toItemsInMinute(amount, this._recipe.manufacturingDuration);
     }
+    multiplyResourcesAmount(multiplier) {
+      this.inputResourcesAmount *= multiplier;
+      this.outputResourcesAmount *= multiplier;
+      for (const slotsGroup of this._inputSlotGroups) {
+        slotsGroup.resourcesAmount *= multiplier;
+      }
+      for (const slotsGroup of this._outputSlotGroups) {
+        slotsGroup.resourcesAmount *= multiplier;
+      }
+    }
     get machinesAmount() {
       return this._machinesAmount;
     }
     set machinesAmount(value) {
-      let difference = value / this._machinesAmount;
+      this.multiplyResourcesAmount(value / this._machinesAmount);
       this._machinesAmount = value;
-      this.inputResourcesAmount *= difference;
-      this.outputResourcesAmount *= difference;
     }
     get overclockRatio() {
       return this._overclockRatio;
     }
     set overclockRatio(value) {
-      let difference = value / this._overclockRatio;
+      this.multiplyResourcesAmount(value / this._overclockRatio);
       this._overclockRatio = value;
-      this.inputResourcesAmount *= difference;
-      this.outputResourcesAmount *= difference;
     }
     _recipe;
     _inputResourcesAmount;
