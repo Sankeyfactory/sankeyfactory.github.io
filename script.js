@@ -3114,11 +3114,15 @@
     if (viewport == null || nodesGroup == null || linksGroup == null) {
       throw new Error("Svg container is broken");
     }
-    let isHoldingCtrl = false;
+    let isPanning = false;
     let panContext = (0, import_panzoom.default)(viewport, {
       zoomDoubleClickSpeed: 1,
       // disables double click zoom
-      beforeMouseDown: () => !isHoldingCtrl
+      beforeMouseDown: (event) => {
+        event.preventDefault();
+        return !isPanning;
+      },
+      beforeWheel: () => !isPanning
     });
     panContext.on("zoom", () => {
       let zoomScale = panContext.getTransform()?.scale ?? 1;
@@ -3131,7 +3135,7 @@
     function createNode(recipe, machine) {
       const node = new SankeyNode(nodesGroup, nodeCreationPosition, recipe, machine);
       node.nodeSvg.onmousedown = (event) => {
-        if (!isHoldingCtrl && event.buttons === 1) {
+        if (!isPanning && event.buttons === 1) {
           MouseHandler.getInstance().startDraggingNode(event, node);
         }
       };
@@ -3171,8 +3175,8 @@
       if (event.repeat) {
         return;
       }
-      if (event.key === "Control") {
-        isHoldingCtrl = true;
+      if (event.key === "Control" || event.key === "Meta") {
+        isPanning = true;
         document.querySelector("#container").classList.add("move");
       }
       if (event.key === "Escape") {
@@ -3183,13 +3187,13 @@
       if (event.repeat) {
         return;
       }
-      if (event.key === "Control") {
-        isHoldingCtrl = false;
+      if (event.key === "Control" || event.key === "Meta") {
+        isPanning = false;
         document.querySelector("#container").classList.remove("move");
       }
     });
     window.addEventListener("focusout", () => {
-      isHoldingCtrl = false;
+      isPanning = false;
       document.querySelector("#container").classList.remove("move");
     });
     let nodeCreationContainer = document.querySelector("div#node-creation-container");
