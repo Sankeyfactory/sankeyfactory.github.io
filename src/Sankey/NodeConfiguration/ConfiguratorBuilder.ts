@@ -4,7 +4,7 @@ import { NodeConfiguration } from "./NodeConfiguration";
 
 export class ConfiguratorBuilder
 {
-    constructor(nodeConfig: NodeConfiguration)
+    public constructor(nodeConfig: NodeConfiguration)
     {
         this._nodeConfig = nodeConfig;
 

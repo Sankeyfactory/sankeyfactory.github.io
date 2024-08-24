@@ -11,7 +11,7 @@ import { SankeyNode } from './SankeyNode';
 
 export class NodeResourceDisplay
 {
-    constructor(associatedNode: SankeyNode, recipe: GameRecipe, machine: GameMachine)
+    public constructor(associatedNode: SankeyNode, recipe: GameRecipe, machine: GameMachine)
     {
         this._recipe = recipe;
         this._machine = machine;

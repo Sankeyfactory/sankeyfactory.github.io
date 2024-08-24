@@ -24,7 +24,7 @@ export class SankeyLink
         linksGroup.appendChild(link._resourceDisplay);
     }
 
-    constructor(firstSlot: SankeySlot, secondSlot: SankeySlot, panContext: PanZoom)
+    public constructor(firstSlot: SankeySlot, secondSlot: SankeySlot, panContext: PanZoom)
     {
         this._firstSlot = firstSlot;
         this._secondSlot = secondSlot;

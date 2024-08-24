@@ -3,7 +3,7 @@ import { SlotsGroup } from "../SlotsGroup";
 
 export class OutputSankeySlot extends SankeySlot
 {
-    constructor(
+    public constructor(
         slotsGroup: SlotsGroup,
         slotsGroupSvg: SVGGElement,
         resource: RecipeResource,

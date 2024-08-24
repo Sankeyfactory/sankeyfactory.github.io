@@ -19,7 +19,7 @@ let pathsMap = new Map<string, string>();
 
 class Image
 {
-    constructor(
+    public constructor(
         public path: string,
         public resolution: number,
     )

@@ -2,7 +2,7 @@ import { GameMachine } from "./GameMachine";
 
 export class GameRecipe
 {
-    constructor(
+    public constructor(
         public id: string,
         public displayName: string,
         public ingredients: RecipeResource[],
@@ -16,7 +16,7 @@ export class GameRecipeEvent extends Event
     public recipe?: GameRecipe;
     public machine?: GameMachine;
 
-    constructor(
+    public constructor(
         recipe: GameRecipe | undefined,
         machine: GameMachine | undefined,
         type: string,

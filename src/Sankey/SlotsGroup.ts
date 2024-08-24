@@ -14,7 +14,7 @@ export class SlotsGroup extends EventTarget
     public static readonly boundsChangedEvent = "bounds-changed";
     public static readonly changedVacantResourcesAmountEvent = "changed-vacant-resources-amount";
 
-    constructor(
+    public constructor(
         node: SankeyNode,
         type: SlotsGroupType,
         resource: RecipeResource,

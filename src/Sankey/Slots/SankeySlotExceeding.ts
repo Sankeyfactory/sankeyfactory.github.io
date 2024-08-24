@@ -5,7 +5,7 @@ import { SankeySlot } from "./SankeySlot";
 
 export class SankeySlotExceeding extends OutputSankeySlot
 {
-    constructor(
+    public constructor(
         slotsGroup: SlotsGroup,
         slotsGroupSvg: SVGGElement,
         resource: RecipeResource)

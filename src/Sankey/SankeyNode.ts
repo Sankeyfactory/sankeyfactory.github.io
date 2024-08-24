@@ -19,7 +19,7 @@ export class SankeyNode extends EventTarget
     public nodeSvgGroup: SVGGElement;
     public static readonly nodeWidth = 70;
 
-    constructor(
+    public constructor(
         parentGroup: SVGGElement,
         position: Point,
         recipe: GameRecipe,

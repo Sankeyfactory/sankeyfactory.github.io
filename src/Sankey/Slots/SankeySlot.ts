@@ -10,7 +10,7 @@ export abstract class SankeySlot extends EventTarget
     public static readonly deletionEvent = "deleted";
     public static readonly resourcesAmountChangedEvent = "resources-amount-changed";
 
-    constructor(
+    public constructor(
         slotsGroup: SlotsGroup,
         slotsGroupSvg: SVGGElement,
         resource: RecipeResource,

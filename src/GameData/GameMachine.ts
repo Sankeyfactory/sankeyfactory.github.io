@@ -1,6 +1,6 @@
 export class GameMachine
 {
-    constructor(
+    public constructor(
         public iconPath: string,
         public displayName: string,
         public powerConsumption: number,

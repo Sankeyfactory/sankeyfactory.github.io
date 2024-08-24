@@ -1,13 +1,13 @@
 // Ignore import error as the file only appears on launch of the exporting tool.
 // @ts-ignore
 import satisfactoryData from '../dist/GameData/Satisfactory.json';
-import { satisfactoryIconPath } from './GameData/GameData';
 
 import { SankeyNode } from "./Sankey/SankeyNode";
+import { satisfactoryIconPath } from './GameData/GameData';
 
 export class ResourcesSummary
 {
-    constructor()
+    public constructor()
     {
         ResourcesSummary._collapseButton.addEventListener("click", () =>
         {
@@ -151,12 +151,6 @@ export class ResourcesSummary
 
     private createResourceDisplay(id: string, amount: number): HTMLDivElement
     {
-        // <div class="resource">
-        //     <img src="GameData/SatisfactoryIcons/Resource/Parts/AIlimiter/AILimiter.png" title="AI Limiter"
-        //         alt="AI Limiter" class="icon">
-        //     <div class="amount">12345.678/min</div>
-        // </div>
-
         let resource = satisfactoryData.resources.find(
             // I specify type because deploy fails otherwise for some reason.
             (resource: typeof satisfactoryData.resources[0]) => 
@@ -207,11 +201,11 @@ export class ResourcesSummary
     {
         if (enabled)
         {
-            ResourcesSummary._summaryContainer.classList.add("animate-collapsing");
+            this._summaryContainer.classList.add("animate-collapsing");
         }
         else
         {
-            ResourcesSummary._summaryContainer.classList.remove("animate-collapsing");
+            this._summaryContainer.classList.remove("animate-collapsing");
         }
     }
 

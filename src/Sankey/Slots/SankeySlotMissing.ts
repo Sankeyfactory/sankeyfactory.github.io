@@ -5,7 +5,7 @@ import { SankeySlot } from "./SankeySlot";
 
 export class SankeySlotMissing extends InputSankeySlot
 {
-    constructor(
+    public constructor(
         slotsGroup: SlotsGroup,
         slotsGroupSvg: SVGGElement,
         resource: RecipeResource)
