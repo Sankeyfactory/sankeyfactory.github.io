@@ -26,11 +26,16 @@ async function main()
         throw new Error("Svg container is broken");
     }
 
-    let isHoldingCtrl = false;
+    let isPanning = false;
 
     let panContext = panzoom(viewport, {
         zoomDoubleClickSpeed: 1, // disables double click zoom
-        beforeMouseDown: () => !isHoldingCtrl,
+        beforeMouseDown: (event) =>
+        {
+            event.preventDefault();
+            return !isPanning;
+        },
+        beforeWheel: () => !isPanning,
     });
 
     panContext.on('zoom', () =>
@@ -52,7 +57,7 @@ async function main()
 
         node.nodeSvg.onmousedown = (event) =>
         {
-            if (!isHoldingCtrl && event.buttons === 1)
+            if (!isPanning && event.buttons === 1)
             {
                 MouseHandler.getInstance().startDraggingNode(event, node);
             }
@@ -110,9 +115,9 @@ async function main()
     {
         if (event.repeat) { return; }
 
-        if (event.key === "Control")
+        if (event.key === "Control" || event.key === "Meta")
         {
-            isHoldingCtrl = true;
+            isPanning = true;
             document.querySelector("#container")!.classList.add("move");
         }
 
@@ -126,16 +131,16 @@ async function main()
     {
         if (event.repeat) { return; }
 
-        if (event.key === "Control")
+        if (event.key === "Control" || event.key === "Meta")
         {
-            isHoldingCtrl = false;
+            isPanning = false;
             document.querySelector("#container")!.classList.remove("move");
         }
     });
 
     window.addEventListener("focusout", () =>
     {
-        isHoldingCtrl = false;
+        isPanning = false;
         document.querySelector("#container")!.classList.remove("move");
     });
 
