@@ -3092,9 +3092,9 @@
     }
     static setCollapsingAnimationEnabled(enabled) {
       if (enabled) {
-        _ResourcesSummary._summaryContainer.classList.add("animate-collapsing");
+        this._summaryContainer.classList.add("animate-collapsing");
       } else {
-        _ResourcesSummary._summaryContainer.classList.remove("animate-collapsing");
+        this._summaryContainer.classList.remove("animate-collapsing");
       }
     }
     _isCollapsed = false;
