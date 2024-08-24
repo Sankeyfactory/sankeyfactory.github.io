@@ -2934,6 +2934,35 @@
     _createNodeOption;
   };
 
+  // src/ResourcesSummary.ts
+  var ResourcesSummary = class _ResourcesSummary {
+    constructor() {
+      _ResourcesSummary._collapseButton.addEventListener("click", () => {
+        if (this._isCollapsed) {
+          _ResourcesSummary._summaryContainer.classList.remove("collapsed");
+          _ResourcesSummary._summaryContainer.style.top = "0";
+        } else {
+          _ResourcesSummary._summaryContainer.classList.add("collapsed");
+          let contentHeight = _ResourcesSummary.querySuccessor(".content").clientHeight;
+          console.log(contentHeight);
+          _ResourcesSummary._summaryContainer.style.top = `${-contentHeight}px`;
+        }
+        this._isCollapsed = !this._isCollapsed;
+      });
+    }
+    static querySuccessor(query) {
+      let fullQuery = `#${_ResourcesSummary._summaryContainer.id} ${query}`;
+      let element = document.querySelector(fullQuery);
+      if (element == null) {
+        throw Error(`Couldn't find required element: ${fullQuery}`);
+      }
+      return element;
+    }
+    _isCollapsed = false;
+    static _summaryContainer = document.querySelector("#resources-summary");
+    static _collapseButton = _ResourcesSummary.querySuccessor(".collapse-button");
+  };
+
   // src/main.ts
   async function main() {
     let viewport = document.querySelector("#viewport");
@@ -2960,6 +2989,7 @@
     });
     Settings.instance.setPanContext(panContext);
     MouseHandler.getInstance().setPanContext(panContext);
+    let _ = new ResourcesSummary();
     let nodeCreationPosition;
     function createNode(recipe, machine) {
       const node = new SankeyNode(nodesGroup, nodeCreationPosition, recipe, machine);
