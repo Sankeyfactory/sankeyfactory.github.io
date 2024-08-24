@@ -310,6 +310,8 @@ div.help {
 
 .node .recipe-container .property div.text {
     text-align: center;
+
+    white-space: nowrap;
 }
 
 .node .recipe-container .property div.resource {
@@ -325,15 +327,6 @@ div.help {
 
 .node .recipe-container .property .resource p.amount {
     margin: 0;
-}
-
-.node .recipe-container .property .machine {
-    padding: 2px;
-}
-
-.node .recipe-container .property .machine img.icon {
-    width: 24px;
-    height: 24px;
 }
 
 /* Node links */

@@ -2,7 +2,7 @@
 // @ts-ignore
 import satisfactoryData from '../../../dist/GameData/Satisfactory.json';
 
-import { toItemsInMinute } from '../../GameData/GameData';
+import { overclockPower, toItemsInMinute } from '../../GameData/GameData';
 import { GameMachine } from "../../GameData/GameMachine";
 import { GameRecipe } from "../../GameData/GameRecipe";
 import { Configurators } from './Configurator';
@@ -250,7 +250,7 @@ export class NodeConfiguration extends EventTarget
 
         let overclockedPower = (power: number, overclockRatio: number) =>
         {
-            return power * Math.pow(overclockRatio, machine.powerConsumptionExponent);
+            return overclockPower(power, overclockRatio, machine.powerConsumptionExponent);
         };
 
         let overclockFromPower = (power: number) =>

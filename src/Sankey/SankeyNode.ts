@@ -9,11 +9,13 @@ import { NodeConfiguration } from './NodeConfiguration/NodeConfiguration';
 import { toItemsInMinute } from '../GameData/GameData';
 import { NodeResourceDisplay } from './NodeResourceDisplay';
 
-export class SankeyNode
+export class SankeyNode extends EventTarget
 {
+    public static readonly resourcesAmountChangedEvent = "resources-amount-changed";
+
     public nodeSvg: SVGElement;
     public nodeSvgGroup: SVGGElement;
-    public static readonly nodeWidth = 60;
+    public static readonly nodeWidth = 70;
 
     constructor(
         parentGroup: SVGGElement,
@@ -22,6 +24,8 @@ export class SankeyNode
         machine: GameMachine,
     )
     {
+        super();
+
         this._recipe = { ...recipe };
         this._height = SankeyNode._nodeHeight;
 
@@ -48,7 +52,7 @@ export class SankeyNode
 
         this.configureContextMenu(recipe, machine);
 
-        this._resourceDisplay = new NodeResourceDisplay(recipe, machine);
+        this._resourceDisplay = new NodeResourceDisplay(this, recipe, machine);
         this._resourceDisplay.setBounds({
             x: 10,
             y: 0,
@@ -115,6 +119,8 @@ export class SankeyNode
     private set inputResourcesAmount(inputResourcesAmount: number)
     {
         this._inputResourcesAmount = inputResourcesAmount;
+
+        this.dispatchEvent(new Event(SankeyNode.resourcesAmountChangedEvent));
     }
 
     public get outputResourcesAmount(): number
@@ -125,6 +131,8 @@ export class SankeyNode
     private set outputResourcesAmount(outputResourcesAmount: number)
     {
         this._outputResourcesAmount = outputResourcesAmount;
+
+        this.dispatchEvent(new Event(SankeyNode.resourcesAmountChangedEvent));
     }
 
     private configureContextMenu(recipe: GameRecipe, machine: GameMachine): void
@@ -197,28 +205,32 @@ export class SankeyNode
         }
     }
 
-    private get machinesAmount(): number
+    public get machinesAmount(): number
     {
         return this._machinesAmount;
     }
 
     private set machinesAmount(value: number)
     {
-        this.multiplyResourcesAmount(value / this._machinesAmount);
+        let difference = value / this._machinesAmount;
 
         this._machinesAmount = value;
+
+        this.multiplyResourcesAmount(difference);
     }
 
-    private get overclockRatio(): number
+    public get overclockRatio(): number
     {
         return this._overclockRatio;
     }
 
     private set overclockRatio(value: number)
     {
-        this.multiplyResourcesAmount(value / this._overclockRatio);
+        let difference = value / this._overclockRatio;
 
         this._overclockRatio = value;
+
+        this.multiplyResourcesAmount(difference);
     }
 
     private _recipe: GameRecipe;
@@ -235,5 +247,5 @@ export class SankeyNode
     private _outputSlotGroups: SlotsGroup[] = [];
     private _resourceDisplay: NodeResourceDisplay;
 
-    private static readonly _nodeHeight = 260;
+    private static readonly _nodeHeight = 280;
 }

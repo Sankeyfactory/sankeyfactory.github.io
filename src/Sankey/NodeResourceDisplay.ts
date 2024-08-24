@@ -5,24 +5,32 @@ import satisfactoryData from '../../dist/GameData/Satisfactory.json';
 import { GameRecipe } from "../GameData/GameRecipe";
 import { Rectangle } from "../Rectangle";
 import { SvgFactory } from "../SVG/SvgFactory";
-import { satisfactoryIconPath, toItemsInMinute } from '../GameData/GameData';
+import { overclockPower, satisfactoryIconPath, toItemsInMinute } from '../GameData/GameData';
 import { GameMachine } from '../GameData/GameMachine';
+import { SankeyNode } from './SankeyNode';
 
 export class NodeResourceDisplay
 {
-    constructor(recipe: GameRecipe, machine: GameMachine)
+    constructor(associatedNode: SankeyNode, recipe: GameRecipe, machine: GameMachine)
     {
         this._recipe = recipe;
+        this._machine = machine;
 
         this._displayContainer = SvgFactory.createSvgForeignObject();
         let recipeContainer = this.createHtmlElement("div", "recipe-container") as HTMLDivElement;
 
         this.createMachineDisplay(recipeContainer, machine);
+        this.createOverclockDisplay(recipeContainer);
         this.createInputsDisplay(recipeContainer, recipe);
         this.createOutputsDisplay(recipeContainer, recipe);
         this.createPowerDisplay(recipeContainer, machine.powerConsumption);
 
         this._displayContainer.appendChild(recipeContainer);
+
+        associatedNode.addEventListener(SankeyNode.resourcesAmountChangedEvent, () =>
+        {
+            this.updateDisplays(associatedNode);
+        });
     }
 
     public setBounds(bounds: Rectangle)
@@ -40,20 +48,19 @@ export class NodeResourceDisplay
 
     private createMachineDisplay(parent: HTMLDivElement, machine: GameMachine)
     {
-        let machineDisplay = this.createHtmlElement("div", "property");
+        let machineDisplay = this.createHtmlElement("div", "property") as HTMLDivElement;
 
         let title = this.createHtmlElement("div", "title");
-        let value = this.createHtmlElement("div", "machine");
-        let machineIcon = this.createHtmlElement("img", "icon") as HTMLImageElement;
+        title.innerText = "Machines";
 
-        title.innerText = "Machine";
-        machineIcon.src = satisfactoryIconPath(machine.iconPath);
-        machineIcon.title = machine.displayName;
-        machineIcon.alt = machine.displayName;
-
-        value.appendChild(machineIcon);
         machineDisplay.appendChild(title);
-        machineDisplay.appendChild(value);
+
+        this._machinesAmountDisplay = this.createAmountDisplay(
+            machineDisplay,
+            machine.displayName,
+            1,
+            machine.iconPath
+        );
 
         parent.appendChild(machineDisplay);
     }
@@ -67,7 +74,13 @@ export class NodeResourceDisplay
 
         inputsDisplay.appendChild(title);
 
-        recipe.ingredients.forEach(this.createResourceDisplay(inputsDisplay));
+        recipe.ingredients.forEach(resource =>
+        {
+            this._inputDisplays.push({
+                htmlElement: this.createResourceDisplay(inputsDisplay, resource),
+                initialAmount: resource.amount
+            });
+        });
 
         parent.appendChild(inputsDisplay);
     }
@@ -81,7 +94,13 @@ export class NodeResourceDisplay
 
         outputsDisplay.appendChild(title);
 
-        recipe.products.forEach(this.createResourceDisplay(outputsDisplay));
+        recipe.products.forEach(resource =>
+        {
+            this._outputDisplays.push({
+                htmlElement: this.createResourceDisplay(outputsDisplay, resource),
+                initialAmount: resource.amount
+            });
+        });
 
         parent.appendChild(outputsDisplay);
     }
@@ -91,46 +110,72 @@ export class NodeResourceDisplay
         let powerDisplay = this.createHtmlElement("div", "property");
 
         let title = this.createHtmlElement("div", "title");
-        let text = this.createHtmlElement("div", "text") as HTMLDivElement;
         title.innerText = "Power";
 
-        powerDisplay.appendChild(title);
-        powerDisplay.appendChild(text);
+        this._powerDisplay = this.createHtmlElement("div", "text") as HTMLDivElement;
+        this._powerDisplay.innerText = `${powerConsumption} MW`;
 
-        text.innerText = `${powerConsumption} MW`;
+        powerDisplay.appendChild(title);
+        powerDisplay.appendChild(this._powerDisplay);
 
         parent.appendChild(powerDisplay);
     }
 
-    private createResourceDisplay(parentDiv: HTMLDivElement)
+    private createOverclockDisplay(parent: HTMLDivElement)
     {
-        return (recipeResource: RecipeResource) =>
+        let overclockDisplay = this.createHtmlElement("div", "property");
+
+        let title = this.createHtmlElement("div", "title");
+        title.innerText = "Overclock";
+
+        this._overclockDisplay = this.createHtmlElement("div", "text") as HTMLDivElement;
+        this._overclockDisplay.innerText = `100%`;
+
+        overclockDisplay.appendChild(title);
+        overclockDisplay.appendChild(this._overclockDisplay);
+
+        parent.appendChild(overclockDisplay);
+    }
+
+    private createResourceDisplay(parentDiv: HTMLDivElement, recipeResource: RecipeResource)
+    {
+        let resource = satisfactoryData.resources.find(
+            (el: typeof satisfactoryData.resources[0]) =>
+            {
+                return el.id === recipeResource.id;
+            }
+        );
+
+        if (resource == undefined)
         {
-            let resource = satisfactoryData.resources.find(
-                (el: typeof satisfactoryData.resources[0]) =>
-                {
-                    return el.id === recipeResource.id;
-                }
-            );
+            throw Error(`Couldn't find resource ${recipeResource.id}`);
+        }
 
-            let resourceDiv = document.createElement("div");
-            resourceDiv.classList.add("resource");
+        let amountInMinute = +this.toItemsInMinute(recipeResource.amount).toFixed(4);
 
-            let icon = document.createElement("img");
-            icon.classList.add("icon");
-            icon.loading = "lazy";
-            icon.alt = resource!.displayName;
-            icon.src = satisfactoryIconPath(resource!.iconPath);
-            icon.title = resource!.displayName;
+        return this.createAmountDisplay(parentDiv, resource.displayName, amountInMinute, resource.iconPath);
+    }
 
-            let amount = document.createElement("p");
-            amount.classList.add("amount");
-            amount.innerText = `${+this.toItemsInMinute(recipeResource.amount).toPrecision(3)}`;
+    private createAmountDisplay(parentDiv: HTMLDivElement, name: string, amount: number, iconPath: string)
+    {
+        let resourceDiv = document.createElement("div");
+        resourceDiv.classList.add("resource");
 
-            resourceDiv.appendChild(icon);
-            resourceDiv.appendChild(amount);
-            parentDiv.appendChild(resourceDiv);
-        };
+        let icon = this.createHtmlElement("img", "icon") as HTMLImageElement;
+        icon.loading = "lazy";
+        icon.src = satisfactoryIconPath(iconPath);
+        icon.title = name;
+        icon.alt = name;
+
+        let amountText = this.createHtmlElement("p", "amount") as HTMLParagraphElement;
+        amountText.classList.add("amount");
+        amountText.innerText = `${amount}`;
+
+        resourceDiv.appendChild(icon);
+        resourceDiv.appendChild(amountText);
+        parentDiv.appendChild(resourceDiv);
+
+        return amountText;
     }
 
     private toItemsInMinute(amount: number)
@@ -145,7 +190,48 @@ export class NodeResourceDisplay
         return element;
     }
 
+    private updateDisplays(associatedNode: SankeyNode): void
+    {
+        let toFixed = (value: number) => +value.toFixed(2);
+
+        this._machinesAmountDisplay.innerText = `${toFixed(associatedNode.machinesAmount)}`;
+        this._overclockDisplay.innerText = `${toFixed(associatedNode.overclockRatio * 100)}%`;
+
+        for (const inputDisplay of this._inputDisplays)
+        {
+            let amount = inputDisplay.initialAmount
+                * associatedNode.overclockRatio
+                * associatedNode.machinesAmount;
+
+            inputDisplay.htmlElement.innerText = `${toFixed(this.toItemsInMinute(amount))}`;
+        }
+
+        for (const outputDisplay of this._outputDisplays)
+        {
+            let amount = outputDisplay.initialAmount
+                * associatedNode.overclockRatio
+                * associatedNode.machinesAmount;
+
+            outputDisplay.htmlElement.innerText = `${toFixed(this.toItemsInMinute(amount))}`;
+        }
+
+        let overclockedPower = overclockPower(
+            this._machine.powerConsumption,
+            associatedNode.overclockRatio,
+            this._machine.powerConsumptionExponent
+        );
+
+        this._powerDisplay.innerText = `${toFixed(overclockedPower * associatedNode.machinesAmount)} MW`;
+    }
+
     private readonly _recipe: GameRecipe;
+    private readonly _machine: GameMachine;
 
     private readonly _displayContainer: SVGForeignObjectElement;
+
+    private _machinesAmountDisplay!: HTMLParagraphElement;
+    private _overclockDisplay!: HTMLParagraphElement;
+    private _inputDisplays: { htmlElement: HTMLParagraphElement; initialAmount: number; }[] = [];
+    private _outputDisplays: { htmlElement: HTMLParagraphElement; initialAmount: number; }[] = [];
+    private _powerDisplay!: HTMLParagraphElement;
 }
