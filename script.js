@@ -3118,12 +3118,7 @@
     let panContext = (0, import_panzoom.default)(viewport, {
       zoomDoubleClickSpeed: 1,
       // disables double click zoom
-      beforeMouseDown: function() {
-        return !isHoldingCtrl;
-      },
-      beforeWheel: function() {
-        return !isHoldingCtrl;
-      }
+      beforeMouseDown: () => !isHoldingCtrl
     });
     panContext.on("zoom", () => {
       let zoomScale = panContext.getTransform()?.scale ?? 1;
@@ -3194,6 +3189,7 @@
       }
     });
     window.addEventListener("focusout", () => {
+      isHoldingCtrl = false;
       document.querySelector("#container").classList.remove("move");
     });
     let nodeCreationContainer = document.querySelector("div#node-creation-container");
