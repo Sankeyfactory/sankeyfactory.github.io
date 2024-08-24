@@ -2,14 +2,13 @@
   "devDependencies": {
     "@types/node": "^22.2.0",
     "esbuild": "^0.23.0",
-    "gh-pages": "^6.1.1"
-  },
-  "dependencies": {
-    "panzoom": "^9.4.3",
+    "gh-pages": "^6.1.1",
     "typescript": "^5.5.4"
   },
+  "dependencies": {
+    "panzoom": "^9.4.3"
+  },
   "scripts": {
-    "install-deps": "npm install typescript",
     "compile": "npx tsc",
     "build-satisfactory-exporter": "npx esbuild --platform=node src/Tools/SatisfactoryRecipeExporter/Exporter.ts --bundle --sourcemap --outfile=src/Tools/SatisfactoryRecipeExporter/Exporter.js",
     "export-satisfactory-data": "npm run build-satisfactory-exporter && node src/Tools/SatisfactoryRecipeExporter/Exporter.js",

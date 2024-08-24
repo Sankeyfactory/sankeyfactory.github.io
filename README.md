@@ -28,8 +28,8 @@ First of all, you'll need [npm](https://docs.npmjs.com/downloading-and-installin
 Once it is installed, you can use it for the project dependencies:
 
 ```bash
-# This will install typescript compiler project-locally.
-> npm run install-deps
+# This will install all required needed dependencies.
+> npm install
 ```
 
 ### Compile
