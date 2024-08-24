@@ -54,11 +54,11 @@ export class NodeConfiguration extends EventTarget
                 if (this.machinesAmount !== this._openingMachinesAmount
                     || this.overclockRatio !== this._openingOverclockRatio)
                 {
-                    NodeConfiguration._resetButton.classList.remove("disabled");
+                    NodeConfiguration._restoreButton.classList.remove("disabled");
                 }
                 else
                 {
-                    NodeConfiguration._resetButton.classList.add("disabled");
+                    NodeConfiguration._restoreButton.classList.add("disabled");
                 }
             }
         };
@@ -66,7 +66,7 @@ export class NodeConfiguration extends EventTarget
         this.addEventListener(NodeConfiguration.machinesAmountChangedEvent, updateResetButton);
         this.addEventListener(NodeConfiguration.overclockChangedEvent, updateResetButton);
 
-        NodeConfiguration._resetButton.addEventListener("click", () =>
+        NodeConfiguration._restoreButton.addEventListener("click", () =>
         {
             if (this._isOpened)
             {
@@ -128,7 +128,7 @@ export class NodeConfiguration extends EventTarget
 
         // Modal window
 
-        NodeConfiguration._resetButton.classList.add("disabled");
+        NodeConfiguration._restoreButton.classList.add("disabled");
 
         NodeConfiguration._modalContainer.classList.remove("hidden");
 
@@ -372,8 +372,8 @@ export class NodeConfiguration extends EventTarget
     private static readonly _overclockOutputsColumn = NodeConfiguration.getColumn("overclock", "outputs");
     private static readonly _overclockPowerColumn = NodeConfiguration.getColumn("overclock", "power");
 
-    private static readonly _resetButton =
-        NodeConfiguration.queryModalSuccessor(".reset-button") as HTMLDivElement;
+    private static readonly _restoreButton =
+        NodeConfiguration.queryModalSuccessor(".restore-button") as HTMLDivElement;
     private static readonly _applyButton =
         NodeConfiguration.queryModalSuccessor(".apply-button") as HTMLDivElement;
 }
