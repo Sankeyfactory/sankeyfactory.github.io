@@ -222,20 +222,14 @@ div.help {
     fill: #5a81ba;
 }
 
-.node rect.input-slot:nth-child(odd) {
-    fill: #456799;
-}
-
-.node rect.input-slot:nth-child(even) {
-    fill: #8BAADA;
-}
-
-.node rect.output-slot:nth-child(odd) {
-    fill: #8BAADA;
-}
-
+.node rect.input-slot:nth-child(odd),
 .node rect.output-slot:nth-child(even) {
     fill: #456799;
+}
+
+.node rect.input-slot:nth-child(even),
+.node rect.output-slot:nth-child(odd) {
+    fill: #8BAADA;
 }
 
 .node rect.input-slot.missing {
@@ -246,12 +240,18 @@ div.help {
     fill: #9CEF9A;
 }
 
-.node rect.input-slot.missing:hover {
-    fill: #cd4e4e;
+.node rect.input-slot.missing:hover,
+.node rect.output-slot.exceeding:hover {
+    filter: brightness(90%);
 }
 
-.node rect.output-slot.exceeding:hover {
-    fill: #74ce73;
+.node rect.machine:hover,
+.node rect.machine.selected,
+.node rect.input-slot:not(.missing):hover,
+.node rect.output-slot:not(.exceeding):hover,
+.node rect.input-slot.selected:not(.missing),
+.node rect.output-slot.selected:not(.exceeding) {
+    filter: brightness(110%);
 }
 
 /* Recipe display on a node */
@@ -357,7 +357,16 @@ path.link {
     opacity: 0.5;
 }
 
+path.link:hover,
+path.link.selected {
+    filter: brightness(110%);
+}
+
 /* Node link's resource display */
+
+g.links foreignObject.resource-display {
+    pointer-events: none;
+}
 
 g.links foreignObject.resource-display div.container {
     display: flex;

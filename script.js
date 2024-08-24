@@ -1634,6 +1634,92 @@
     return power * Math.pow(overclockRatio, powerExponent);
   }
 
+  // src/ContextMenu/CustomContextMenu.ts
+  var CustomContextMenu = class _CustomContextMenu extends EventTarget {
+    static menuOpenedEvent = "menu-opened";
+    static menuClosedEvent = "menu-closed";
+    /** 
+     * @param name is used to deduce html element id: `${name}-context-menu-container`
+     */
+    constructor(ownerNode, name) {
+      super();
+      this._menuContainer = document.querySelector(`#${name}-context-menu-container`);
+      this._menuContainer.addEventListener("mousedown", () => {
+        this.closeMenu();
+      });
+      this.addMenuTo(ownerNode);
+    }
+    openMenu() {
+      this._isMenuOpened = true;
+      this._menuContainer.classList.remove("hidden");
+      this.dispatchEvent(new Event(_CustomContextMenu.menuOpenedEvent));
+    }
+    closeMenu() {
+      this._isMenuOpened = false;
+      this._menuContainer.classList.add("hidden");
+      this.dispatchEvent(new Event(_CustomContextMenu.menuClosedEvent));
+    }
+    addMenuTo(element) {
+      let contextMenu = document.querySelector(`#${this.containerId}>.context-menu`);
+      element.addEventListener("contextmenu", (event) => {
+        let mouseEvent = event;
+        event.preventDefault();
+        this._openingPosition = { x: mouseEvent.clientX, y: mouseEvent.clientY };
+        contextMenu.style.top = `${mouseEvent.pageY + 5}px`;
+        contextMenu.style.left = `${mouseEvent.pageX + 5}px`;
+        this.openMenu();
+        event.stopPropagation();
+      });
+      this.addEventListener(_CustomContextMenu.menuOpenedEvent, function() {
+        element.classList.add("selected");
+      });
+      this.addEventListener(_CustomContextMenu.menuClosedEvent, function() {
+        element.classList.remove("selected");
+      });
+    }
+    get isMenuOpened() {
+      return this._isMenuOpened;
+    }
+    get openingPosition() {
+      return this._openingPosition;
+    }
+    get containerId() {
+      return this._menuContainer.id;
+    }
+    setupMenuOption(optionNode, eventName) {
+      optionNode.addEventListener("mousedown", (event) => {
+        event.stopPropagation();
+      });
+      optionNode.addEventListener("click", () => {
+        if (this._isMenuOpened) {
+          this.dispatchEvent(new Event(eventName));
+          this.closeMenu();
+        }
+      });
+    }
+    static setSwitchState(switchNode, enabled) {
+      if (enabled) {
+        switchNode.classList.add("enabled");
+      } else {
+        switchNode.classList.remove("enabled");
+      }
+    }
+    _menuContainer;
+    _isMenuOpened = false;
+    _openingPosition;
+  };
+
+  // src/ContextMenu/LinkContextMenu.ts
+  var LinkContextMenu = class _LinkContextMenu extends CustomContextMenu {
+    static deleteLinkOptionClickedEvent = "delete-node-option-clicked";
+    constructor(ownerNode) {
+      super(ownerNode, "link");
+      this._deleteLinkOption = document.querySelector(`#${this.containerId} #delete-link-option`);
+      this.setupMenuOption(this._deleteLinkOption, _LinkContextMenu.deleteLinkOptionClickedEvent);
+    }
+    _deleteLinkOption;
+  };
+
   // src/Sankey/SankeyLink.ts
   var SankeyLink = class _SankeyLink {
     static connect(firstSlot, secondSlot, panContext) {
@@ -1666,6 +1752,31 @@
         amount: firstSlot.resourcesAmount
       });
       this.recalculate();
+      let contextMenu = new LinkContextMenu(this._svgPath);
+      contextMenu.addMenuTo(firstSlot.slotSvgRect);
+      contextMenu.addMenuTo(secondSlot.slotSvgRect);
+      contextMenu.addEventListener(LinkContextMenu.deleteLinkOptionClickedEvent, () => {
+        firstSlot.delete();
+      });
+      let setSelection = (select) => {
+        if (!contextMenu.isMenuOpened) {
+          if (select) {
+            this._svgPath.classList.add("selected");
+            firstSlot.slotSvgRect.classList.add("selected");
+            secondSlot.slotSvgRect.classList.add("selected");
+          } else {
+            this._svgPath.classList.remove("selected");
+            firstSlot.slotSvgRect.classList.remove("selected");
+            secondSlot.slotSvgRect.classList.remove("selected");
+          }
+        }
+      };
+      firstSlot.slotSvgRect.addEventListener("mouseenter", () => setSelection(true));
+      secondSlot.slotSvgRect.addEventListener("mouseenter", () => setSelection(true));
+      this._svgPath.addEventListener("mouseenter", () => setSelection(true));
+      firstSlot.slotSvgRect.addEventListener("mouseleave", () => setSelection(false));
+      secondSlot.slotSvgRect.addEventListener("mouseleave", () => setSelection(false));
+      this._svgPath.addEventListener("mouseleave", () => setSelection(false));
     }
     recalculate() {
       let first = Rectangle.fromSvgBounds(this._firstSlot.slotSvgRect, this._panContext);
@@ -2074,71 +2185,6 @@
     _lastSlot;
     _groupSvg;
     _parentNode;
-  };
-
-  // src/ContextMenu/CustomContextMenu.ts
-  var CustomContextMenu = class extends EventTarget {
-    /** 
-     * @param name is used to deduce html element id: `${name}-context-menu-container`
-     */
-    constructor(ownerNode, name) {
-      super();
-      this._menuContainer = document.querySelector(`#${name}-context-menu-container`);
-      this._menuContainer.addEventListener("mousedown", () => {
-        this.closeMenu();
-      });
-      this.addMenuTo(ownerNode);
-    }
-    openMenu() {
-      this._isMenuOpened = true;
-      this._menuContainer.classList.remove("hidden");
-    }
-    closeMenu() {
-      this._isMenuOpened = false;
-      this._menuContainer.classList.add("hidden");
-    }
-    addMenuTo(node) {
-      let contextMenu = document.querySelector(`#${this.containerId}>.context-menu`);
-      node.addEventListener("contextmenu", (event) => {
-        let mouseEvent = event;
-        event.preventDefault();
-        this._openingPosition = { x: mouseEvent.clientX, y: mouseEvent.clientY };
-        contextMenu.style.top = `${mouseEvent.pageY + 5}px`;
-        contextMenu.style.left = `${mouseEvent.pageX + 5}px`;
-        this.openMenu();
-        event.stopPropagation();
-      });
-    }
-    get isMenuOpened() {
-      return this._isMenuOpened;
-    }
-    get openingPosition() {
-      return this._openingPosition;
-    }
-    get containerId() {
-      return this._menuContainer.id;
-    }
-    setupMenuOption(optionNode, eventName) {
-      optionNode.addEventListener("mousedown", (event) => {
-        event.stopPropagation();
-      });
-      optionNode.addEventListener("click", () => {
-        if (this._isMenuOpened) {
-          this.dispatchEvent(new Event(eventName));
-          this.closeMenu();
-        }
-      });
-    }
-    static setSwitchState(switchNode, enabled) {
-      if (enabled) {
-        switchNode.classList.add("enabled");
-      } else {
-        switchNode.classList.remove("enabled");
-      }
-    }
-    _menuContainer;
-    _isMenuOpened = false;
-    _openingPosition;
   };
 
   // src/ContextMenu/NodeContextMenu.ts
