@@ -5,7 +5,7 @@ import panzoom from "panzoom";
 import satisfactoryData from '../dist/GameData/Satisfactory.json';
 
 import { SankeyNode } from "./Sankey/SankeyNode";
-import { Point } from "./Point";
+import { Point } from "./Geometry/Point";
 import { MouseHandler } from "./MouseHandler";
 import { GameRecipe, GameRecipeEvent } from "./GameData/GameRecipe";
 import { GameMachine } from "./GameData/GameMachine";

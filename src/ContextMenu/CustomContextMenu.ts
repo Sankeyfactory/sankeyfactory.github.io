@@ -1,4 +1,4 @@
-import { Point } from "../Point";
+import { Point } from "../Geometry/Point";
 
 export abstract class CustomContextMenu extends EventTarget
 {

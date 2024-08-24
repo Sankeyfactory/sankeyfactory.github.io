@@ -1,4 +1,4 @@
-import { Point } from "../Point";
+import { Point } from "../Geometry/Point";
 import { SankeySlot } from "./Slots/SankeySlot";
 import { SlotsGroup, SlotsGroupType } from "./SlotsGroup";
 import { SvgFactory } from "../SVG/SvgFactory";

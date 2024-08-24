@@ -1,5 +1,5 @@
-import { Point } from "../Point";
-import { Rectangle } from "../Rectangle";
+import { Point } from "../Geometry/Point";
+import { Rectangle } from "../Geometry/Rectangle";
 
 export abstract class SvgFactory
 {

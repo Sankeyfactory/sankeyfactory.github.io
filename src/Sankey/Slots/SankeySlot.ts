@@ -1,4 +1,4 @@
-import { Rectangle } from "../../Rectangle";
+import { Rectangle } from "../../Geometry/Rectangle";
 import { SvgFactory } from "../../SVG/SvgFactory";
 import { SlotsGroup } from "../SlotsGroup";
 

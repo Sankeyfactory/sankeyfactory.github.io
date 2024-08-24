@@ -1,12 +1,12 @@
 import { PanZoom } from "panzoom";
-import { Point } from "./Point";
+import { Point } from "./Geometry/Point";
 import { SankeyNode } from "./Sankey/SankeyNode";
 import { SvgFactory } from "./SVG/SvgFactory";
-import { Rectangle } from "./Rectangle";
+import { Rectangle } from "./Geometry/Rectangle";
 import { SankeyLink } from "./Sankey/SankeyLink";
 import { SankeySlotMissing } from "./Sankey/Slots/SankeySlotMissing";
 import { SankeySlotExceeding } from "./Sankey/Slots/SankeySlotExceeding";
-import { Curve } from "./Curve";
+import { Curve } from "./Geometry/Curve";
 import { SvgPathBuilder } from "./SVG/SvgPathBuilder";
 
 export class MouseHandler

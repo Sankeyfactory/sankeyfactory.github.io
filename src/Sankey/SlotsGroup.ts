@@ -1,4 +1,4 @@
-import { Point } from "../Point";
+import { Point } from "../Geometry/Point";
 import { SankeyNode } from "./SankeyNode";
 import { SankeySlot } from "./Slots/SankeySlot";
 import { SankeySlotExceeding } from "./Slots/SankeySlotExceeding";

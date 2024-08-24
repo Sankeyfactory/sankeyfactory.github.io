@@ -3,12 +3,12 @@
 import satisfactoryData from '../../dist/GameData/Satisfactory.json';
 
 import { PanZoom } from "panzoom";
-import { Curve } from "../Curve";
-import { Rectangle } from "../Rectangle";
+import { Curve } from "../Geometry/Curve";
+import { Rectangle } from "../Geometry/Rectangle";
 import { SvgFactory } from "../SVG/SvgFactory";
 import { SvgPathBuilder } from "../SVG/SvgPathBuilder";
 import { SankeySlot } from "./Slots/SankeySlot";
-import { Point } from '../Point';
+import { Point } from '../Geometry/Point';
 import { satisfactoryIconPath } from '../GameData/GameData';
 
 export class SankeyLink

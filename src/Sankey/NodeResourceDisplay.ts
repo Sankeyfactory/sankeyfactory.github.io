@@ -3,7 +3,7 @@
 import satisfactoryData from '../../dist/GameData/Satisfactory.json';
 
 import { GameRecipe } from "../GameData/GameRecipe";
-import { Rectangle } from "../Rectangle";
+import { Rectangle } from "../Geometry/Rectangle";
 import { SvgFactory } from "../SVG/SvgFactory";
 import { overclockPower, satisfactoryIconPath, toItemsInMinute } from '../GameData/GameData';
 import { GameMachine } from '../GameData/GameMachine';
