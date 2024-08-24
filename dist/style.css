@@ -1057,11 +1057,11 @@ div#resources-summary div.content {
 }
 
 #resources-summary .content .inputs div.title {
-    color: var(--exceeding);
+    color: var(--missing);
 }
 
 #resources-summary .content .outputs div.title {
-    color: var(--missing);
+    color: var(--exceeding);
 }
 
 #resources-summary .content div.resource {
