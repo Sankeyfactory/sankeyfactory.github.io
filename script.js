@@ -2071,6 +2071,7 @@
   // src/Sankey/SlotsGroup.ts
   var SlotsGroup = class _SlotsGroup extends EventTarget {
     static boundsChangedEvent = "bounds-changed";
+    static changedVacantResourcesAmountEvent = "changed-vacant-resources-amount";
     constructor(node, type, resource, startY) {
       super();
       this._type = type;
@@ -2133,6 +2134,9 @@
     get resourcesAmount() {
       return this._resource.amount;
     }
+    get vacantResourcesAmount() {
+      return this._lastSlot.resourcesAmount;
+    }
     set resourcesAmount(value) {
       let subtractedResources = this._resource.amount - value;
       if (subtractedResources > 0) {
@@ -2153,6 +2157,7 @@
       }
       this._resource.amount = value;
       this.updateSlotPositions();
+      this.dispatchEvent(new Event(_SlotsGroup.changedVacantResourcesAmountEvent));
     }
     get resourceId() {
       return this._resource.id;
@@ -2168,6 +2173,7 @@
       }
       this._lastSlot.setYPosition(nextYPosition);
       this._lastSlot.resourcesAmount = freeResourcesAmount;
+      this.dispatchEvent(new Event(_SlotsGroup.changedVacantResourcesAmountEvent));
     }
     /** Should be called only once. */
     initializeLastSlot(resource) {
@@ -2724,6 +2730,8 @@
   // src/Sankey/SankeyNode.ts
   var SankeyNode = class _SankeyNode extends EventTarget {
     static resourcesAmountChangedEvent = "resources-amount-changed";
+    static changedVacantResourcesAmountEvent = "changed-vacant-resources-amount";
+    static deletionEvent = "deleted";
     nodeSvg;
     nodeSvgGroup;
     static nodeWidth = 70;
@@ -2766,6 +2774,7 @@
         slotsGroup.delete();
       }
       this.nodeSvgGroup.remove();
+      this.dispatchEvent(new Event(_SankeyNode.deletionEvent));
     }
     get position() {
       let transform = this.nodeSvgGroup.getAttribute("transform") ?? "translate(0, 0)";
@@ -2785,6 +2794,26 @@
     }
     get height() {
       return this._height;
+    }
+    get missingResources() {
+      let result = [];
+      for (const slotsGroup of this._inputSlotGroups) {
+        let amount = slotsGroup.vacantResourcesAmount;
+        if (amount > 0) {
+          result.push({ amount, id: slotsGroup.resourceId });
+        }
+      }
+      return result;
+    }
+    get exceedingResources() {
+      let result = [];
+      for (const slotsGroup of this._outputSlotGroups) {
+        let amount = slotsGroup.vacantResourcesAmount;
+        if (amount > 0) {
+          result.push({ amount, id: slotsGroup.resourceId });
+        }
+      }
+      return result;
     }
     get inputResourcesAmount() {
       return this._inputResourcesAmount;
@@ -2829,6 +2858,10 @@
         );
         result.push(newGroup);
         nextGroupY += newGroup.height;
+        newGroup.addEventListener(
+          SlotsGroup.changedVacantResourcesAmountEvent,
+          () => this.dispatchEvent(new Event(_SankeyNode.changedVacantResourcesAmountEvent))
+        );
       }
       return result;
     }
@@ -2939,27 +2972,136 @@
     constructor() {
       _ResourcesSummary._collapseButton.addEventListener("click", () => {
         if (this._isCollapsed) {
-          _ResourcesSummary._summaryContainer.classList.remove("collapsed");
-          _ResourcesSummary._summaryContainer.style.top = "0";
+          this.open();
         } else {
-          _ResourcesSummary._summaryContainer.classList.add("collapsed");
-          let contentHeight = _ResourcesSummary.querySuccessor(".content").clientHeight;
-          console.log(contentHeight);
-          _ResourcesSummary._summaryContainer.style.top = `${-contentHeight}px`;
+          this.close();
         }
-        this._isCollapsed = !this._isCollapsed;
+      });
+      this.recalculateInputs();
+      this.recalculateOutputs();
+    }
+    registerNode(node) {
+      this._nodes.push(node);
+      this.recalculateInputs();
+      this.recalculateOutputs();
+      node.addEventListener(SankeyNode.changedVacantResourcesAmountEvent, () => {
+        this.recalculateInputs();
+        this.recalculateOutputs();
+      });
+      node.addEventListener(SankeyNode.deletionEvent, () => {
+        let index = this._nodes.findIndex((registeredNode) => Object.is(node, registeredNode));
+        this._nodes.splice(index, 1);
+        this.recalculateInputs();
+        this.recalculateOutputs();
       });
     }
+    recalculateInputs() {
+      _ResourcesSummary._inputsColumn.querySelectorAll(".resource").forEach((resource) => {
+        resource.remove();
+      });
+      let isAnyAdded = false;
+      for (const node of this._nodes) {
+        for (const resource of node.missingResources) {
+          _ResourcesSummary._inputsColumn.appendChild(
+            this.createResourceDisplay(resource.id, resource.amount)
+          );
+          isAnyAdded = true;
+        }
+      }
+      if (!isAnyAdded) {
+        let noneText = document.createElement("div");
+        noneText.classList.add("resource", "none");
+        noneText.innerText = "None";
+        _ResourcesSummary._inputsColumn.appendChild(noneText);
+      }
+      if (this._isCollapsed) {
+        _ResourcesSummary.setCollapsingAnimationEnabled(false);
+        this.hideContent();
+        _ResourcesSummary.setCollapsingAnimationEnabled(true);
+      }
+    }
+    recalculateOutputs() {
+      _ResourcesSummary._outputsColumn.querySelectorAll(".resource").forEach((resource) => {
+        resource.remove();
+      });
+      let isAnyAdded = false;
+      for (const node of this._nodes) {
+        for (const resource of node.exceedingResources) {
+          _ResourcesSummary._outputsColumn.appendChild(
+            this.createResourceDisplay(resource.id, resource.amount)
+          );
+          isAnyAdded = true;
+        }
+      }
+      if (!isAnyAdded) {
+        let noneText = document.createElement("div");
+        noneText.classList.add("resource", "none");
+        noneText.innerText = "None";
+        _ResourcesSummary._outputsColumn.appendChild(noneText);
+      }
+      if (this._isCollapsed) {
+        _ResourcesSummary.setCollapsingAnimationEnabled(false);
+        this.hideContent();
+        _ResourcesSummary.setCollapsingAnimationEnabled(true);
+      }
+    }
+    open() {
+      _ResourcesSummary._summaryContainer.classList.remove("collapsed");
+      _ResourcesSummary._summaryContainer.style.top = "0";
+      this._isCollapsed = false;
+    }
+    close() {
+      _ResourcesSummary._summaryContainer.classList.add("collapsed");
+      this.hideContent();
+      this._isCollapsed = true;
+    }
+    hideContent() {
+      let contentHeight = _ResourcesSummary.querySuccessor(".content").clientHeight;
+      _ResourcesSummary._summaryContainer.style.top = `${-contentHeight}px`;
+    }
+    createResourceDisplay(id, amount) {
+      let resource = Satisfactory_default.resources.find(
+        // I specify type because deploy fails otherwise for some reason.
+        (resource2) => {
+          return resource2.id == id;
+        }
+      );
+      if (resource == void 0) {
+        throw Error(`Couldn't find resource ${id}`);
+      }
+      let resourceDisplay = document.createElement("div");
+      resourceDisplay.classList.add("resource");
+      let icon = document.createElement("img");
+      icon.classList.add("icon");
+      icon.src = satisfactoryIconPath(resource.iconPath);
+      icon.title = resource.displayName;
+      icon.alt = resource.displayName;
+      let amountDisplay = document.createElement("div");
+      amountDisplay.classList.add("amount");
+      amountDisplay.innerText = `${amount}`;
+      resourceDisplay.appendChild(icon);
+      resourceDisplay.appendChild(amountDisplay);
+      return resourceDisplay;
+    }
     static querySuccessor(query) {
-      let fullQuery = `#${_ResourcesSummary._summaryContainer.id} ${query}`;
-      let element = document.querySelector(fullQuery);
+      let element = _ResourcesSummary._summaryContainer.querySelector(`${query}`);
       if (element == null) {
-        throw Error(`Couldn't find required element: ${fullQuery}`);
+        throw Error(`Couldn't find required element: ${query} of summary container`);
       }
       return element;
     }
+    static setCollapsingAnimationEnabled(enabled) {
+      if (enabled) {
+        _ResourcesSummary._summaryContainer.classList.add("animate-collapsing");
+      } else {
+        _ResourcesSummary._summaryContainer.classList.remove("animate-collapsing");
+      }
+    }
     _isCollapsed = false;
+    _nodes = [];
     static _summaryContainer = document.querySelector("#resources-summary");
+    static _inputsColumn = _ResourcesSummary.querySuccessor(".column.inputs");
+    static _outputsColumn = _ResourcesSummary.querySuccessor(".column.outputs");
     static _collapseButton = _ResourcesSummary.querySuccessor(".collapse-button");
   };
 
@@ -2989,7 +3131,7 @@
     });
     Settings.instance.setPanContext(panContext);
     MouseHandler.getInstance().setPanContext(panContext);
-    let _ = new ResourcesSummary();
+    let resourcesSummary = new ResourcesSummary();
     let nodeCreationPosition;
     function createNode(recipe, machine) {
       const node = new SankeyNode(nodesGroup, nodeCreationPosition, recipe, machine);
@@ -2998,6 +3140,7 @@
           MouseHandler.getInstance().startDraggingNode(event, node);
         }
       };
+      resourcesSummary.registerNode(node);
     }
     ;
     function openNodeCreation(nodePosition) {
