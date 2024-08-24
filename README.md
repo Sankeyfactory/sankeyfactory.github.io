@@ -28,7 +28,7 @@ First of all, you'll need [npm](https://docs.npmjs.com/downloading-and-installin
 Once it is installed, you can use it for the project dependencies:
 
 ```bash
-# This will install all required needed dependencies.
+# This will install all required dependencies.
 > npm install
 ```
 
@@ -38,6 +38,17 @@ Once it is installed, you can use it for the project dependencies:
 # Runs typescript compiler to check validity of the code.
 > npm run compile
 ```
+
+### Building web application
+
+```bash
+# Builds application's TypeScript code to runnable by browsers JavaScript.
+> npm run build-app
+```
+
+Once the web application is built, it can be viewed in browser by opening `dist/index.html` file. It doesn't need a server to run.
+
+> Note that already built files can also be found in `gh-pages` branch of this repository.
 
 ### Generating Satisfactory data files
 
@@ -61,17 +72,6 @@ Once you have the icons, they can be automatically copied and renamed by a tool 
 
 > Note: RESOURCES_DIR is a environment variable and it can only be set this way on UNIX systems.
 > If you're using Windows, setting the environment variable should be performed another way.
-
-### Building web application
-
-```bash
-# Builds application's TypeScript code to runnable by browsers JavaScript.
-> npm run build-app
-```
-
-Once the web application is built, it can be viewed in browser by opening `dist/index.html` file. It doesn't need a server to run.
-
-> Note that already built files can also be found in `gh-pages` branch of this repository.
 
 ## Extracting the game files
 
