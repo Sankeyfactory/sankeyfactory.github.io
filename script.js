@@ -1649,7 +1649,7 @@
       let pushResourcesAmount = (from, to) => {
         if (to.resourcesAmount >= from.resourcesAmount) {
           to.resourcesAmount = from.resourcesAmount;
-          this._resourceAmountDisplay.innerText = `${+to.resourcesAmount.toFixed(4)}`;
+          this._resourceAmountDisplay.innerText = `${+to.resourcesAmount.toFixed(4)}/min`;
         } else {
           throw Error("Increasing link's resources amount not yet implemented.");
         }
