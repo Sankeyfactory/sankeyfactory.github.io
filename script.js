@@ -1630,6 +1630,9 @@
   function toItemsInMinute(amount, consumingTime) {
     return 60 / consumingTime * amount;
   }
+  function overclockPower(power, overclockRatio, powerExponent) {
+    return power * Math.pow(overclockRatio, powerExponent);
+  }
 
   // src/Sankey/SankeyLink.ts
   var SankeyLink = class _SankeyLink {
@@ -2448,7 +2451,7 @@
         this._overclockConfigurators.outputsConfigurators
       ));
       let overclockedPower = (power, overclockRatio) => {
-        return power * Math.pow(overclockRatio, machine.powerConsumptionExponent);
+        return overclockPower(power, overclockRatio, machine.powerConsumptionExponent);
       };
       let overclockFromPower = (power) => {
         return Math.pow(power / machine.powerConsumption, 1 / machine.powerConsumptionExponent);
@@ -2524,15 +2527,20 @@
 
   // src/Sankey/NodeResourceDisplay.ts
   var NodeResourceDisplay = class {
-    constructor(recipe, machine) {
+    constructor(associatedNode, recipe, machine) {
       this._recipe = recipe;
+      this._machine = machine;
       this._displayContainer = SvgFactory.createSvgForeignObject();
       let recipeContainer = this.createHtmlElement("div", "recipe-container");
       this.createMachineDisplay(recipeContainer, machine);
+      this.createOverclockDisplay(recipeContainer);
       this.createInputsDisplay(recipeContainer, recipe);
       this.createOutputsDisplay(recipeContainer, recipe);
       this.createPowerDisplay(recipeContainer, machine.powerConsumption);
       this._displayContainer.appendChild(recipeContainer);
+      associatedNode.addEventListener(SankeyNode.resourcesAmountChangedEvent, () => {
+        this.updateDisplays(associatedNode);
+      });
     }
     setBounds(bounds) {
       this._displayContainer.setAttribute("x", `${bounds.x}`);
@@ -2546,15 +2554,14 @@
     createMachineDisplay(parent, machine) {
       let machineDisplay = this.createHtmlElement("div", "property");
       let title = this.createHtmlElement("div", "title");
-      let value = this.createHtmlElement("div", "machine");
-      let machineIcon = this.createHtmlElement("img", "icon");
-      title.innerText = "Machine";
-      machineIcon.src = satisfactoryIconPath(machine.iconPath);
-      machineIcon.title = machine.displayName;
-      machineIcon.alt = machine.displayName;
-      value.appendChild(machineIcon);
+      title.innerText = "Machines";
       machineDisplay.appendChild(title);
-      machineDisplay.appendChild(value);
+      this._machinesAmountDisplay = this.createAmountDisplay(
+        machineDisplay,
+        machine.displayName,
+        1,
+        machine.iconPath
+      );
       parent.appendChild(machineDisplay);
     }
     createInputsDisplay(parent, recipe) {
@@ -2562,7 +2569,12 @@
       let title = this.createHtmlElement("div", "title");
       title.innerText = "Input/min";
       inputsDisplay.appendChild(title);
-      recipe.ingredients.forEach(this.createResourceDisplay(inputsDisplay));
+      recipe.ingredients.forEach((resource) => {
+        this._inputDisplays.push({
+          htmlElement: this.createResourceDisplay(inputsDisplay, resource),
+          initialAmount: resource.amount
+        });
+      });
       parent.appendChild(inputsDisplay);
     }
     createOutputsDisplay(parent, recipe) {
@@ -2570,41 +2582,61 @@
       let title = this.createHtmlElement("div", "title");
       title.innerText = "Output/min";
       outputsDisplay.appendChild(title);
-      recipe.products.forEach(this.createResourceDisplay(outputsDisplay));
+      recipe.products.forEach((resource) => {
+        this._outputDisplays.push({
+          htmlElement: this.createResourceDisplay(outputsDisplay, resource),
+          initialAmount: resource.amount
+        });
+      });
       parent.appendChild(outputsDisplay);
     }
     createPowerDisplay(parent, powerConsumption) {
       let powerDisplay = this.createHtmlElement("div", "property");
       let title = this.createHtmlElement("div", "title");
-      let text = this.createHtmlElement("div", "text");
       title.innerText = "Power";
+      this._powerDisplay = this.createHtmlElement("div", "text");
+      this._powerDisplay.innerText = `${powerConsumption} MW`;
       powerDisplay.appendChild(title);
-      powerDisplay.appendChild(text);
-      text.innerText = `${powerConsumption} MW`;
+      powerDisplay.appendChild(this._powerDisplay);
       parent.appendChild(powerDisplay);
     }
-    createResourceDisplay(parentDiv) {
-      return (recipeResource) => {
-        let resource = Satisfactory_default.resources.find(
-          (el) => {
-            return el.id === recipeResource.id;
-          }
-        );
-        let resourceDiv = document.createElement("div");
-        resourceDiv.classList.add("resource");
-        let icon = document.createElement("img");
-        icon.classList.add("icon");
-        icon.loading = "lazy";
-        icon.alt = resource.displayName;
-        icon.src = satisfactoryIconPath(resource.iconPath);
-        icon.title = resource.displayName;
-        let amount = document.createElement("p");
-        amount.classList.add("amount");
-        amount.innerText = `${+this.toItemsInMinute(recipeResource.amount).toPrecision(3)}`;
-        resourceDiv.appendChild(icon);
-        resourceDiv.appendChild(amount);
-        parentDiv.appendChild(resourceDiv);
-      };
+    createOverclockDisplay(parent) {
+      let overclockDisplay = this.createHtmlElement("div", "property");
+      let title = this.createHtmlElement("div", "title");
+      title.innerText = "Overclock";
+      this._overclockDisplay = this.createHtmlElement("div", "text");
+      this._overclockDisplay.innerText = `100%`;
+      overclockDisplay.appendChild(title);
+      overclockDisplay.appendChild(this._overclockDisplay);
+      parent.appendChild(overclockDisplay);
+    }
+    createResourceDisplay(parentDiv, recipeResource) {
+      let resource = Satisfactory_default.resources.find(
+        (el) => {
+          return el.id === recipeResource.id;
+        }
+      );
+      if (resource == void 0) {
+        throw Error(`Couldn't find resource ${recipeResource.id}`);
+      }
+      let amountInMinute = +this.toItemsInMinute(recipeResource.amount).toFixed(4);
+      return this.createAmountDisplay(parentDiv, resource.displayName, amountInMinute, resource.iconPath);
+    }
+    createAmountDisplay(parentDiv, name, amount, iconPath) {
+      let resourceDiv = document.createElement("div");
+      resourceDiv.classList.add("resource");
+      let icon = this.createHtmlElement("img", "icon");
+      icon.loading = "lazy";
+      icon.src = satisfactoryIconPath(iconPath);
+      icon.title = name;
+      icon.alt = name;
+      let amountText = this.createHtmlElement("p", "amount");
+      amountText.classList.add("amount");
+      amountText.innerText = `${amount}`;
+      resourceDiv.appendChild(icon);
+      resourceDiv.appendChild(amountText);
+      parentDiv.appendChild(resourceDiv);
+      return amountText;
     }
     toItemsInMinute(amount) {
       return toItemsInMinute(amount, this._recipe.manufacturingDuration);
@@ -2614,16 +2646,43 @@
       element.classList.add(...classes);
       return element;
     }
+    updateDisplays(associatedNode) {
+      let toFixed = (value) => +value.toFixed(2);
+      this._machinesAmountDisplay.innerText = `${toFixed(associatedNode.machinesAmount)}`;
+      this._overclockDisplay.innerText = `${toFixed(associatedNode.overclockRatio * 100)}%`;
+      for (const inputDisplay of this._inputDisplays) {
+        let amount = inputDisplay.initialAmount * associatedNode.overclockRatio * associatedNode.machinesAmount;
+        inputDisplay.htmlElement.innerText = `${toFixed(this.toItemsInMinute(amount))}`;
+      }
+      for (const outputDisplay of this._outputDisplays) {
+        let amount = outputDisplay.initialAmount * associatedNode.overclockRatio * associatedNode.machinesAmount;
+        outputDisplay.htmlElement.innerText = `${toFixed(this.toItemsInMinute(amount))}`;
+      }
+      let overclockedPower = overclockPower(
+        this._machine.powerConsumption,
+        associatedNode.overclockRatio,
+        this._machine.powerConsumptionExponent
+      );
+      this._powerDisplay.innerText = `${toFixed(overclockedPower * associatedNode.machinesAmount)} MW`;
+    }
     _recipe;
+    _machine;
     _displayContainer;
+    _machinesAmountDisplay;
+    _overclockDisplay;
+    _inputDisplays = [];
+    _outputDisplays = [];
+    _powerDisplay;
   };
 
   // src/Sankey/SankeyNode.ts
-  var SankeyNode = class _SankeyNode {
+  var SankeyNode = class _SankeyNode extends EventTarget {
+    static resourcesAmountChangedEvent = "resources-amount-changed";
     nodeSvg;
     nodeSvgGroup;
-    static nodeWidth = 60;
+    static nodeWidth = 70;
     constructor(parentGroup, position, recipe, machine) {
+      super();
       this._recipe = { ...recipe };
       this._height = _SankeyNode._nodeHeight;
       let sumResources = (sum, product) => sum + this.toItemsInMinute(product.amount);
@@ -2642,7 +2701,7 @@
       this._inputSlotGroups = this.createGroups("input", recipe.ingredients);
       this._outputSlotGroups = this.createGroups("output", recipe.products);
       this.configureContextMenu(recipe, machine);
-      this._resourceDisplay = new NodeResourceDisplay(recipe, machine);
+      this._resourceDisplay = new NodeResourceDisplay(this, recipe, machine);
       this._resourceDisplay.setBounds({
         x: 10,
         y: 0,
@@ -2686,12 +2745,14 @@
     }
     set inputResourcesAmount(inputResourcesAmount) {
       this._inputResourcesAmount = inputResourcesAmount;
+      this.dispatchEvent(new Event(_SankeyNode.resourcesAmountChangedEvent));
     }
     get outputResourcesAmount() {
       return this._outputResourcesAmount;
     }
     set outputResourcesAmount(outputResourcesAmount) {
       this._outputResourcesAmount = outputResourcesAmount;
+      this.dispatchEvent(new Event(_SankeyNode.resourcesAmountChangedEvent));
     }
     configureContextMenu(recipe, machine) {
       let nodeContextMenu = new NodeContextMenu(this.nodeSvg);
@@ -2742,15 +2803,17 @@
       return this._machinesAmount;
     }
     set machinesAmount(value) {
-      this.multiplyResourcesAmount(value / this._machinesAmount);
+      let difference = value / this._machinesAmount;
       this._machinesAmount = value;
+      this.multiplyResourcesAmount(difference);
     }
     get overclockRatio() {
       return this._overclockRatio;
     }
     set overclockRatio(value) {
-      this.multiplyResourcesAmount(value / this._overclockRatio);
+      let difference = value / this._overclockRatio;
       this._overclockRatio = value;
+      this.multiplyResourcesAmount(difference);
     }
     _recipe;
     _inputResourcesAmount;
@@ -2761,7 +2824,7 @@
     _inputSlotGroups = [];
     _outputSlotGroups = [];
     _resourceDisplay;
-    static _nodeHeight = 260;
+    static _nodeHeight = 280;
   };
 
   // src/GameData/GameRecipe.ts
