@@ -1531,7 +1531,7 @@
     _parentGroup;
   };
 
-  // src/Point.ts
+  // src/Geometry/Point.ts
   var Point = class {
     constructor(x, y) {
       this.x = x;
@@ -1546,7 +1546,7 @@
     }
   };
 
-  // src/Curve.ts
+  // src/Geometry/Curve.ts
   var Curve = class {
     startPoint = { x: 0, y: 0 };
     startDeviationPoint = { x: 0, y: 0 };
@@ -1568,7 +1568,7 @@
     }
   };
 
-  // src/Rectangle.ts
+  // src/Geometry/Rectangle.ts
   var Rectangle = class _Rectangle {
     constructor(x, y, width, height) {
       this.x = x;
@@ -2346,15 +2346,15 @@
       let updateResetButton = () => {
         if (this._isOpened) {
           if (this.machinesAmount !== this._openingMachinesAmount || this.overclockRatio !== this._openingOverclockRatio) {
-            _NodeConfiguration._resetButton.classList.remove("disabled");
+            _NodeConfiguration._restoreButton.classList.remove("disabled");
           } else {
-            _NodeConfiguration._resetButton.classList.add("disabled");
+            _NodeConfiguration._restoreButton.classList.add("disabled");
           }
         }
       };
       this.addEventListener(_NodeConfiguration.machinesAmountChangedEvent, updateResetButton);
       this.addEventListener(_NodeConfiguration.overclockChangedEvent, updateResetButton);
-      _NodeConfiguration._resetButton.addEventListener("click", () => {
+      _NodeConfiguration._restoreButton.addEventListener("click", () => {
         if (this._isOpened) {
           this.machinesAmount = this._openingMachinesAmount;
           this.overclockRatio = this._openingOverclockRatio;
@@ -2391,7 +2391,7 @@
       _NodeConfiguration._overclockPowerColumn.appendChild(
         this._overclockConfigurators.powerConfigurator
       );
-      _NodeConfiguration._resetButton.classList.add("disabled");
+      _NodeConfiguration._restoreButton.classList.add("disabled");
       _NodeConfiguration._modalContainer.classList.remove("hidden");
       this._isOpened = true;
     }
@@ -2521,7 +2521,7 @@
     static _overclockInputsColumn = _NodeConfiguration.getColumn("overclock", "inputs");
     static _overclockOutputsColumn = _NodeConfiguration.getColumn("overclock", "outputs");
     static _overclockPowerColumn = _NodeConfiguration.getColumn("overclock", "power");
-    static _resetButton = _NodeConfiguration.queryModalSuccessor(".reset-button");
+    static _restoreButton = _NodeConfiguration.queryModalSuccessor(".restore-button");
     static _applyButton = _NodeConfiguration.queryModalSuccessor(".apply-button");
   };
 
