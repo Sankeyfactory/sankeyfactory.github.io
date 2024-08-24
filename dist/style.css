@@ -26,6 +26,9 @@
     --disabled-button-background: #434343;
     --disabled-button-foreground: #7E7E7E;
     --disabled-button-border: #545454;
+
+    --missing: #FF6363;
+    --exceeding: #9CEF9A;
 }
 
 @font-face {
@@ -233,11 +236,11 @@ div.help {
 }
 
 .node rect.input-slot.missing {
-    fill: #FF6363;
+    fill: var(--missing);
 }
 
 .node rect.output-slot.exceeding {
-    fill: #9CEF9A;
+    fill: var(--exceeding);
 }
 
 .node rect.input-slot.missing:hover,
@@ -340,11 +343,11 @@ path.link-hint {
 }
 
 path.link-hint.from-input {
-    stroke: #FF6363;
+    fill: var(--missing);
 }
 
 path.link-hint.from-output {
-    stroke: #9CEF9A;
+    fill: var(--exceeding);
 }
 
 path.link {
@@ -1001,4 +1004,96 @@ div.context-menu {
     padding: 12px;
 
     border-radius: 8px;
+}
+
+/* Resources summary */
+
+div#resources-summary {
+    display: flex;
+    flex-direction: column;
+
+    position: absolute;
+    left: 0;
+    top: 0;
+
+    width: 360px;
+
+    transition-property: top;
+    transition-duration: 0.3s;
+    transition-timing-function: ease-in-out;
+}
+
+div#resources-summary div.content {
+    display: flex;
+
+    padding: 20px;
+    gap: 20px;
+
+    background-color: var(--background-lv0);
+    border-right: 2px solid var(--border);
+}
+
+#resources-summary .content div.column {
+    display: flex;
+    flex-direction: column;
+
+    flex-grow: 1;
+
+    gap: 12px;
+}
+
+#resources-summary .content .column>div {
+    display: flex;
+    align-items: center;
+
+    height: 24px;
+}
+
+#resources-summary .content .column div.title {
+    font-weight: 500;
+}
+
+#resources-summary .content .inputs div.title {
+    color: var(--exceeding);
+}
+
+#resources-summary .content .outputs div.title {
+    color: var(--missing);
+}
+
+#resources-summary .content div.resource {
+    gap: 8px;
+}
+
+#resources-summary .resource img {
+    width: 24px;
+    height: 24px;
+}
+
+#resources-summary div.collapse-button {
+    display: flex;
+
+    gap: 4px;
+
+    padding-right: 36px;
+
+    border-bottom-right-radius: 8px;
+}
+
+#resources-summary .collapse-button svg {
+    width: 36px;
+    height: 36px;
+    fill: var(--foreground);
+}
+
+#resources-summary.collapsed .collapse-button svg {
+    scale: 1 -1;
+}
+
+#resources-summary.collapsed .collapse-button div.text.when-expanded {
+    display: none;
+}
+
+#resources-summary:not(.collapsed) .collapse-button div.text.when-collapsed {
+    display: none;
 }

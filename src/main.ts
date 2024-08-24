@@ -12,6 +12,7 @@ import { GameMachine } from "./GameData/GameMachine";
 import { Settings } from "./Settings";
 import { CanvasContextMenu } from "./ContextMenu/CanvasContextMenu";
 import { satisfactoryIconPath } from "./GameData/GameData";
+import { ResourcesSummary } from "./ResourcesSummary";
 
 async function main()
 {
@@ -47,6 +48,8 @@ async function main()
 
     Settings.instance.setPanContext(panContext);
     MouseHandler.getInstance().setPanContext(panContext);
+
+    let _ = new ResourcesSummary();
 
     let nodeCreationPosition: Point;
 
