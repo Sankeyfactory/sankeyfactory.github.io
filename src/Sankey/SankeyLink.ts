@@ -10,6 +10,7 @@ import { SvgPathBuilder } from "../SVG/SvgPathBuilder";
 import { SankeySlot } from "./Slots/SankeySlot";
 import { Point } from '../Geometry/Point';
 import { satisfactoryIconPath } from '../GameData/GameData';
+import { LinkContextMenu } from '../ContextMenu/LinkContextMenu';
 
 export class SankeyLink
 {
@@ -62,6 +63,43 @@ export class SankeyLink
         });
 
         this.recalculate();
+
+        let contextMenu = new LinkContextMenu(this._svgPath);
+        contextMenu.addMenuTo(firstSlot.slotSvgRect);
+        contextMenu.addMenuTo(secondSlot.slotSvgRect);
+
+        contextMenu.addEventListener(LinkContextMenu.deleteLinkOptionClickedEvent, () =>
+        {
+            // Which one doesn't matter.
+            firstSlot.delete();
+        });
+
+        let setSelection = (select: boolean) =>
+        {
+            if (!contextMenu.isMenuOpened)
+            {
+                if (select)
+                {
+                    this._svgPath.classList.add("selected");
+                    firstSlot.slotSvgRect.classList.add("selected");
+                    secondSlot.slotSvgRect.classList.add("selected");
+                }
+                else
+                {
+                    this._svgPath.classList.remove("selected");
+                    firstSlot.slotSvgRect.classList.remove("selected");
+                    secondSlot.slotSvgRect.classList.remove("selected");
+                }
+            }
+        };
+
+        firstSlot.slotSvgRect.addEventListener("mouseenter", () => setSelection(true));
+        secondSlot.slotSvgRect.addEventListener("mouseenter", () => setSelection(true));
+        this._svgPath.addEventListener("mouseenter", () => setSelection(true));
+
+        firstSlot.slotSvgRect.addEventListener("mouseleave", () => setSelection(false));
+        secondSlot.slotSvgRect.addEventListener("mouseleave", () => setSelection(false));
+        this._svgPath.addEventListener("mouseleave", () => setSelection(false));
     }
 
     public recalculate(): void

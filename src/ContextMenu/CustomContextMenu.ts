@@ -2,6 +2,9 @@ import { Point } from "../Geometry/Point";
 
 export abstract class CustomContextMenu extends EventTarget
 {
+    public static readonly menuOpenedEvent = "menu-opened";
+    public static readonly menuClosedEvent = "menu-closed";
+
     /** 
      * @param name is used to deduce html element id: `${name}-context-menu-container`
      */
@@ -24,6 +27,8 @@ export abstract class CustomContextMenu extends EventTarget
         this._isMenuOpened = true;
 
         this._menuContainer.classList.remove("hidden");
+
+        this.dispatchEvent(new Event(CustomContextMenu.menuOpenedEvent));
     }
 
     public closeMenu(): void
@@ -31,14 +36,16 @@ export abstract class CustomContextMenu extends EventTarget
         this._isMenuOpened = false;
 
         this._menuContainer.classList.add("hidden");
+
+        this.dispatchEvent(new Event(CustomContextMenu.menuClosedEvent));
     }
 
-    public addMenuTo(node: HTMLElement | SVGElement): void
+    public addMenuTo(element: HTMLElement | SVGElement): void
     {
         let contextMenu =
             document.querySelector(`#${this.containerId}>.context-menu`) as HTMLDivElement;
 
-        node.addEventListener("contextmenu", (event) =>
+        element.addEventListener("contextmenu", (event) =>
         {
             let mouseEvent = event as MouseEvent;
 
@@ -52,6 +59,16 @@ export abstract class CustomContextMenu extends EventTarget
             this.openMenu();
 
             event.stopPropagation();
+        });
+
+        this.addEventListener(CustomContextMenu.menuOpenedEvent, function ()
+        {
+            element.classList.add("selected");
+        });
+
+        this.addEventListener(CustomContextMenu.menuClosedEvent, function ()
+        {
+            element.classList.remove("selected");
         });
     }
 
