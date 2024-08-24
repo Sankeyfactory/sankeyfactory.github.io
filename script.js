@@ -3118,11 +3118,11 @@
     let panContext = (0, import_panzoom.default)(viewport, {
       zoomDoubleClickSpeed: 1,
       // disables double click zoom
-      beforeMouseDown: (event) => {
+      beforeMouseDown: () => !isPanning,
+      beforeWheel: (event) => {
         event.preventDefault();
         return !isPanning;
-      },
-      beforeWheel: () => !isPanning
+      }
     });
     panContext.on("zoom", () => {
       let zoomScale = panContext.getTransform()?.scale ?? 1;
