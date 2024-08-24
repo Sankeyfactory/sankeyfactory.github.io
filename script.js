@@ -3121,7 +3121,7 @@
       beforeMouseDown: () => !isPanning,
       beforeWheel: (event) => {
         event.preventDefault();
-        return !isPanning;
+        return !event.ctrlKey;
       }
     });
     panContext.on("zoom", () => {
