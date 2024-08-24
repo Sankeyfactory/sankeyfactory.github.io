@@ -34,7 +34,7 @@ async function main()
         beforeWheel: (event) => 
         {
             event.preventDefault();
-            return !isPanning;
+            return !event.ctrlKey;
         },
     });
 
