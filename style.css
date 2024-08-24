@@ -1017,6 +1017,7 @@ div#resources-summary {
     top: 0;
 
     width: 360px;
+    max-height: 100%;
 
     transition-property: top;
     transition-duration: 0.3s;
@@ -1028,6 +1029,8 @@ div#resources-summary div.content {
 
     padding: 20px;
     gap: 20px;
+
+    overflow-y: scroll;
 
     background-color: var(--background-lv0);
     border-right: 2px solid var(--border);
