@@ -343,11 +343,11 @@ path.link-hint {
 }
 
 path.link-hint.from-input {
-    fill: var(--missing);
+    stroke: var(--missing);
 }
 
 path.link-hint.from-output {
-    fill: var(--exceeding);
+    stroke: var(--exceeding);
 }
 
 path.link {
@@ -1018,7 +1018,9 @@ div#resources-summary {
 
     width: 360px;
     max-height: 100%;
+}
 
+div#resources-summary.animate-collapsing {
     transition-property: top;
     transition-duration: 0.3s;
     transition-timing-function: ease-in-out;

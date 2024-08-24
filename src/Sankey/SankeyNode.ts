@@ -12,6 +12,8 @@ import { NodeResourceDisplay } from './NodeResourceDisplay';
 export class SankeyNode extends EventTarget
 {
     public static readonly resourcesAmountChangedEvent = "resources-amount-changed";
+    public static readonly changedVacantResourcesAmountEvent = "changed-vacant-resources-amount";
+    public static readonly deletionEvent = "deleted";
 
     public nodeSvg: SVGElement;
     public nodeSvgGroup: SVGGElement;
@@ -78,6 +80,8 @@ export class SankeyNode extends EventTarget
         }
 
         this.nodeSvgGroup.remove();
+
+        this.dispatchEvent(new Event(SankeyNode.deletionEvent));
     }
 
     public get position(): Point
@@ -109,6 +113,40 @@ export class SankeyNode extends EventTarget
     public get height(): number
     {
         return this._height;
+    }
+
+    public get missingResources(): RecipeResource[]
+    {
+        let result: RecipeResource[] = [];
+
+        for (const slotsGroup of this._inputSlotGroups)
+        {
+            let amount = slotsGroup.vacantResourcesAmount;
+
+            if (amount > 0)
+            {
+                result.push({ amount: amount, id: slotsGroup.resourceId });
+            }
+        }
+
+        return result;
+    }
+
+    public get exceedingResources(): RecipeResource[]
+    {
+        let result: RecipeResource[] = [];
+
+        for (const slotsGroup of this._outputSlotGroups)
+        {
+            let amount = slotsGroup.vacantResourcesAmount;
+
+            if (amount > 0)
+            {
+                result.push({ amount: amount, id: slotsGroup.resourceId });
+            }
+        }
+
+        return result;
     }
 
     public get inputResourcesAmount(): number
@@ -179,6 +217,10 @@ export class SankeyNode extends EventTarget
             result.push(newGroup);
 
             nextGroupY += newGroup.height;
+
+            newGroup.addEventListener(SlotsGroup.changedVacantResourcesAmountEvent, () =>
+                this.dispatchEvent(new Event(SankeyNode.changedVacantResourcesAmountEvent))
+            );
         }
 
         return result;

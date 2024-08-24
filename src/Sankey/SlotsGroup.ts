@@ -12,6 +12,7 @@ export type SlotsGroupType = "input" | "output";
 export class SlotsGroup extends EventTarget
 {
     public static readonly boundsChangedEvent = "bounds-changed";
+    public static readonly changedVacantResourcesAmountEvent = "changed-vacant-resources-amount";
 
     constructor(
         node: SankeyNode,
@@ -124,6 +125,11 @@ export class SlotsGroup extends EventTarget
         return this._resource.amount;
     }
 
+    public get vacantResourcesAmount(): number
+    {
+        return this._lastSlot.resourcesAmount;
+    }
+
     public set resourcesAmount(value: number)
     {
         let subtractedResources = this._resource.amount - value;
@@ -155,6 +161,8 @@ export class SlotsGroup extends EventTarget
 
         this._resource.amount = value;
         this.updateSlotPositions();
+
+        this.dispatchEvent(new Event(SlotsGroup.changedVacantResourcesAmountEvent));
     }
 
     public get resourceId(): string
@@ -178,6 +186,8 @@ export class SlotsGroup extends EventTarget
 
         this._lastSlot.setYPosition(nextYPosition);
         this._lastSlot.resourcesAmount = freeResourcesAmount;
+
+        this.dispatchEvent(new Event(SlotsGroup.changedVacantResourcesAmountEvent));
     }
 
     /** Should be called only once. */

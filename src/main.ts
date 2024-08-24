@@ -49,7 +49,7 @@ async function main()
     Settings.instance.setPanContext(panContext);
     MouseHandler.getInstance().setPanContext(panContext);
 
-    let _ = new ResourcesSummary();
+    let resourcesSummary = new ResourcesSummary();
 
     let nodeCreationPosition: Point;
 
@@ -64,6 +64,8 @@ async function main()
                 MouseHandler.getInstance().startDraggingNode(event, node);
             }
         };
+
+        resourcesSummary.registerNode(node);
     };
 
     function openNodeCreation(nodePosition?: Point)
