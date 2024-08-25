@@ -2,6 +2,7 @@ import { OutputSankeySlot } from "./OutputSankeySlot";
 import { SlotsGroup } from "../SlotsGroup";
 import { MouseHandler } from "../../MouseHandler";
 import { SankeySlot } from "./SankeySlot";
+import { PanZoomConfiguration } from "../../PanZoomConfiguration";
 
 export class SankeySlotExceeding extends OutputSankeySlot
 {
@@ -14,7 +15,7 @@ export class SankeySlotExceeding extends OutputSankeySlot
 
         this.slotSvgRect.addEventListener("click", (event) =>
         {
-            if (!event.ctrlKey)
+            if (!PanZoomConfiguration.isPanning && !PanZoomConfiguration.isZooming)
             {
                 MouseHandler.getInstance().outputSlotClicked(event, this);
             }

@@ -1,4 +1,4 @@
-import { PanZoom } from "panzoom";
+import { PanZoomConfiguration } from "./PanZoomConfiguration";
 
 export class Settings extends EventTarget
 {
@@ -9,11 +9,6 @@ export class Settings extends EventTarget
         return this._instance;
     }
 
-    public setPanContext(panContext: PanZoom): void
-    {
-        this._panContext = panContext;
-    }
-
     public get isCanvasLocked(): boolean
     {
         return this._isCanvasLocked;
@@ -21,18 +16,13 @@ export class Settings extends EventTarget
 
     public set isCanvasLocked(canvasLocked: boolean)
     {
-        if (this._panContext == undefined)
-        {
-            throw Error("Pan context must be initialized before locking canvas");
-        }
-
         if (canvasLocked)
         {
-            this._panContext.pause();
+            PanZoomConfiguration.context.pause();
         }
         else
         {
-            this._panContext.resume();
+            PanZoomConfiguration.context.resume();
         }
 
         this._isCanvasLocked = canvasLocked;
@@ -46,8 +36,6 @@ export class Settings extends EventTarget
     }
 
     private static readonly _instance = new Settings();
-
-    private _panContext?: PanZoom;
 
     private _isCanvasLocked = false;
 }

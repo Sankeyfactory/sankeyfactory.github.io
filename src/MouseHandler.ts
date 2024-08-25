@@ -1,4 +1,3 @@
-import { PanZoom } from "panzoom";
 import { Point } from "./Geometry/Point";
 import { SankeyNode } from "./Sankey/SankeyNode";
 import { SvgFactory } from "./SVG/SvgFactory";
@@ -8,6 +7,7 @@ import { SankeySlotMissing } from "./Sankey/Slots/SankeySlotMissing";
 import { SankeySlotExceeding } from "./Sankey/Slots/SankeySlotExceeding";
 import { Curve } from "./Geometry/Curve";
 import { SvgPathBuilder } from "./SVG/SvgPathBuilder";
+import { PanZoomConfiguration } from "./PanZoomConfiguration";
 
 export class MouseHandler
 {
@@ -24,18 +24,8 @@ export class MouseHandler
         }
     }
 
-    public setPanContext(panContext: PanZoom)
-    {
-        this.panContext = panContext;
-    }
-
     public handleMouseMove(event: MouseEvent)
     {
-        if (this.panContext == undefined)
-        {
-            throw Error("Pan context must be initialized before using mouse handlers");
-        }
-
         if (this.mouseStatus === MouseHandler.MouseStatus.DraggingNode)
         {
             if (this.draggedNode == undefined)
@@ -45,7 +35,7 @@ export class MouseHandler
 
             let previousPos = this.draggedNode.position;
 
-            let zoomScale = this.panContext.getTransform().scale;
+            let zoomScale = PanZoomConfiguration.context.getTransform().scale;
 
             let mousePosDelta: Point = {
                 x: event.clientX - this.lastMousePos.x,
@@ -126,10 +116,6 @@ export class MouseHandler
         }
         else if (this.mouseStatus === MouseHandler.MouseStatus.ConnectingOutputSlot)
         {
-            if (this.panContext == undefined)
-            {
-                throw Error("Pan context must be initialized before using mouse handlers");
-            }
             if (this.firstConnectingSlot == undefined)
             {
                 throw Error("First connecting slot wasn't saved.");
@@ -146,7 +132,7 @@ export class MouseHandler
             let newSlot1 = this.firstConnectingSlot.splitOffSlot(resourcesAmount);
             let newSlot2 = targetSlot.splitOffSlot(resourcesAmount);
 
-            SankeyLink.connect(newSlot1, newSlot2, this.panContext);
+            SankeyLink.connect(newSlot1, newSlot2, PanZoomConfiguration.context);
 
             this.cancelConnectingSlots();
         }
@@ -162,10 +148,6 @@ export class MouseHandler
         }
         else if (this.mouseStatus === MouseHandler.MouseStatus.ConnectingInputSlot)
         {
-            if (this.panContext == undefined)
-            {
-                throw Error("Pan context must be initialized before using mouse handlers");
-            }
             if (this.firstConnectingSlot == undefined)
             {
                 throw Error("First connecting slot wasn't saved.");
@@ -182,7 +164,7 @@ export class MouseHandler
             let newSlot1 = this.firstConnectingSlot.splitOffSlot(resourcesAmount);
             let newSlot2 = targetSlot.splitOffSlot(resourcesAmount);
 
-            SankeyLink.connect(newSlot1, newSlot2, this.panContext);
+            SankeyLink.connect(newSlot1, newSlot2, PanZoomConfiguration.context);
 
             this.cancelConnectingSlots();
         }
@@ -193,19 +175,14 @@ export class MouseHandler
         firstSlot: SankeySlotExceeding | SankeySlotMissing,
         isInput: boolean)
     {
-        if (this.panContext == undefined)
-        {
-            throw Error("Pan context must be initialized before using mouse handlers");
-        }
-
         this.firstConnectingSlot = firstSlot;
 
-        let zoomScale = this.panContext.getTransform().scale;
+        let zoomScale = PanZoomConfiguration.context.getTransform().scale;
 
         let slotBounds: Rectangle = firstSlot.slotSvgRect.getBoundingClientRect();
         slotBounds = {
-            x: (slotBounds.x - this.panContext.getTransform().x) / zoomScale,
-            y: (slotBounds.y - this.panContext.getTransform().y) / zoomScale,
+            x: (slotBounds.x - PanZoomConfiguration.context.getTransform().x) / zoomScale,
+            y: (slotBounds.y - PanZoomConfiguration.context.getTransform().y) / zoomScale,
             width: slotBounds.width / zoomScale,
             height: slotBounds.height / zoomScale,
         };
@@ -260,8 +237,6 @@ export class MouseHandler
     { }
 
     private static instance: MouseHandler | undefined;
-
-    private panContext: PanZoom | undefined;
 
     private firstConnectingSlot: SankeySlotMissing | SankeySlotExceeding | undefined;
     private draggedNode: SankeyNode | undefined;

@@ -1,5 +1,3 @@
-import panzoom from "panzoom";
-
 // Ignore import error as the file only appears on launch of the exporting tool.
 // @ts-ignore
 import satisfactoryData from '../dist/GameData/Satisfactory.json';
@@ -13,6 +11,7 @@ import { Settings } from "./Settings";
 import { CanvasContextMenu } from "./ContextMenu/CanvasContextMenu";
 import { satisfactoryIconPath } from "./GameData/GameData";
 import { ResourcesSummary } from "./ResourcesSummary";
+import { PanZoomConfiguration } from "./PanZoomConfiguration";
 
 async function main()
 {
@@ -20,32 +19,22 @@ async function main()
     let nodesGroup = document.querySelector("g.nodes") as SVGGElement;
     let linksGroup = document.querySelector("g.links") as SVGGElement;
     let zoomRatioDisplay = document.querySelector("p#ratio-display") as HTMLParagraphElement;
+    let canvas = document.querySelector("#canvas") as SVGElement;
 
     if (viewport == null || nodesGroup == null || linksGroup == null)
     {
         throw new Error("Svg container is broken");
     }
 
-    let isPanning = false;
+    PanZoomConfiguration.setPanningButtons(["Space"], ["Meta"]);
+    PanZoomConfiguration.setZoomingButtons([], ["Control"]);
+    PanZoomConfiguration.configurePanContext(viewport, canvas);
 
-    let panContext = panzoom(viewport, {
-        zoomDoubleClickSpeed: 1, // disables double click zoom
-        beforeMouseDown: () => !isPanning,
-        beforeWheel: (event) => 
-        {
-            event.preventDefault();
-            return !event.ctrlKey;
-        },
-    });
-
-    panContext.on('zoom', () =>
+    PanZoomConfiguration.context.on('zoom', () =>
     {
-        let zoomScale = panContext.getTransform()?.scale ?? 1.0;
+        let zoomScale = PanZoomConfiguration.context.getTransform()?.scale ?? 1.0;
         zoomRatioDisplay.textContent = `Zoom: ${zoomScale.toFixed(2)}x`;
     });
-
-    Settings.instance.setPanContext(panContext);
-    MouseHandler.getInstance().setPanContext(panContext);
 
     let resourcesSummary = new ResourcesSummary();
 
@@ -57,7 +46,9 @@ async function main()
 
         node.nodeSvg.onmousedown = (event) =>
         {
-            if (!isPanning && event.buttons === 1)
+            if (event.buttons === 1
+                && !PanZoomConfiguration.isPanning
+                && !PanZoomConfiguration.isZooming)
             {
                 MouseHandler.getInstance().startDraggingNode(event, node);
             }
@@ -115,38 +106,15 @@ async function main()
     {
         if (event.repeat) { return; }
 
-        if (event.key === "Control" || event.key === "Meta")
-        {
-            isPanning = true;
-            document.querySelector("#container")!.classList.add("move");
-        }
-
         if (event.key === "Escape")
         {
+            event.preventDefault();
             MouseHandler.getInstance().cancelConnectingSlots();
         }
     });
 
-    window.addEventListener("keyup", (event) =>
-    {
-        if (event.repeat) { return; }
-
-        if (event.key === "Control" || event.key === "Meta")
-        {
-            isPanning = false;
-            document.querySelector("#container")!.classList.remove("move");
-        }
-    });
-
-    window.addEventListener("focusout", () =>
-    {
-        isPanning = false;
-        document.querySelector("#container")!.classList.remove("move");
-    });
-
     let nodeCreationContainer = document.querySelector("div#node-creation-container");
 
-    let canvas = document.querySelector("#canvas") as SVGElement;
     let canvasContextMenu = new CanvasContextMenu(canvas);
 
     canvasContextMenu.addEventListener(CanvasContextMenu.createNodeOptionClickedEvent, () =>
@@ -181,6 +149,7 @@ async function main()
     {
         if (event.code === "Escape")
         {
+            event.preventDefault();
             canvasContextMenu.closeMenu();
         }
     });
@@ -208,6 +177,7 @@ async function main()
     {
         if (event.code === "Escape" && !nodeCreationContainer?.classList.contains("hidden"))
         {
+            event.preventDefault();
             nodeCreationContainer?.classList.add("hidden");
         }
     });
@@ -310,9 +280,12 @@ async function main()
 
                 recipeNode.addEventListener("click", (event) =>
                 {
-                    document.dispatchEvent(new GameRecipeEvent(recipe, machine, "recipe-selected"));
-                    recipeNode.classList.add("selected");
-                    event.stopPropagation();
+                    if (selectedRecipe !== recipe)
+                    {
+                        document.dispatchEvent(new GameRecipeEvent(recipe, machine, "recipe-selected"));
+                        recipeNode.classList.add("selected");
+                        event.stopPropagation();
+                    }
                 });
 
                 recipeNode.addEventListener("dblclick", (event) =>

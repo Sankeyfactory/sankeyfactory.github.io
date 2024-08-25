@@ -34,6 +34,7 @@ export class NodeConfiguration extends EventTarget
         {
             if (this._isOpened && event.code === "Escape")
             {
+                event.preventDefault();
                 this.closeConfigurationWindow();
             }
 
