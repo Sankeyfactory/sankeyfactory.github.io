@@ -12,9 +12,12 @@ import { CanvasContextMenu } from "./ContextMenu/CanvasContextMenu";
 import { satisfactoryIconPath } from "./GameData/GameData";
 import { ResourcesSummary } from "./ResourcesSummary";
 import { PanZoomConfiguration } from "./PanZoomConfiguration";
+import { SvgIcons } from './SVG/SvgIcons';
 
 async function main()
 {
+    SvgIcons.replaceAllPlaceholders();
+
     let viewport: SVGElement | null = document.querySelector("#viewport");
     let nodesGroup = document.querySelector("g.nodes") as SVGGElement;
     let linksGroup = document.querySelector("g.links") as SVGGElement;

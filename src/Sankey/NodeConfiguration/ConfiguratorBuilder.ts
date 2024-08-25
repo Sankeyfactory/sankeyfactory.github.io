@@ -1,5 +1,5 @@
 import { satisfactoryIconPath } from "../../GameData/GameData";
-import { SvgFactory } from "../../SVG/SvgFactory";
+import { SvgIcons } from "../../SVG/SvgIcons";
 import { NodeConfiguration } from "./NodeConfiguration";
 
 export class ConfiguratorBuilder
@@ -174,14 +174,7 @@ export class ConfiguratorBuilder
 
     public setPowerSvgIcon(): this
     {
-        let icon = SvgFactory.createSvgElement("svg");
-        icon.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-        icon.setAttribute("viewBox", "0 -960 960 960");
-
-        let path = SvgFactory.createSvgPath();
-        path.setAttribute("d", "M420-412H302q-14 0-20-12t2-23l203-295q5-7 12-9t15 1q8 3 11.5 9.5T528-726l-27 218h140q14 0 20 13t-3 24L431-199q-5 6-12 7.5t-14-1.5q-7-3-10.5-9t-2.5-14l28-196Z");
-
-        icon.appendChild(path);
+        let icon = SvgIcons.createIcon("power");
 
         this._iconContainer.title = "Power consumption";
 
