@@ -51,61 +51,48 @@ export class ResourcesSummary
 
     private recalculateInputs(): void
     {
-        ResourcesSummary._inputsColumn.querySelectorAll(".resource").forEach(resource =>
-        {
-            resource.remove();
-        });
-
-        let isAnyAdded = false;
+        let resources = new Map<string, number>();
 
         for (const node of this._nodes)
         {
             for (const resource of node.missingResources)
             {
-                ResourcesSummary._inputsColumn.appendChild(
-                    this.createResourceDisplay(resource.id, resource.amount)
-                );
-
-                isAnyAdded = true;
+                resources.set(resource.id, (resources.get(resource.id) ?? 0) + resource.amount);
             }
         }
 
-        if (!isAnyAdded)
-        {
-            let noneText = document.createElement("div");
-            noneText.classList.add("resource", "none");
-            noneText.innerText = "None";
-
-            ResourcesSummary._inputsColumn.appendChild(noneText);
-        }
-
-        if (this._isCollapsed)
-        {
-            ResourcesSummary.setCollapsingAnimationEnabled(false);
-            this.hideContent();
-            ResourcesSummary.setCollapsingAnimationEnabled(true);
-        }
+        this.recalculate(ResourcesSummary._inputsColumn, resources);
     }
 
     private recalculateOutputs(): void
     {
-        ResourcesSummary._outputsColumn.querySelectorAll(".resource").forEach(resource =>
+        let resources = new Map<string, number>();
+
+        for (const node of this._nodes)
+        {
+            for (const resource of node.exceedingResources)
+            {
+                resources.set(resource.id, (resources.get(resource.id) ?? 0) + resource.amount);
+            }
+        }
+
+        this.recalculate(ResourcesSummary._outputsColumn, resources);
+    }
+
+    private recalculate(column: HTMLDivElement, resources: Map<string, number>)
+    {
+        column.querySelectorAll(".resource").forEach(resource =>
         {
             resource.remove();
         });
 
         let isAnyAdded = false;
 
-        for (const node of this._nodes)
+        for (const [id, amount] of resources)
         {
-            for (const resource of node.exceedingResources)
-            {
-                ResourcesSummary._outputsColumn.appendChild(
-                    this.createResourceDisplay(resource.id, resource.amount)
-                );
+            column.appendChild(this.createResourceDisplay(id, amount));
 
-                isAnyAdded = true;
-            }
+            isAnyAdded = true;
         }
 
         if (!isAnyAdded)
@@ -114,7 +101,7 @@ export class ResourcesSummary
             noneText.classList.add("resource", "none");
             noneText.innerText = "None";
 
-            ResourcesSummary._outputsColumn.appendChild(noneText);
+            column.appendChild(noneText);
         }
 
         if (this._isCollapsed)
