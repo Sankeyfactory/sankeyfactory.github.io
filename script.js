@@ -3309,7 +3309,11 @@
     let tabSelectors = document.querySelector("div#tab-selectors");
     let recipeTabs = document.querySelector("div#recipe-tabs");
     let confirmRecipeButton = document.querySelector("div#confirm-recipe");
+    let discardRecipeButton = document.querySelector("div#discard-recipe");
     recipeTabs.addEventListener("click", () => {
+      document.dispatchEvent(new GameRecipeEvent(void 0, void 0, "recipe-selected"));
+    });
+    discardRecipeButton.addEventListener("click", () => {
       document.dispatchEvent(new GameRecipeEvent(void 0, void 0, "recipe-selected"));
     });
     for (const machine of Satisfactory_default.machines) {
@@ -3404,6 +3408,7 @@
       document.addEventListener("recipes-tab-switched", () => {
         recipesTab.classList.remove("active");
         tabSelector.classList.remove("active");
+        document.dispatchEvent(new GameRecipeEvent(void 0, void 0, "recipe-selected"));
       });
       tabSelector.appendChild(machineIcon);
       tabSelectors?.appendChild(tabSelector);
