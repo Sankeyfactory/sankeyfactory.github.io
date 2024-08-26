@@ -209,6 +209,9 @@ async function main()
     let confirmRecipeButton = document.querySelector("div#confirm-recipe")!;
     let discardRecipeButton = document.querySelector("div#discard-recipe")!;
 
+    let gameVersionText = nodeCreationContainer!.querySelector("h2.title span.game-version") as HTMLSpanElement;
+    gameVersionText.innerText = `game version: ${satisfactoryData.gameVersion}`;
+
     recipeTabs.addEventListener("click", () =>
     {
         document.dispatchEvent(new GameRecipeEvent(undefined, undefined, "recipe-selected"));

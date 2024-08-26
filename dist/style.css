@@ -511,6 +511,16 @@ div#node-creation-modal {
     }
 }
 
+div#node-creation-modal .title span.game-version {
+    padding-left: 8px;
+
+    font-size: 14px;
+
+    font-weight: 400;
+
+    color: var(--dim-foreground);
+}
+
 #node-creation-modal div.content {
     display: flex;
     flex-direction: column-reverse;
