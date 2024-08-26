@@ -25,6 +25,9 @@
                 <p id="ratio-display">Zoom: 1.0x</p>
             </div>
             <div class="row">
+                <div class="button" id="open-help" title="Help">
+                    <svg class="question-mark_icon-placeholder"></svg>
+                </div>
                 <div class="button" id="cancel-linking" title="Cancel connecting machines">
                     <svg class="unlink_icon-placeholder"></svg>
                 </div>
@@ -53,21 +56,6 @@
                 <div class="text when-expanded">Collapse summary</div>
             </div>
         </div>
-    </div>
-
-    <div class="help">
-        <p>Ctrl/Command + Mouse drag - move</p>
-        <p>Ctrl + Mouse wheel - zoom</p>
-
-        <p>RMB - context menu</p>
-
-        <p>Double click / N - create new node</p>
-        <p>L - lock canvas moving</p>
-
-        <p>Mouse drag - move node under cursor</p>
-        <p>LMB on slot - connect slot</p>
-
-        <p>Esc - cancel current operation</p>
     </div>
 
     <div class="dimming hidden modal-window-container" id="node-creation-container">
@@ -186,6 +174,191 @@
                 <div class="button apply-button">
                     Apply
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dimming modal-window-container hidden" id="help-modal-container">
+        <div class="modal-window">
+            <div class="title-row">
+                <h2 class="title">Controls help</h2>
+                <div class="close">
+                    <svg class="cross_icon-placeholder"></svg>
+                </div>
+            </div>
+            <div class="content">
+                <table>
+                    <tr>
+                        <th colspan="2">Canvas</th>
+                    </tr>
+                    <tr class="help-placeholder">
+                        <td>
+                            $|Space|+|%mouse-drag%|$
+                            =Pan canvas=
+                        </td>
+                    </tr>
+                    <tr class="help-placeholder">
+                        <td>
+                            $|%mouse%&nbsp;Scroll&nbsp;|$
+                            =Pan vertically=
+                        </td>
+                    </tr>
+                    <tr class="help-placeholder">
+                        <td>
+                            $|Shift|+|%mouse%&nbsp;Scroll&nbsp;|$
+                            =Pan horizontally=
+                        </td>
+                    </tr>
+                    <tr class="help-placeholder">
+                        <td>
+                            $|Ctrl|+|%mouse%&nbsp;Scroll&nbsp;|$
+                            =Zoom=
+                        </td>
+                    </tr>
+                    <tr class="help-placeholder">
+                        <td>
+                            $|&nbsp;Double&nbsp;%mouse-left%|$
+                            =Create node=
+                        </td>
+                    </tr>
+                    <tr class="help-placeholder">
+                        <td>
+                            $|%mouse-right%|$
+                            =Context menu=
+                        </td>
+                    </tr>
+                    <tr class="help-placeholder">
+                        <td>
+                            $|N|$
+                            =Create node=
+                        </td>
+                    </tr>
+                    <tr class="help-placeholder">
+                        <td>
+                            $|L|$
+                            =Lock canvas=
+                        </td>
+                    </tr>
+                    <tr>
+                        <th colspan="2">Canvas (Mac)</th>
+                    </tr>
+                    <tr class="help-placeholder">
+                        <td>
+                            $|%mac-command%|+|%mouse-drag%|$
+                            =Pan canvas=
+                        </td>
+                    </tr>
+                    <tr>
+                        <th colspan="2">Canvas (touchscreen or touchpad)</th>
+                    </tr>
+                    <tr class="help-placeholder">
+                        <td>
+                            $|%pinch%|$
+                            =Zoom=
+                        </td>
+                    </tr>
+                    <tr>
+                        <th colspan="2">Canvas (touchpad)</th>
+                    </tr>
+                    <tr class="help-placeholder">
+                        <td>
+                            $|%touchpad-two%|$
+                            =Pan canvas=
+                        </td>
+                    </tr>
+                    <tr>
+                        <th colspan="2">Canvas (touchscreen)</th>
+                    </tr>
+                    <tr class="help-placeholder">
+                        <td>
+                            $|%touch-move%|$
+                            =Pan canvas=
+                        </td>
+                    </tr>
+                </table>
+                <table>
+                    <tr>
+                        <th colspan="2">Modal windows and context menus</th>
+                    </tr>
+                    <tr class="help-placeholder">
+                        <td>
+                            $|Esc|$
+                            =Close=
+                        </td>
+                    </tr>
+                    <tr>
+                        <th colspan="2">Nodes</th>
+                    </tr>
+                    <tr class="help-placeholder">
+                        <td>
+                            $|%mouse-drag%|&nbsp;on a node&nbsp;$
+                            =Move node=
+                        </td>
+                    </tr>
+                    <tr class="help-placeholder">
+                        <td>
+                            $|%mouse-right%|&nbsp;on a node&nbsp;$
+                            =Context menu=
+                        </td>
+                    </tr>
+                    <tr class="help-placeholder">
+                        <td>
+                            $|&nbsp;Double&nbsp;%mouse-left%| on a node$
+                            =Node configuration=
+                        </td>
+                    </tr>
+                    <tr>
+                        <th colspan="2">Slots (green and red lines on nodes)</th>
+                    </tr>
+                    <tr class="help-placeholder">
+                        <td>
+                            $|%mouse-left%|&nbsp;on a slot&nbsp;$
+                            =Connect slot=
+                        </td>
+                    </tr>
+                    <tr class="help-placeholder">
+                        <td>
+                            $|%mouse-right%|&nbsp;on a connected slot&nbsp;$
+                            =Context menu=
+                        </td>
+                    </tr>
+                    <tr>
+                        <th colspan="2">Connections</th>
+                    </tr>
+                    <tr class="help-placeholder">
+                        <td>
+                            $|%mouse-right%|&nbsp;on a connection&nbsp;$
+                            =Context menu=
+                        </td>
+                    </tr>
+                    <tr>
+                        <th colspan="2">Recipe selection</th>
+                    </tr>
+                    <tr class="help-placeholder">
+                        <td>
+                            $|%mouse-left%|&nbsp;on a recipe&nbsp;$
+                            =Select recipe=
+                        </td>
+                    </tr>
+                    <tr class="help-placeholder">
+                        <td>
+                            $|%mouse-left%|&nbsp;on a selected recipe&nbsp;$
+                            =Discard recipe=
+                        </td>
+                    </tr>
+                    <tr class="help-placeholder">
+                        <td>
+                            $|&nbsp;Double&nbsp;%mouse-left%|&nbsp;on a recipe&nbsp;$
+                            =Instantly create node=
+                        </td>
+                    </tr>
+                    <tr class="help-placeholder">
+                        <td>
+                            $|%mouse-left%|&nbsp;on empty space&nbsp;$
+                            =Discard recipe=
+                        </td>
+                    </tr>
+                </table>
             </div>
         </div>
     </div>
