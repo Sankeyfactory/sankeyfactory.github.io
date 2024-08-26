@@ -3465,6 +3465,8 @@
     let recipeTabs = document.querySelector("div#recipe-tabs");
     let confirmRecipeButton = document.querySelector("div#confirm-recipe");
     let discardRecipeButton = document.querySelector("div#discard-recipe");
+    let gameVersionText = nodeCreationContainer.querySelector("h2.title span.game-version");
+    gameVersionText.innerText = `game version: ${Satisfactory_default.gameVersion}`;
     recipeTabs.addEventListener("click", () => {
       document.dispatchEvent(new GameRecipeEvent(void 0, void 0, "recipe-selected"));
     });
