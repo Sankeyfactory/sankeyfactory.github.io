@@ -22,10 +22,11 @@ export class NodeConfiguration extends EventTarget
         let closeSelector = `#${NodeConfiguration._modalContainer.id} .title-row .close`;
         let closeButton = document.querySelector(closeSelector) as HTMLDivElement;
 
-        closeButton.addEventListener("click", () =>
+        closeButton.addEventListener("click", (event) =>
         {
             if (this._isOpened)
             {
+                event.stopPropagation();
                 this.closeConfigurationWindow();
             }
         });
@@ -35,15 +36,16 @@ export class NodeConfiguration extends EventTarget
             if (this._isOpened && event.code === "Escape")
             {
                 event.preventDefault();
+                event.stopPropagation();
                 this.closeConfigurationWindow();
             }
 
             if (event.key === "Enter")
             {
+                event.preventDefault();
+                event.stopPropagation();
                 this.confirmConfiguration();
             }
-
-            event.stopPropagation();
         });
 
         this.setupTableElements(recipe, machine);

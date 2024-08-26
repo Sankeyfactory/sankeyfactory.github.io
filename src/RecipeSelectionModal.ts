@@ -61,6 +61,14 @@ export class RecipeSelectionModal extends EventTarget
 
                 this.closeModal();
             }
+
+            if (event.key === "Enter" && this._isOpened && this.selectedRecipe != undefined)
+            {
+                event.preventDefault();
+                event.stopPropagation();
+
+                this.confirmRecipe();
+            }
         });
     }
 
