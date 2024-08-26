@@ -41,6 +41,17 @@ export class RecipeSelectionModal extends EventTarget
         this._tabSelectors.children[0].classList.add("active");
         this._recipeTabs.children[0].classList.add("active");
 
+        this._modalContainer.querySelector(".modal-window")!.addEventListener("click", (event) =>
+        {
+            event.stopPropagation();
+        });
+
+        this._modalContainer.addEventListener("click", (event) =>
+        {
+            event.stopPropagation();
+            this.closeModal();
+        });
+
         window.addEventListener("keydown", (event) =>
         {
             if (event.code === "Escape" && this._isOpened)

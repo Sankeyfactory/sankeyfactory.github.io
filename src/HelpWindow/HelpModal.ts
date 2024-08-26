@@ -33,6 +33,17 @@ export class HelpModal
                 this.closeModal();
             }
         });
+
+        HelpModal._modalContainer.querySelector(".modal-window")!.addEventListener("click", (event) =>
+        {
+            event.stopPropagation();
+        });
+
+        HelpModal._modalContainer.addEventListener("click", (event) =>
+        {
+            event.stopPropagation();
+            this.closeModal();
+        });
     }
 
     private openModal(): void

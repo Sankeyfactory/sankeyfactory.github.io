@@ -83,6 +83,17 @@ export class NodeConfiguration extends EventTarget
                 this.confirmConfiguration();
             }
         });
+
+        NodeConfiguration._modalContainer.querySelector(".modal-window")!.addEventListener("click", (event) =>
+        {
+            event.stopPropagation();
+        });
+
+        NodeConfiguration._modalContainer.addEventListener("click", (event) =>
+        {
+            event.stopPropagation();
+            this.closeConfigurationWindow();
+        });
     }
 
     public openConfigurationWindow(openingMachinesAmount: number, openingOverclockRatio: number): void

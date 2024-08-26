@@ -45,6 +45,12 @@ export class PanZoomConfiguration
             this.stopPanning();
             this.stopZooming();
         });
+
+        window.addEventListener("blur", () =>
+        {
+            this.stopPanning();
+            this.stopZooming();
+        });
     }
 
     public static setPanningButtons(requiredCodes: string[], requiredKeys: string[])
