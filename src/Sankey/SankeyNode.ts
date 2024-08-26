@@ -20,7 +20,6 @@ export class SankeyNode extends EventTarget
     public static readonly nodeWidth = 70;
 
     public constructor(
-        parentGroup: SVGGElement,
         position: Point,
         recipe: GameRecipe,
         machine: GameMachine,
@@ -64,7 +63,8 @@ export class SankeyNode extends EventTarget
 
         this.nodeSvgGroup.appendChild(this.nodeSvg);
         this._resourceDisplay.appendTo(this.nodeSvgGroup);
-        parentGroup.appendChild(this.nodeSvgGroup);
+
+        document.querySelector("#viewport>g.nodes")!.appendChild(this.nodeSvgGroup);
     }
 
     public delete()

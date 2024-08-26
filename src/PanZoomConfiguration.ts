@@ -3,9 +3,9 @@ import { Point } from "./Geometry/Point";
 
 export class PanZoomConfiguration
 {
-    public static configurePanContext(viewport: SVGElement, canvas: SVGElement)
+    public static configurePanContext(canvas: SVGElement)
     {
-        this._panContext = panzoom(viewport, {
+        this._panContext = panzoom(document.querySelector("#viewport")!, {
             zoomDoubleClickSpeed: 1, // disables double click zoom
             beforeMouseDown: () =>
             {
@@ -80,6 +80,7 @@ export class PanZoomConfiguration
         });
     }
 
+    /** Ctrl will be one of the keys even if not specified, for touchpad support. */
     public static setZoomingButtons(requiredCodes: string[], requiredKeys: string[])
     {
         window.addEventListener("keydown", (event) =>

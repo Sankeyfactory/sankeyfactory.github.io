@@ -62,7 +62,6 @@ export class HelpModal
         let td = placeholderRow.querySelector("td")!;
         td.remove();
 
-        console.log(td.innerText);
         placeholderRow.append(...HelpPlaceholders.parsePlaceholder(td.innerText));
 
         placeholderRow.classList.remove("help-placeholder");

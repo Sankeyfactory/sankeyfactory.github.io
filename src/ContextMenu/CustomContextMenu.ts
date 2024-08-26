@@ -19,6 +19,17 @@ export abstract class CustomContextMenu extends EventTarget
             this.closeMenu();
         });
 
+        window.addEventListener("keydown", (event) =>
+        {
+            if (event.code === "Escape" && this._isMenuOpened)
+            {
+                event.preventDefault();
+                event.stopPropagation();
+
+                this.closeMenu();
+            }
+        });
+
         this.addMenuTo(ownerNode);
     }
 

@@ -1,40 +1,28 @@
-// Ignore import error as the file only appears on launch of the exporting tool.
-// @ts-ignore
-import satisfactoryData from '../dist/GameData/Satisfactory.json';
-
 import { SankeyNode } from "./Sankey/SankeyNode";
 import { Point } from "./Geometry/Point";
 import { MouseHandler } from "./MouseHandler";
-import { GameRecipe, GameRecipeEvent } from "./GameData/GameRecipe";
+import { GameRecipe } from "./GameData/GameRecipe";
 import { GameMachine } from "./GameData/GameMachine";
 import { Settings } from "./Settings";
 import { CanvasContextMenu } from "./ContextMenu/CanvasContextMenu";
-import { satisfactoryIconPath } from "./GameData/GameData";
 import { ResourcesSummary } from "./ResourcesSummary";
 import { PanZoomConfiguration } from "./PanZoomConfiguration";
 import { SvgIcons } from './SVG/SvgIcons';
 import { HelpModal } from './HelpWindow/HelpModal';
+import { RecipeSelectionModal } from './RecipeSelectionModal';
 
 async function main()
 {
     SvgIcons.replaceAllPlaceholders();
 
-    let viewport: SVGElement | null = document.querySelector("#viewport");
-    let nodesGroup = document.querySelector("g.nodes") as SVGGElement;
-    let linksGroup = document.querySelector("g.links") as SVGGElement;
     let zoomRatioDisplay = document.querySelector("p#ratio-display") as HTMLParagraphElement;
     let canvas = document.querySelector("#canvas") as SVGElement;
-
-    if (viewport == null || nodesGroup == null || linksGroup == null)
-    {
-        throw new Error("Svg container is broken");
-    }
 
     let _helpModal = new HelpModal();
 
     PanZoomConfiguration.setPanningButtons(["Space"], ["Meta"]);
     PanZoomConfiguration.setZoomingButtons([], ["Control"]);
-    PanZoomConfiguration.configurePanContext(viewport, canvas);
+    PanZoomConfiguration.configurePanContext(canvas);
 
     PanZoomConfiguration.context.on('zoom', () =>
     {
@@ -44,11 +32,12 @@ async function main()
 
     let resourcesSummary = new ResourcesSummary();
 
+    let recipeSelectionModal = new RecipeSelectionModal();
     let nodeCreationPosition: Point;
 
     function createNode(recipe: GameRecipe, machine: GameMachine)
     {
-        const node = new SankeyNode(nodesGroup, nodeCreationPosition, recipe, machine);
+        const node = new SankeyNode(nodeCreationPosition, recipe, machine);
 
         node.nodeSvg.onmousedown = (event) =>
         {
@@ -63,6 +52,13 @@ async function main()
         resourcesSummary.registerNode(node);
     };
 
+    recipeSelectionModal.addEventListener(RecipeSelectionModal.recipeConfirmedEvent, () =>
+    {
+        let recipe = recipeSelectionModal.selectedRecipe!;
+
+        createNode(recipe.recipe, recipe.madeIn);
+    });
+
     function openNodeCreation(nodePosition?: Point)
     {
         let pageCenter = {
@@ -72,7 +68,7 @@ async function main()
 
         nodeCreationPosition = nodePosition ?? MouseHandler.clientToCanvasPosition(pageCenter);
 
-        nodeCreationContainer?.classList.remove("hidden");
+        recipeSelectionModal.openModal();
     }
 
     (document.querySelector("div.button#create-node") as HTMLDivElement).onclick = () =>
@@ -119,8 +115,6 @@ async function main()
         }
     });
 
-    let nodeCreationContainer = document.querySelector("div#node-creation-container");
-
     let canvasContextMenu = new CanvasContextMenu(canvas);
 
     canvasContextMenu.addEventListener(CanvasContextMenu.createNodeOptionClickedEvent, () =>
@@ -151,24 +145,27 @@ async function main()
         canvasContextMenu.setCanvasLockedSwitchState(Settings.instance.isCanvasLocked);
     });
 
-    window.addEventListener("keydown", (event) =>
-    {
-        if (event.code === "Escape")
-        {
-            event.preventDefault();
-            canvasContextMenu.closeMenu();
-        }
-    });
-
     window.addEventListener("keypress", (event) =>
     {
-        let anyModalOpened = false;
+        let anyOverlayOpened = false; // Modal window or context menu.
+
         document.querySelectorAll(".modal-window-container").forEach((modal) =>
         {
-            anyModalOpened ||= !modal.classList.contains("hidden");
+            if (!modal.classList.contains("hidden"))
+            {
+                anyOverlayOpened = true;
+            }
         });
 
-        if (event.code === "KeyN" && !canvasContextMenu.isMenuOpened && !anyModalOpened)
+        document.querySelectorAll(".context-menu-container").forEach((modal) =>
+        {
+            if (!modal.classList.contains("hidden"))
+            {
+                anyOverlayOpened = true;
+            }
+        });
+
+        if (event.code === "KeyN" && !anyOverlayOpened)
         {
             openNodeCreation();
         }
@@ -176,15 +173,6 @@ async function main()
         if (event.code === "KeyL")
         {
             Settings.instance.isCanvasLocked = !Settings.instance.isCanvasLocked;
-        }
-    });
-
-    window.addEventListener("keydown", (event) =>
-    {
-        if (event.code === "Escape" && !nodeCreationContainer?.classList.contains("hidden"))
-        {
-            event.preventDefault();
-            nodeCreationContainer?.classList.add("hidden");
         }
     });
 
@@ -197,266 +185,6 @@ async function main()
     {
         MouseHandler.getInstance().handleMouseMove(event);
     };
-
-    let nodeCreationClose = document.querySelector("div#node-creation-close");
-    nodeCreationClose?.addEventListener("click", () =>
-    {
-        nodeCreationContainer?.classList.add("hidden");
-    });
-
-    let tabSelectors = document.querySelector("div#tab-selectors")!;
-    let recipeTabs = document.querySelector("div#recipe-tabs")!;
-    let confirmRecipeButton = document.querySelector("div#confirm-recipe")!;
-    let discardRecipeButton = document.querySelector("div#discard-recipe")!;
-
-    let gameVersionText = nodeCreationContainer!.querySelector("h2.title span.game-version") as HTMLSpanElement;
-    gameVersionText.innerText = `game version: ${satisfactoryData.gameVersion}`;
-
-    recipeTabs.addEventListener("click", () =>
-    {
-        document.dispatchEvent(new GameRecipeEvent(undefined, undefined, "recipe-selected"));
-    });
-
-    discardRecipeButton.addEventListener("click", () =>
-    {
-        document.dispatchEvent(new GameRecipeEvent(undefined, undefined, "recipe-selected"));
-    });
-
-    for (const machine of satisfactoryData.machines)
-    {
-        let tabSelector = document.createElement("div");
-        tabSelector.classList.add("tab-selector");
-
-        tabSelector.title = machine.displayName;
-
-        let machineIcon = document.createElement("img");
-        machineIcon.classList.add("machine-icon");
-
-        machineIcon.src = satisfactoryIconPath(machine.iconPath);
-        machineIcon.alt = machine.displayName;
-        machineIcon.loading = "lazy";
-
-        let recipesTab = document.createElement("div");
-        recipesTab.classList.add("recipes-tab");
-
-        let createRecipesGroup = (name: string): { div: HTMLDivElement, title: HTMLHeadingElement; } =>
-        {
-            let groupTitle = document.createElement("h3");
-            groupTitle.classList.add("group-title");
-            groupTitle.innerText = name;
-
-            let groupDiv = document.createElement("div");
-            groupDiv.classList.add("group");
-
-            return { div: groupDiv, title: groupTitle };
-        };
-
-        let basicRecipesGroup = createRecipesGroup("Basic recipes");
-        let alternateRecipesGroup = createRecipesGroup("Alternate recipes");
-        let eventsRecipesGroup = createRecipesGroup("Events recipes");
-
-        let createRecipeParser = (simpleRecipesGroup: HTMLDivElement) =>
-        {
-            return (recipe: typeof machine.recipes[0]): void =>
-            {
-                let recipeNode = document.createElement("div");
-                recipeNode.classList.add("recipe");
-                recipeNode.title = recipe.displayName;
-
-                let isEventRecipe = false;
-
-                for (const product of recipe.products)
-                {
-                    let itemIcon = document.createElement("img");
-                    itemIcon.classList.add("item-icon");
-
-                    let resource = satisfactoryData.resources.find(
-                        // I specify type because deploy fails otherwise for some reason.
-                        (resource: typeof satisfactoryData.resources[0]) => 
-                        {
-                            return resource.id == product.id;
-                        }
-                    );
-
-                    if (resource != undefined)
-                    {
-                        itemIcon.src = satisfactoryIconPath(resource.iconPath);
-                        if (!isEventRecipe)
-                        {
-                            isEventRecipe = resource.iconPath.startsWith("Events");
-                        }
-                    }
-
-                    itemIcon.alt = recipe.displayName;
-                    itemIcon.loading = "lazy";
-
-                    recipeNode.appendChild(itemIcon);
-                }
-
-                recipeNode.addEventListener("click", (event) =>
-                {
-                    if (selectedRecipe !== recipe)
-                    {
-                        document.dispatchEvent(new GameRecipeEvent(recipe, machine, "recipe-selected"));
-                        recipeNode.classList.add("selected");
-                        event.stopPropagation();
-                    }
-                });
-
-                recipeNode.addEventListener("dblclick", (event) =>
-                {
-                    document.dispatchEvent(new GameRecipeEvent(recipe, machine, "recipe-selected"));
-                    recipeNode.classList.add("selected");
-                    confirmRecipeButton.dispatchEvent(new MouseEvent("click"));
-
-                    event.stopPropagation();
-                });
-
-                document.addEventListener("recipe-selected", () =>
-                {
-                    recipeNode.classList.remove("selected");
-                });
-
-                if (isEventRecipe)
-                {
-                    eventsRecipesGroup.div.appendChild(recipeNode);
-                }
-                else
-                {
-                    simpleRecipesGroup.appendChild(recipeNode);
-                }
-            };
-        };
-
-        machine.recipes.forEach(createRecipeParser(basicRecipesGroup.div));
-        machine.alternateRecipes.forEach(createRecipeParser(alternateRecipesGroup.div));
-
-        if (basicRecipesGroup.div.childElementCount !== 0)
-        {
-            recipesTab.appendChild(basicRecipesGroup.title);
-            recipesTab.appendChild(basicRecipesGroup.div);
-        }
-        if (alternateRecipesGroup.div.childElementCount !== 0)
-        {
-            recipesTab.appendChild(alternateRecipesGroup.title);
-            recipesTab.appendChild(alternateRecipesGroup.div);
-        }
-        if (eventsRecipesGroup.div.childElementCount !== 0)
-        {
-            recipesTab.appendChild(eventsRecipesGroup.title);
-            recipesTab.appendChild(eventsRecipesGroup.div);
-        }
-
-        tabSelector.addEventListener("click", () =>
-        {
-            document.dispatchEvent(new Event("recipes-tab-switched"));
-            recipesTab.classList.add("active");
-            tabSelector.classList.add("active");
-        });
-
-        document.addEventListener("recipes-tab-switched", () =>
-        {
-            recipesTab.classList.remove("active");
-            tabSelector.classList.remove("active");
-
-            document.dispatchEvent(new GameRecipeEvent(undefined, undefined, "recipe-selected"));
-        });
-
-        tabSelector.appendChild(machineIcon);
-        tabSelectors?.appendChild(tabSelector);
-
-        recipeTabs.appendChild(recipesTab);
-    }
-
-    let selectedRecipeDisplay = document.querySelector("div#selected-recipe") as HTMLDivElement;
-
-    selectedRecipeDisplay.scrollTop = selectedRecipeDisplay.scrollHeight;
-
-    let createResourceDisplay = (parentDiv: HTMLDivElement, craftingTime: number) =>
-    {
-        return (recipeResource: RecipeResource) =>
-        {
-            let resource = satisfactoryData.resources.find(
-                (el: typeof satisfactoryData.resources[0]) =>
-                {
-                    return el.id === recipeResource.id;
-                }
-            );
-
-            let resourceDiv = document.createElement("div");
-            resourceDiv.classList.add("resource");
-
-            let icon = document.createElement("img");
-            icon.classList.add("icon");
-            icon.loading = "lazy";
-            icon.alt = resource!.displayName;
-            icon.src = satisfactoryIconPath(resource!.iconPath);
-            icon.title = resource!.displayName;
-
-            let amount = document.createElement("p");
-            amount.classList.add("amount");
-            amount.innerText = `${+((60 / craftingTime) * recipeResource.amount).toFixed(3)}`;
-
-            resourceDiv.appendChild(icon);
-            resourceDiv.appendChild(amount);
-            parentDiv.appendChild(resourceDiv);
-        };
-    };
-
-    let selectedRecipe: GameRecipe | undefined;
-    let selectedRecipeMachine: GameMachine | undefined;
-
-    document.addEventListener("recipe-selected", (event) =>
-    {
-        let recipe = (event as GameRecipeEvent).recipe;
-        let machine = (event as GameRecipeEvent).machine;
-
-        selectedRecipe = recipe;
-        selectedRecipeMachine = machine;
-
-        if (recipe == undefined || machine == undefined)
-        {
-            selectedRecipeDisplay.classList.add("hidden");
-        }
-        else
-        {
-            let selectedRecipeName = document.querySelector("#selected-recipe-name>div.text") as HTMLDivElement;
-            selectedRecipeName.innerText = recipe.displayName;
-
-            let selectedRecipeMachine = document.querySelector("#selected-recipe-machine>div.machine>img.icon") as HTMLImageElement;
-            selectedRecipeMachine.src = satisfactoryIconPath(machine.iconPath);
-            selectedRecipeMachine.title = machine.displayName;
-
-            document.querySelectorAll("#selected-recipe-input>div.resource").forEach(div => div.remove());
-            let selectedRecipeInput = document.querySelector("#selected-recipe-input") as HTMLDivElement;
-
-            recipe.ingredients.forEach(createResourceDisplay(selectedRecipeInput, recipe.manufacturingDuration));
-
-            document.querySelectorAll("#selected-recipe-output>div.resource").forEach(div => div.remove());
-            let selectedRecipeOutput = document.querySelector("#selected-recipe-output") as HTMLDivElement;
-
-            recipe.products.forEach(createResourceDisplay(selectedRecipeOutput, recipe.manufacturingDuration));
-
-            let selectedRecipePower = document.querySelector("#selected-recipe-power>div.text") as HTMLDivElement;
-            selectedRecipePower.innerText = `${machine.powerConsumption} MW`;
-
-            selectedRecipeDisplay.classList.remove("hidden");
-
-            selectedRecipeDisplay.scrollTop = selectedRecipeDisplay.scrollHeight;
-        }
-    });
-
-    confirmRecipeButton.addEventListener("click", () =>
-    {
-        nodeCreationContainer?.classList.add("hidden");
-        if (selectedRecipe != undefined && selectedRecipeMachine != undefined)
-        {
-            createNode(selectedRecipe, selectedRecipeMachine);
-        }
-    });
-
-    tabSelectors.children[0].classList.add("active");
-    recipeTabs.children[0].classList.add("active");
 }
 
 main().catch((reason) =>
