@@ -13,6 +13,7 @@ import { satisfactoryIconPath } from "./GameData/GameData";
 import { ResourcesSummary } from "./ResourcesSummary";
 import { PanZoomConfiguration } from "./PanZoomConfiguration";
 import { SvgIcons } from './SVG/SvgIcons';
+import { HelpModal } from './HelpWindow/HelpModal';
 
 async function main()
 {
@@ -28,6 +29,8 @@ async function main()
     {
         throw new Error("Svg container is broken");
     }
+
+    let _helpModal = new HelpModal();
 
     PanZoomConfiguration.setPanningButtons(["Space"], ["Meta"]);
     PanZoomConfiguration.setZoomingButtons([], ["Control"]);
