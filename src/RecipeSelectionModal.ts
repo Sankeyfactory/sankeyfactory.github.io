@@ -104,14 +104,14 @@ export class RecipeSelectionModal extends EventTarget
             let alternateRecipesGroup = this.createRecipesGroup("Alternate recipes");
             let eventsRecipesGroup = this.createRecipesGroup("Events recipes");
 
-            machine.recipes.forEach((recipe) => this.appendRecipes(
+            machine.recipes.forEach((recipe: BuildingRecipe) => this.appendRecipes(
                 basicRecipesGroup.div,
                 eventsRecipesGroup.div,
                 recipe,
                 machine
             ));
 
-            machine.alternateRecipes.forEach((recipe) => this.appendRecipes(
+            machine.alternateRecipes.forEach((recipe: BuildingRecipe) => this.appendRecipes(
                 alternateRecipesGroup.div,
                 eventsRecipesGroup.div,
                 recipe,
