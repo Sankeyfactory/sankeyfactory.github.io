@@ -1864,7 +1864,7 @@
         },
         beforeWheel: (event) => {
           event.preventDefault();
-          let shouldIgnore = !this._isZooming;
+          let shouldIgnore = !this._isZooming && !event.ctrlKey;
           return shouldIgnore;
         }
       });
@@ -1874,7 +1874,7 @@
           scrollDelta.x = scrollDelta.y;
           scrollDelta.y = 0;
         }
-        if (!this._isZooming) {
+        if (!this._isZooming && !event.ctrlKey) {
           this.context.moveTo(
             this.context.getTransform().x - scrollDelta.x,
             this.context.getTransform().y - scrollDelta.y
