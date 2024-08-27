@@ -487,6 +487,10 @@ div#node-creation-modal {
     min-height: 80%;
     max-width: 80%;
     max-height: 80%;
+
+    transition-property: min-width, min-height, max-width, max-height;
+    transition-duration: 0.2s;
+    transition-timing-function: ease-in-out;
 }
 
 @media screen and (max-width: 560px) {
@@ -1099,9 +1103,14 @@ div#resources-summary div.content {
 /* Help window */
 
 #help-modal-container div.modal-window {
-    min-width: 800px;
-    max-width: 800px;
-    max-height: 90%;
+    min-width: calc(0% + 800px);
+    max-width: calc(0% + 800px);
+    max-height: calc(90% + 0px);
+    min-height: calc(0% + 0px);
+
+    transition-property: min-width, min-height, max-width, max-height;
+    transition-duration: 0.2s;
+    transition-timing-function: ease-in-out;
 }
 
 #help-modal-container div.content {
@@ -1120,10 +1129,10 @@ div#resources-summary div.content {
 
 @media screen and (max-width: 800px) {
     #help-modal-container div.modal-window {
-        min-width: 100%;
-        max-width: 100%;
-        min-height: 100%;
-        max-height: 100%;
+        min-width: calc(100% + 0px);
+        max-width: calc(100% + 0px);
+        min-height: calc(100% + 0px);
+        max-height: calc(100% + 0px);
 
         border-radius: 0;
     }
