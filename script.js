@@ -1630,6 +1630,9 @@
   function overclockPower(power, overclockRatio, powerExponent) {
     return power * Math.pow(overclockRatio, powerExponent);
   }
+  function overclockToShards(overclockRatio) {
+    return Math.ceil((overclockRatio - 1) / 0.5);
+  }
 
   // src/ContextMenu/CustomContextMenu.ts
   var CustomContextMenu = class _CustomContextMenu extends EventTarget {
@@ -2987,6 +2990,9 @@
       );
       return overclockedPower * this.machinesAmount;
     }
+    get requiredPowerShards() {
+      return overclockToShards(this.overclockRatio);
+    }
     get inputResourcesAmount() {
       return this._inputResourcesAmount;
     }
@@ -3153,13 +3159,15 @@
     recalculateInputs() {
       let resources = /* @__PURE__ */ new Map();
       let powerConsumption = 0;
+      let requiredPowerShards = 0;
       for (const node of this._nodes) {
         for (const resource of node.missingResources) {
           resources.set(resource.id, (resources.get(resource.id) ?? 0) + resource.amount);
         }
         powerConsumption += node.powerConsumption;
+        requiredPowerShards += node.requiredPowerShards;
       }
-      this.recalculate(_ResourcesSummary._inputsColumn, resources, powerConsumption);
+      this.recalculate(_ResourcesSummary._inputsColumn, resources, powerConsumption, requiredPowerShards);
     }
     recalculateOutputs() {
       let resources = /* @__PURE__ */ new Map();
@@ -3168,9 +3176,9 @@
           resources.set(resource.id, (resources.get(resource.id) ?? 0) + resource.amount);
         }
       }
-      this.recalculate(_ResourcesSummary._outputsColumn, resources, 0);
+      this.recalculate(_ResourcesSummary._outputsColumn, resources, 0, 0);
     }
-    recalculate(column, resources, powerConsumption) {
+    recalculate(column, resources, powerConsumption, requiredPowerShards) {
       column.querySelectorAll(".resource").forEach((resource) => {
         resource.remove();
       });
@@ -3179,8 +3187,12 @@
         column.appendChild(this.createPowerDisplay(powerConsumption));
         isAnyAdded = true;
       }
+      if (requiredPowerShards !== 0) {
+        column.appendChild(this.createResourceDisplay("Desc_CrystalShard_C", requiredPowerShards, ""));
+        isAnyAdded = true;
+      }
       for (const [id, amount] of resources) {
-        column.appendChild(this.createResourceDisplay(id, amount));
+        column.appendChild(this.createResourceDisplay(id, amount, "/min"));
         isAnyAdded = true;
       }
       if (!isAnyAdded) {
@@ -3209,7 +3221,7 @@
       let contentHeight = _ResourcesSummary.querySuccessor(".content").clientHeight;
       _ResourcesSummary._summaryContainer.style.top = `${-contentHeight}px`;
     }
-    createResourceDisplay(id, amount) {
+    createResourceDisplay(id, amount, suffix) {
       let resource = Satisfactory_default.resources.find(
         // I specify type because deploy fails otherwise for some reason.
         (resource2) => {
@@ -3228,7 +3240,7 @@
       icon.alt = resource.displayName;
       let amountDisplay = document.createElement("div");
       amountDisplay.classList.add("amount");
-      amountDisplay.innerText = `${+amount.toFixed(3)}`;
+      amountDisplay.innerText = `${+amount.toFixed(3)}${suffix}`;
       resourceDisplay.appendChild(icon);
       resourceDisplay.appendChild(amountDisplay);
       return resourceDisplay;
