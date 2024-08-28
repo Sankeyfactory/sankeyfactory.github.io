@@ -2901,6 +2901,7 @@
     constructor(position, recipe, machine) {
       super();
       this._recipe = { ...recipe };
+      this._machine = { ...machine };
       this._height = _SankeyNode._nodeHeight;
       let sumResources = (sum, product) => sum + this.toItemsInMinute(product.amount);
       this._inputResourcesAmount = this._recipe.ingredients.reduce(sumResources, 0);
@@ -2977,6 +2978,14 @@
         }
       }
       return result;
+    }
+    get powerConsumption() {
+      let overclockedPower = overclockPower(
+        this._machine.powerConsumption,
+        this.overclockRatio,
+        this._machine.powerConsumptionExponent
+      );
+      return overclockedPower * this.machinesAmount;
     }
     get inputResourcesAmount() {
       return this._inputResourcesAmount;
@@ -3058,6 +3067,7 @@
       this.multiplyResourcesAmount(difference);
     }
     _recipe;
+    _machine;
     _inputResourcesAmount;
     _outputResourcesAmount;
     _machinesAmount = 1;
@@ -3142,12 +3152,14 @@
     }
     recalculateInputs() {
       let resources = /* @__PURE__ */ new Map();
+      let powerConsumption = 0;
       for (const node of this._nodes) {
         for (const resource of node.missingResources) {
           resources.set(resource.id, (resources.get(resource.id) ?? 0) + resource.amount);
         }
+        powerConsumption += node.powerConsumption;
       }
-      this.recalculate(_ResourcesSummary._inputsColumn, resources);
+      this.recalculate(_ResourcesSummary._inputsColumn, resources, powerConsumption);
     }
     recalculateOutputs() {
       let resources = /* @__PURE__ */ new Map();
@@ -3156,13 +3168,17 @@
           resources.set(resource.id, (resources.get(resource.id) ?? 0) + resource.amount);
         }
       }
-      this.recalculate(_ResourcesSummary._outputsColumn, resources);
+      this.recalculate(_ResourcesSummary._outputsColumn, resources, 0);
     }
-    recalculate(column, resources) {
+    recalculate(column, resources, powerConsumption) {
       column.querySelectorAll(".resource").forEach((resource) => {
         resource.remove();
       });
       let isAnyAdded = false;
+      if (powerConsumption !== 0) {
+        column.appendChild(this.createPowerDisplay(powerConsumption));
+        isAnyAdded = true;
+      }
       for (const [id, amount] of resources) {
         column.appendChild(this.createResourceDisplay(id, amount));
         isAnyAdded = true;
@@ -3212,10 +3228,22 @@
       icon.alt = resource.displayName;
       let amountDisplay = document.createElement("div");
       amountDisplay.classList.add("amount");
-      amountDisplay.innerText = `${amount}`;
+      amountDisplay.innerText = `${+amount.toFixed(3)}`;
       resourceDisplay.appendChild(icon);
       resourceDisplay.appendChild(amountDisplay);
       return resourceDisplay;
+    }
+    createPowerDisplay(powerConsumption) {
+      let powerDisplay = document.createElement("div");
+      powerDisplay.classList.add("resource");
+      let icon = SvgIcons.createIcon("power");
+      icon.classList.add("icon");
+      let amountDisplay = document.createElement("div");
+      amountDisplay.classList.add("amount");
+      amountDisplay.innerText = `${+powerConsumption.toFixed(3)} MW`;
+      powerDisplay.appendChild(icon);
+      powerDisplay.appendChild(amountDisplay);
+      return powerDisplay;
     }
     static querySuccessor(query) {
       let element = _ResourcesSummary._summaryContainer.querySelector(`${query}`);
