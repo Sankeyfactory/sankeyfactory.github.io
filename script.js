@@ -3372,6 +3372,7 @@
     }
     openModal() {
       _HelpModal._modalContainer.classList.remove("hidden");
+      _HelpModal._modalContent.scrollTop = 0;
       this._isOpened = true;
     }
     closeModal() {
@@ -3392,6 +3393,7 @@
     }
     _isOpened = false;
     static _modalContainer = document.querySelector("#help-modal-container");
+    static _modalContent = this._modalContainer.querySelector(".content");
     static _closeButton = this._modalContainer.querySelector(".title-row .close");
     static _openModalButton = document.querySelector("#open-help");
   };
