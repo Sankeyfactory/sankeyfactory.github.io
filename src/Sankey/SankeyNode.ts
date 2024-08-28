@@ -6,7 +6,7 @@ import { GameRecipe } from "../GameData/GameRecipe";
 import { GameMachine } from "../GameData/GameMachine";
 import { NodeContextMenu } from '../ContextMenu/NodeContextMenu';
 import { NodeConfiguration } from './NodeConfiguration/NodeConfiguration';
-import { overclockPower, toItemsInMinute } from '../GameData/GameData';
+import { overclockPower, overclockToShards, toItemsInMinute } from '../GameData/GameData';
 import { NodeResourceDisplay } from './NodeResourceDisplay';
 
 export class SankeyNode extends EventTarget
@@ -159,6 +159,11 @@ export class SankeyNode extends EventTarget
         );
 
         return overclockedPower * this.machinesAmount;
+    }
+
+    public get requiredPowerShards(): number
+    {
+        return overclockToShards(this.overclockRatio);
     }
 
     public get inputResourcesAmount(): number

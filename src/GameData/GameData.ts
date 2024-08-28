@@ -12,3 +12,8 @@ export function overclockPower(power: number, overclockRatio: number, powerExpon
 {
     return power * Math.pow(overclockRatio, powerExponent);
 }
+
+export function overclockToShards(overclockRatio: number): number
+{
+    return Math.ceil((overclockRatio - 1) / 0.5);
+}

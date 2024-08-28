@@ -54,6 +54,7 @@ export class ResourcesSummary
     {
         let resources = new Map<string, number>();
         let powerConsumption = 0;
+        let requiredPowerShards = 0;
 
         for (const node of this._nodes)
         {
@@ -63,9 +64,10 @@ export class ResourcesSummary
             }
 
             powerConsumption += node.powerConsumption;
+            requiredPowerShards += node.requiredPowerShards;
         }
 
-        this.recalculate(ResourcesSummary._inputsColumn, resources, powerConsumption);
+        this.recalculate(ResourcesSummary._inputsColumn, resources, powerConsumption, requiredPowerShards);
     }
 
     private recalculateOutputs(): void
@@ -80,10 +82,15 @@ export class ResourcesSummary
             }
         }
 
-        this.recalculate(ResourcesSummary._outputsColumn, resources, 0);
+        this.recalculate(ResourcesSummary._outputsColumn, resources, 0, 0);
     }
 
-    private recalculate(column: HTMLDivElement, resources: Map<string, number>, powerConsumption: number)
+    private recalculate(
+        column: HTMLDivElement,
+        resources: Map<string, number>,
+        powerConsumption: number,
+        requiredPowerShards: number,
+    )
     {
         column.querySelectorAll(".resource").forEach(resource =>
         {
@@ -99,9 +106,16 @@ export class ResourcesSummary
             isAnyAdded = true;
         }
 
+        if (requiredPowerShards !== 0)
+        {
+            column.appendChild(this.createResourceDisplay("Desc_CrystalShard_C", requiredPowerShards, ""));
+
+            isAnyAdded = true;
+        }
+
         for (const [id, amount] of resources)
         {
-            column.appendChild(this.createResourceDisplay(id, amount));
+            column.appendChild(this.createResourceDisplay(id, amount, "/min"));
 
             isAnyAdded = true;
         }
@@ -147,7 +161,7 @@ export class ResourcesSummary
         ResourcesSummary._summaryContainer.style.top = `${-contentHeight}px`;
     }
 
-    private createResourceDisplay(id: string, amount: number): HTMLDivElement
+    private createResourceDisplay(id: string, amount: number, suffix: string): HTMLDivElement
     {
         let resource = satisfactoryData.resources.find(
             // I specify type because deploy fails otherwise for some reason.
@@ -175,7 +189,7 @@ export class ResourcesSummary
         let amountDisplay = document.createElement("div");
         amountDisplay.classList.add("amount");
 
-        amountDisplay.innerText = `${+amount.toFixed(3)}`;
+        amountDisplay.innerText = `${+amount.toFixed(3)}${suffix}`;
 
         resourceDisplay.appendChild(icon);
         resourceDisplay.appendChild(amountDisplay);
