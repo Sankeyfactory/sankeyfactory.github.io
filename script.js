@@ -1631,6 +1631,9 @@
     return power * Math.pow(overclockRatio, powerExponent);
   }
   function overclockToShards(overclockRatio) {
+    if (overclockRatio <= 1) {
+      return 0;
+    }
     return Math.ceil((overclockRatio - 1) / 0.5);
   }
 
