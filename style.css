@@ -315,6 +315,33 @@ svg#canvas {
     margin: 0;
 }
 
+/* Recipe display near slots */
+
+.slots-group foreignObject.resources-display {
+    overflow: visible;
+}
+
+.slots-group .resources-display>div {
+    display: flex;
+    align-items: center;
+
+    width: fit-content;
+    height: 100%;
+
+    padding: 0 10px;
+
+    gap: 4px;
+}
+
+.input-slots .resources-display>div {
+    flex-direction: row-reverse;
+    transform: translateX(-100%);
+}
+
+.slots-group .resources-display img {
+    align-self: stretch;
+}
+
 /* Node links */
 
 path.link-hint {
