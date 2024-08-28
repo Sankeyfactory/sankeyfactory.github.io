@@ -1,7 +1,3 @@
-// Ignore import error as the file only appears on launch of the exporting tool.
-// @ts-ignore
-import satisfactoryData from '../../dist/GameData/Satisfactory.json';
-
 import { PanZoom } from "panzoom";
 import { Curve } from "../Geometry/Curve";
 import { Rectangle } from "../Geometry/Rectangle";
@@ -9,7 +5,7 @@ import { SvgFactory } from "../SVG/SvgFactory";
 import { SvgPathBuilder } from "../SVG/SvgPathBuilder";
 import { SankeySlot } from "./Slots/SankeySlot";
 import { Point } from '../Geometry/Point';
-import { satisfactoryIconPath } from '../GameData/GameData';
+import { loadSatisfactoryResource, satisfactoryIconPath } from '../GameData/GameData';
 import { LinkContextMenu } from '../ContextMenu/LinkContextMenu';
 
 export class SankeyLink
@@ -170,17 +166,10 @@ export class SankeyLink
         let icon = document.createElement("img");
         icon.classList.add("icon");
 
-        let resourceDesc = satisfactoryData.resources.find(
-            (resourceDesc: typeof satisfactoryData.resources[0]) => 
-            {
-                return resourceDesc.id == resource.id;
-            });
+        let resourceDesc = loadSatisfactoryResource(resource.id);
 
-        if (resourceDesc != undefined)
-        {
-            icon.src = satisfactoryIconPath(resourceDesc.iconPath);
-            icon.alt = resourceDesc.displayName;
-        }
+        icon.src = satisfactoryIconPath(resourceDesc.iconPath);
+        icon.alt = resourceDesc.displayName;
 
         this._resourceAmountDisplay = document.createElement("div");
         this._resourceAmountDisplay.classList.add("resource-amount");

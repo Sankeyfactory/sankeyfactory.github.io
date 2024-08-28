@@ -3,6 +3,7 @@ import { SlotsGroup } from "../SlotsGroup";
 import { MouseHandler } from "../../MouseHandler";
 import { SankeySlot } from "./SankeySlot";
 import { PanZoomConfiguration } from "../../PanZoomConfiguration";
+import { SlotResourcesDisplay } from "./SlotResourcesDisplay";
 
 export class SankeySlotExceeding extends OutputSankeySlot
 {
@@ -12,6 +13,8 @@ export class SankeySlotExceeding extends OutputSankeySlot
         resource: RecipeResource)
     {
         super(slotsGroup, slotsGroupSvg, resource, "exceeding");
+
+        this._resourcesDisplay = new SlotResourcesDisplay(this, slotsGroupSvg, false);
 
         this.slotSvgRect.addEventListener("click", (event) =>
         {
@@ -31,4 +34,6 @@ export class SankeySlotExceeding extends OutputSankeySlot
     {
         return this.parentGroup.addSlot(resourcesAmount);
     }
+
+    private _resourcesDisplay: SlotResourcesDisplay;
 }

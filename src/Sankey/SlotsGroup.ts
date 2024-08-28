@@ -30,7 +30,7 @@ export class SlotsGroup extends EventTarget
             ? new Point(0, startY)
             : new Point(SankeyNode.nodeWidth + SankeySlot.slotWidth, startY);
 
-        this._groupSvg = SvgFactory.createSvgGroup(position, `${type}-slots`);
+        this._groupSvg = SvgFactory.createSvgGroup(position, `${type}-slots`, "slots-group");
 
         this._lastSlot = this.initializeLastSlot(resource);
 

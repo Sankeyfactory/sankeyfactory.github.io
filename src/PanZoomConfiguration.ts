@@ -1,5 +1,6 @@
 import panzoom, { PanZoom } from "panzoom";
 import { Point } from "./Geometry/Point";
+import { Settings } from "./Settings";
 
 export class PanZoomConfiguration
 {
@@ -39,6 +40,11 @@ export class PanZoomConfiguration
                 );
             }
         }, { passive: true });
+
+        this._panContext.on('zoom', () =>
+        {
+            Settings.instance.zoom = this._panContext.getTransform().scale ?? 1.0;
+        });
 
         window.addEventListener("focusout", () =>
         {
@@ -166,7 +172,7 @@ export class PanZoomConfiguration
 
     private constructor() { }
 
-    private static _panContext?: PanZoom;
+    private static _panContext: PanZoom;
 
     private static _isPanning = false;
     private static _isZooming = false;

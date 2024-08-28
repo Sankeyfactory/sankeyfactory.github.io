@@ -2,7 +2,7 @@
 // @ts-ignore
 import satisfactoryData from '../dist/GameData/Satisfactory.json';
 
-import { satisfactoryIconPath, toItemsInMinute } from './GameData/GameData';
+import { loadSatisfactoryResource, satisfactoryIconPath, toItemsInMinute } from './GameData/GameData';
 import { GameMachine } from './GameData/GameMachine';
 import { GameRecipe } from './GameData/GameRecipe';
 
@@ -181,18 +181,12 @@ export class RecipeSelectionModal extends EventTarget
             let itemIcon = document.createElement("img");
             itemIcon.classList.add("item-icon");
 
-            let resource = satisfactoryData.resources.find((resource: Resource) => 
-            {
-                return resource.id == product.id;
-            });
+            let resource = loadSatisfactoryResource(product.id);
 
-            if (resource != undefined)
+            itemIcon.src = satisfactoryIconPath(resource.iconPath);
+            if (!isEventRecipe)
             {
-                itemIcon.src = satisfactoryIconPath(resource.iconPath);
-                if (!isEventRecipe)
-                {
-                    isEventRecipe = resource.iconPath.startsWith("Events");
-                }
+                isEventRecipe = resource.iconPath.startsWith("Events");
             }
 
             itemIcon.alt = recipe.displayName;
@@ -244,17 +238,7 @@ export class RecipeSelectionModal extends EventTarget
         recipeResource: RecipeResource
     )
     {
-        let descriptor = satisfactoryData.resources.find(
-            (resourceData: typeof satisfactoryData.resources[0]) =>
-            {
-                return resourceData.id === recipeResource.id;
-            }
-        );
-
-        if (descriptor == undefined)
-        {
-            throw Error(`Couldn't find resource ${recipeResource.id}`);
-        }
+        let descriptor = loadSatisfactoryResource(recipeResource.id);
 
         let resourceDiv = this.createHtmlElement<HTMLDivElement>("div", "resource");
 

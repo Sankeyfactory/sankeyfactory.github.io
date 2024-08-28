@@ -1,8 +1,4 @@
-// Ignore import error as the file only appears on launch of the exporting tool.
-// @ts-ignore
-import satisfactoryData from '../../../dist/GameData/Satisfactory.json';
-
-import { overclockPower, toItemsInMinute } from '../../GameData/GameData';
+import { loadSatisfactoryResource, overclockPower, toItemsInMinute } from '../../GameData/GameData';
 import { GameMachine } from "../../GameData/GameMachine";
 import { GameRecipe } from "../../GameData/GameRecipe";
 import { Configurators } from './Configurator';
@@ -204,13 +200,7 @@ export class NodeConfiguration extends EventTarget
             overclockConfigurators: HTMLDivElement[]
         ): void =>
         {
-            let resourceDesc = satisfactoryData.resources.find(
-                // I specify type because deploy fails otherwise for some reason.
-                (resourceData: typeof satisfactoryData.resources[0]) => 
-                {
-                    return resourceData.id == resource.id;
-                }
-            );
+            let resourceDesc = loadSatisfactoryResource(resource.id);
 
             if (resourceDesc == undefined)
             {

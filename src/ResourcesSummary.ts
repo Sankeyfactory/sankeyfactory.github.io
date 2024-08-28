@@ -1,9 +1,5 @@
-// Ignore import error as the file only appears on launch of the exporting tool.
-// @ts-ignore
-import satisfactoryData from '../dist/GameData/Satisfactory.json';
-
 import { SankeyNode } from "./Sankey/SankeyNode";
-import { satisfactoryIconPath } from './GameData/GameData';
+import { loadSatisfactoryResource, satisfactoryIconPath } from './GameData/GameData';
 import { SvgIcons } from './SVG/SvgIcons';
 
 export class ResourcesSummary
@@ -163,18 +159,7 @@ export class ResourcesSummary
 
     private createResourceDisplay(id: string, amount: number, suffix: string): HTMLDivElement
     {
-        let resource = satisfactoryData.resources.find(
-            // I specify type because deploy fails otherwise for some reason.
-            (resource: typeof satisfactoryData.resources[0]) => 
-            {
-                return resource.id == id;
-            }
-        );
-
-        if (resource == undefined)
-        {
-            throw Error(`Couldn't find resource ${id}`);
-        }
+        let resource = loadSatisfactoryResource(id);
 
         let resourceDisplay = document.createElement("div");
         resourceDisplay.classList.add("resource");

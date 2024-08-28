@@ -24,10 +24,9 @@ async function main()
     PanZoomConfiguration.setZoomingButtons([], ["Control"]);
     PanZoomConfiguration.configurePanContext(canvas);
 
-    PanZoomConfiguration.context.on('zoom', () =>
+    Settings.instance.addEventListener(Settings.zoomChangedEvent, () =>
     {
-        let zoomScale = PanZoomConfiguration.context.getTransform()?.scale ?? 1.0;
-        zoomRatioDisplay.textContent = `Zoom: ${zoomScale.toFixed(2)}x`;
+        zoomRatioDisplay.textContent = `Zoom: ${Settings.instance.zoom.toFixed(2)}x`;
     });
 
     let resourcesSummary = new ResourcesSummary();

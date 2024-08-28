@@ -3,6 +3,7 @@ import { PanZoomConfiguration } from "./PanZoomConfiguration";
 export class Settings extends EventTarget
 {
     public static readonly isCanvasLockedChangedEvent = "canvas-locked-changed";
+    public static readonly zoomChangedEvent = "canvas-locked-changed";
 
     public static get instance()
     {
@@ -30,6 +31,18 @@ export class Settings extends EventTarget
         this.dispatchEvent(new Event(Settings.isCanvasLockedChangedEvent));
     }
 
+    public get zoom(): number
+    {
+        return this._zoom;
+    }
+
+    public set zoom(value: number)
+    {
+        this._zoom = value;
+
+        this.dispatchEvent(new Event(Settings.zoomChangedEvent));
+    }
+
     private constructor()
     {
         super();
@@ -38,4 +51,5 @@ export class Settings extends EventTarget
     private static readonly _instance = new Settings();
 
     private _isCanvasLocked = false;
+    private _zoom = 0;
 }

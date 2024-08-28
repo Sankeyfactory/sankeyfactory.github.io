@@ -1,11 +1,7 @@
-// Ignore import error as the file only appears on launch of the exporting tool.
-// @ts-ignore
-import satisfactoryData from '../../dist/GameData/Satisfactory.json';
-
 import { GameRecipe } from "../GameData/GameRecipe";
 import { Rectangle } from "../Geometry/Rectangle";
 import { SvgFactory } from "../SVG/SvgFactory";
-import { overclockPower, satisfactoryIconPath, toItemsInMinute } from '../GameData/GameData';
+import { loadSatisfactoryResource, overclockPower, satisfactoryIconPath, toItemsInMinute } from '../GameData/GameData';
 import { GameMachine } from '../GameData/GameMachine';
 import { SankeyNode } from './SankeyNode';
 
@@ -139,17 +135,7 @@ export class NodeResourceDisplay
 
     private createResourceDisplay(parentDiv: HTMLDivElement, recipeResource: RecipeResource)
     {
-        let resource = satisfactoryData.resources.find(
-            (el: typeof satisfactoryData.resources[0]) =>
-            {
-                return el.id === recipeResource.id;
-            }
-        );
-
-        if (resource == undefined)
-        {
-            throw Error(`Couldn't find resource ${recipeResource.id}`);
-        }
+        let resource = loadSatisfactoryResource(recipeResource.id);
 
         let amountInMinute = +this.toItemsInMinute(recipeResource.amount).toFixed(4);
 
