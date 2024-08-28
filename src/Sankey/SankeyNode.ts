@@ -6,7 +6,7 @@ import { GameRecipe } from "../GameData/GameRecipe";
 import { GameMachine } from "../GameData/GameMachine";
 import { NodeContextMenu } from '../ContextMenu/NodeContextMenu';
 import { NodeConfiguration } from './NodeConfiguration/NodeConfiguration';
-import { toItemsInMinute } from '../GameData/GameData';
+import { overclockPower, toItemsInMinute } from '../GameData/GameData';
 import { NodeResourceDisplay } from './NodeResourceDisplay';
 
 export class SankeyNode extends EventTarget
@@ -28,6 +28,7 @@ export class SankeyNode extends EventTarget
         super();
 
         this._recipe = { ...recipe };
+        this._machine = { ...machine };
         this._height = SankeyNode._nodeHeight;
 
         let sumResources = (sum: number, product: RecipeResource) =>
@@ -147,6 +148,17 @@ export class SankeyNode extends EventTarget
         }
 
         return result;
+    }
+
+    public get powerConsumption(): number
+    {
+        let overclockedPower = overclockPower(
+            this._machine.powerConsumption,
+            this.overclockRatio,
+            this._machine.powerConsumptionExponent
+        );
+
+        return overclockedPower * this.machinesAmount;
     }
 
     public get inputResourcesAmount(): number
@@ -276,6 +288,7 @@ export class SankeyNode extends EventTarget
     }
 
     private _recipe: GameRecipe;
+    private _machine: GameMachine;
 
     private _inputResourcesAmount: number;
     private _outputResourcesAmount: number;

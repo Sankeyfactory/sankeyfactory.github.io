@@ -4,6 +4,7 @@ import satisfactoryData from '../dist/GameData/Satisfactory.json';
 
 import { SankeyNode } from "./Sankey/SankeyNode";
 import { satisfactoryIconPath } from './GameData/GameData';
+import { SvgIcons } from './SVG/SvgIcons';
 
 export class ResourcesSummary
 {
@@ -52,6 +53,7 @@ export class ResourcesSummary
     private recalculateInputs(): void
     {
         let resources = new Map<string, number>();
+        let powerConsumption = 0;
 
         for (const node of this._nodes)
         {
@@ -59,9 +61,11 @@ export class ResourcesSummary
             {
                 resources.set(resource.id, (resources.get(resource.id) ?? 0) + resource.amount);
             }
+
+            powerConsumption += node.powerConsumption;
         }
 
-        this.recalculate(ResourcesSummary._inputsColumn, resources);
+        this.recalculate(ResourcesSummary._inputsColumn, resources, powerConsumption);
     }
 
     private recalculateOutputs(): void
@@ -76,10 +80,10 @@ export class ResourcesSummary
             }
         }
 
-        this.recalculate(ResourcesSummary._outputsColumn, resources);
+        this.recalculate(ResourcesSummary._outputsColumn, resources, 0);
     }
 
-    private recalculate(column: HTMLDivElement, resources: Map<string, number>)
+    private recalculate(column: HTMLDivElement, resources: Map<string, number>, powerConsumption: number)
     {
         column.querySelectorAll(".resource").forEach(resource =>
         {
@@ -87,6 +91,13 @@ export class ResourcesSummary
         });
 
         let isAnyAdded = false;
+
+        if (powerConsumption !== 0)
+        {
+            column.appendChild(this.createPowerDisplay(powerConsumption));
+
+            isAnyAdded = true;
+        }
 
         for (const [id, amount] of resources)
         {
@@ -164,12 +175,31 @@ export class ResourcesSummary
         let amountDisplay = document.createElement("div");
         amountDisplay.classList.add("amount");
 
-        amountDisplay.innerText = `${amount}`;
+        amountDisplay.innerText = `${+amount.toFixed(3)}`;
 
         resourceDisplay.appendChild(icon);
         resourceDisplay.appendChild(amountDisplay);
 
         return resourceDisplay;
+    }
+
+    private createPowerDisplay(powerConsumption: number): HTMLDivElement
+    {
+        let powerDisplay = document.createElement("div");
+        powerDisplay.classList.add("resource");
+
+        let icon = SvgIcons.createIcon("power");
+        icon.classList.add("icon");
+
+        let amountDisplay = document.createElement("div");
+        amountDisplay.classList.add("amount");
+
+        amountDisplay.innerText = `${+powerConsumption.toFixed(3)} MW`;
+
+        powerDisplay.appendChild(icon);
+        powerDisplay.appendChild(amountDisplay);
+
+        return powerDisplay;
     }
 
     private static querySuccessor(query: string): Element

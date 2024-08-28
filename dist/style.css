@@ -1072,6 +1072,12 @@ div#resources-summary div.content {
     height: 24px;
 }
 
+#resources-summary .resource svg {
+    fill: var(--foreground);
+    width: 24px;
+    height: 24px;
+}
+
 #resources-summary div.collapse-button {
     display: flex;
 
