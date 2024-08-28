@@ -49,6 +49,7 @@ export class HelpModal
     private openModal(): void
     {
         HelpModal._modalContainer.classList.remove("hidden");
+        HelpModal._modalContent.scrollTop = 0;
         this._isOpened = true;
     }
 
@@ -81,6 +82,9 @@ export class HelpModal
     private _isOpened = false;
 
     private static _modalContainer = document.querySelector("#help-modal-container") as HTMLDivElement;
+    private static _modalContent = this._modalContainer.querySelector(".content") as HTMLDivElement;
+
+
     private static _closeButton = this._modalContainer.querySelector(".title-row .close") as HTMLDivElement;
     private static _openModalButton = document.querySelector("#open-help") as HTMLDivElement;
 }
