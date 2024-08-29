@@ -2042,21 +2042,7 @@
     }
     handleMouseMove(event) {
       if (this.mouseStatus === _MouseHandler.MouseStatus.DraggingNode) {
-        if (this.draggedNode == void 0) {
-          throw Error("Dragged node wasn't saved.");
-        }
-        let previousPos = this.draggedNode.position;
-        let zoomScale = PanZoomConfiguration.context.getTransform().scale;
-        let mousePosDelta = {
-          x: event.clientX - this.lastMousePos.x,
-          y: event.clientY - this.lastMousePos.y
-        };
-        this.draggedNode.position = {
-          x: previousPos.x + mousePosDelta.x / zoomScale,
-          y: previousPos.y + mousePosDelta.y / zoomScale
-        };
-        this.lastMousePos.x = event.clientX;
-        this.lastMousePos.y = event.clientY;
+        this.dragNodeTo({ x: event.clientX, y: event.clientY });
       } else if (this.mouseStatus === _MouseHandler.MouseStatus.ConnectingInputSlot || this.mouseStatus === _MouseHandler.MouseStatus.ConnectingOutputSlot) {
         if (this.firstConnectingSlot == void 0) {
           throw Error("First connecting slot wasn't saved.");
@@ -2071,6 +2057,12 @@
         );
         let path = new SvgPathBuilder().startAt(this.slotConnectingCurve.startPoint).curve(this.slotConnectingCurve).build();
         this.slotConnectingLine.setAttribute("d", path);
+      }
+    }
+    handleTouchMove(event) {
+      if (this.mouseStatus === _MouseHandler.MouseStatus.DraggingNode && event.touches.length === 1) {
+        let touch = event.touches[0];
+        this.dragNodeTo({ x: touch.clientX, y: touch.clientY });
       }
     }
     handleMouseUp() {
@@ -2126,6 +2118,23 @@
         this.cancelConnectingSlots();
       }
     }
+    dragNodeTo(position) {
+      if (this.draggedNode == void 0) {
+        throw Error("Dragged node wasn't saved.");
+      }
+      let previousPos = this.draggedNode.position;
+      let zoomScale = PanZoomConfiguration.context.getTransform().scale;
+      let mousePosDelta = {
+        x: position.x - this.lastMousePos.x,
+        y: position.y - this.lastMousePos.y
+      };
+      this.draggedNode.position = {
+        x: previousPos.x + mousePosDelta.x / zoomScale,
+        y: previousPos.y + mousePosDelta.y / zoomScale
+      };
+      this.lastMousePos.x = position.x;
+      this.lastMousePos.y = position.y;
+    }
     startConnectingSlot(event, firstSlot, isInput) {
       this.firstConnectingSlot = firstSlot;
       let zoomScale = PanZoomConfiguration.context.getTransform().scale;
@@ -2151,12 +2160,12 @@
       this.slotConnectingLine.setAttribute("d", path);
       this.viewport.appendChild(this.slotConnectingLine);
     }
-    startDraggingNode(event, node) {
+    startDraggingNode(node, position) {
       if (this.mouseStatus === _MouseHandler.MouseStatus.Free) {
         this.mouseStatus = _MouseHandler.MouseStatus.DraggingNode;
         this.draggedNode = node;
-        this.lastMousePos.x = event.clientX;
-        this.lastMousePos.y = event.clientY;
+        this.lastMousePos.x = position.x;
+        this.lastMousePos.y = position.y;
       }
     }
     static clientToCanvasPosition(clientPosition) {
@@ -3702,9 +3711,21 @@
       const node = new SankeyNode(nodeCreationPosition, recipe, machine);
       node.nodeSvg.onmousedown = (event) => {
         if (event.buttons === 1 && !PanZoomConfiguration.isPanning && !PanZoomConfiguration.isZooming) {
-          MouseHandler.getInstance().startDraggingNode(event, node);
+          MouseHandler.getInstance().startDraggingNode(
+            node,
+            { x: event.clientX, y: event.clientY }
+          );
         }
       };
+      node.nodeSvg.addEventListener("touchstart", (event) => {
+        if (event.touches.length === 1 && Settings.instance.isCanvasLocked) {
+          let touch = event.touches[0];
+          MouseHandler.getInstance().startDraggingNode(
+            node,
+            { x: touch.clientX, y: touch.clientY }
+          );
+        }
+      });
       resourcesSummary.registerNode(node);
     }
     ;
@@ -3790,9 +3811,15 @@
     window.onmouseup = () => {
       MouseHandler.getInstance().handleMouseUp();
     };
+    window.addEventListener("touchend", () => {
+      MouseHandler.getInstance().handleMouseUp();
+    });
     window.onmousemove = (event) => {
       MouseHandler.getInstance().handleMouseMove(event);
     };
+    window.addEventListener("touchmove", (event) => {
+      MouseHandler.getInstance().handleTouchMove(event);
+    });
   }
   main().catch((reason) => {
     console.error(reason);
