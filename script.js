@@ -2207,7 +2207,7 @@
   })(MouseHandler || (MouseHandler = {}));
 
   // src/Sankey/Slots/SlotResourcesDisplay.ts
-  var SlotResourcesDisplay = class {
+  var SlotResourcesDisplay = class _SlotResourcesDisplay {
     constructor(relatedSlot, slotsGroup, type) {
       this._relatedSlot = relatedSlot;
       this._slotsGroup = slotsGroup;
@@ -2232,8 +2232,9 @@
       this._resourcesDisplay.appendChild(displayContainer);
       this._slotsGroup.appendChild(this._resourcesDisplay);
       Settings.instance.addEventListener(Settings.zoomChangedEvent, () => {
-        displayContainer.style.padding = `0 ${10 / Settings.instance.zoom}px`;
-        displayContainer.style.gap = `${4 / Settings.instance.zoom}px`;
+        let zoomScale = Math.max(Settings.instance.zoom, _SlotResourcesDisplay._minZoomMultiplier);
+        displayContainer.style.padding = `0 ${10 / zoomScale}px`;
+        displayContainer.style.gap = `${4 / zoomScale}px`;
         this.update();
       });
       Settings.instance.addEventListener(Settings.connectingResourceIdChangedEvent, () => {
@@ -2256,7 +2257,8 @@
         this._resourcesDisplay.classList.add("hidden");
       } else {
         this._resourcesDisplay.classList.remove("hidden");
-        let displayHeight = 24 / Settings.instance.zoom;
+        let zoomScale = Math.max(Settings.instance.zoom, _SlotResourcesDisplay._minZoomMultiplier);
+        let displayHeight = 24 / zoomScale;
         this._resourcesAmountDisplay.style.fontSize = `${displayHeight * 0.6}px`;
         this._resourcesAmountDisplay.innerText = `${+this._relatedSlot.resourcesAmount.toFixed(3)}`;
         let slotHeight = +this._relatedSlot.slotSvgRect.getAttribute("height");
@@ -2273,6 +2275,7 @@
     _slotsGroup;
     _resourcesDisplay;
     _resourcesAmountDisplay;
+    static _minZoomMultiplier = 0.5;
   };
 
   // src/Sankey/Slots/SankeySlotExceeding.ts
