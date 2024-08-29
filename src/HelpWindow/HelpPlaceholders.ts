@@ -80,7 +80,7 @@ export class HelpPlaceholders
     {
         let cell = document.createElement("td");
 
-        cell.innerText = content;
+        cell.append(...this.parsePlaceholder(content));
 
         return cell;
     }

@@ -1194,6 +1194,14 @@ div#resources-summary div.content {
     width: 100%;
 }
 
+#help-modal-container .content table td:nth-child(2) svg {
+    height: 20px;
+
+    vertical-align: middle;
+
+    fill: var(--foreground);
+}
+
 #help-modal-container .content table div.controls {
     display: flex;
     align-items: center;
@@ -1201,10 +1209,6 @@ div#resources-summary div.content {
     color: var(--dim-foreground-light);
 
     gap: 8px;
-}
-
-#help-modal-container .content table .controls div.text {
-    min-width: fit-content;
 }
 
 #help-modal-container .content table .controls div.button-tip {
@@ -1224,7 +1228,7 @@ div#resources-summary div.content {
     color: var(--dim-foreground-light);
 }
 
-#help-modal-container .content table .controls .button-tip svg {
+#help-modal-container .content table .controls svg {
     fill: var(--dim-foreground-light);
 
     height: 20px;
