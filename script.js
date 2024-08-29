@@ -1876,6 +1876,7 @@
   var Settings = class _Settings extends EventTarget {
     static isCanvasLockedChangedEvent = "canvas-locked-changed";
     static zoomChangedEvent = "canvas-locked-changed";
+    static connectingResourceIdChangedEvent = "connecting-resource-id-changed";
     static get instance() {
       return this._instance;
     }
@@ -1898,12 +1899,20 @@
       this._zoom = value;
       this.dispatchEvent(new Event(_Settings.zoomChangedEvent));
     }
+    get connectingResource() {
+      return this._connectingResource;
+    }
+    set connectingResource(value) {
+      this._connectingResource = value;
+      this.dispatchEvent(new Event(_Settings.connectingResourceIdChangedEvent));
+    }
     constructor() {
       super();
     }
     static _instance = new _Settings();
     _isCanvasLocked = false;
     _zoom = 0;
+    _connectingResource;
   };
 
   // src/PanZoomConfiguration.ts
@@ -2080,12 +2089,14 @@
         this.slotConnectingLine = void 0;
         this.slotConnectingCurve = void 0;
         this.mouseStatus = _MouseHandler.MouseStatus.Free;
+        Settings.instance.connectingResource = void 0;
       }
     }
     inputSlotClicked(event, targetSlot) {
       if (this.mouseStatus === _MouseHandler.MouseStatus.Free) {
         this.mouseStatus = _MouseHandler.MouseStatus.ConnectingInputSlot;
         this.startConnectingSlot(event, targetSlot, true);
+        Settings.instance.connectingResource = { type: "input", id: targetSlot.resourceId };
       } else if (this.mouseStatus === _MouseHandler.MouseStatus.ConnectingOutputSlot) {
         if (this.firstConnectingSlot == void 0) {
           throw Error("First connecting slot wasn't saved.");
@@ -2104,6 +2115,7 @@
       if (this.mouseStatus === _MouseHandler.MouseStatus.Free) {
         this.mouseStatus = _MouseHandler.MouseStatus.ConnectingOutputSlot;
         this.startConnectingSlot(event, targetSlot, false);
+        Settings.instance.connectingResource = { type: "output", id: targetSlot.resourceId };
       } else if (this.mouseStatus === _MouseHandler.MouseStatus.ConnectingInputSlot) {
         if (this.firstConnectingSlot == void 0) {
           throw Error("First connecting slot wasn't saved.");
@@ -2196,10 +2208,10 @@
 
   // src/Sankey/Slots/SlotResourcesDisplay.ts
   var SlotResourcesDisplay = class {
-    constructor(relatedSlot, slotsGroup, isDirectedLeft) {
+    constructor(relatedSlot, slotsGroup, type) {
       this._relatedSlot = relatedSlot;
       this._slotsGroup = slotsGroup;
-      this._isDirectedLeft = isDirectedLeft;
+      this._type = type;
       this._resourcesDisplay = SvgFactory.createSvgForeignObject("resources-display");
       this._resourcesAmountDisplay = document.createElement("div");
       this.createResourceDisplay();
@@ -2224,6 +2236,20 @@
         displayContainer.style.gap = `${4 / Settings.instance.zoom}px`;
         this.update();
       });
+      Settings.instance.addEventListener(Settings.connectingResourceIdChangedEvent, () => {
+        let resource2 = Settings.instance.connectingResource;
+        this._resourcesDisplay.classList.remove("correct");
+        this._resourcesDisplay.classList.remove("wrong");
+        if (resource2 != void 0) {
+          if (resource2.id === this._relatedSlot.resourceId && resource2.type !== this._type) {
+            this._resourcesDisplay.classList.add("correct");
+            this._resourcesDisplay.classList.remove("wrong");
+          } else {
+            this._resourcesDisplay.classList.add("wrong");
+            this._resourcesDisplay.classList.remove("correct");
+          }
+        }
+      });
     }
     update() {
       if (this._relatedSlot.resourcesAmount === 0) {
@@ -2235,7 +2261,7 @@
         this._resourcesAmountDisplay.innerText = `${+this._relatedSlot.resourcesAmount.toFixed(3)}`;
         let slotHeight = +this._relatedSlot.slotSvgRect.getAttribute("height");
         let slotY = +this._relatedSlot.slotSvgRect.getAttribute("y");
-        let xOffset = this._isDirectedLeft ? 0 : SankeySlot.slotWidth;
+        let xOffset = this._type === "input" ? 0 : SankeySlot.slotWidth;
         this._resourcesDisplay.setAttribute("height", `${displayHeight}`);
         this._resourcesDisplay.setAttribute("width", "1");
         this._resourcesDisplay.setAttribute("x", `${xOffset}`);
@@ -2243,7 +2269,7 @@
       }
     }
     _relatedSlot;
-    _isDirectedLeft;
+    _type;
     _slotsGroup;
     _resourcesDisplay;
     _resourcesAmountDisplay;
@@ -2253,7 +2279,7 @@
   var SankeySlotExceeding = class extends OutputSankeySlot {
     constructor(slotsGroup, slotsGroupSvg, resource) {
       super(slotsGroup, slotsGroupSvg, resource, "exceeding");
-      this._resourcesDisplay = new SlotResourcesDisplay(this, slotsGroupSvg, false);
+      this._resourcesDisplay = new SlotResourcesDisplay(this, slotsGroupSvg, "output");
       this.slotSvgRect.addEventListener("click", (event) => {
         if (!PanZoomConfiguration.isPanning && !PanZoomConfiguration.isZooming) {
           MouseHandler.getInstance().outputSlotClicked(event, this);
@@ -2280,7 +2306,7 @@
   var SankeySlotMissing = class extends InputSankeySlot {
     constructor(slotsGroup, slotsGroupSvg, resource) {
       super(slotsGroup, slotsGroupSvg, resource, "missing");
-      this._resourcesDisplay = new SlotResourcesDisplay(this, slotsGroupSvg, true);
+      this._resourcesDisplay = new SlotResourcesDisplay(this, slotsGroupSvg, "input");
       this.slotSvgRect.addEventListener("click", (event) => {
         if (!PanZoomConfiguration.isPanning && !PanZoomConfiguration.isZooming) {
           MouseHandler.getInstance().inputSlotClicked(event, this);
@@ -3398,7 +3424,7 @@
     }
     static createDescription(content) {
       let cell = document.createElement("td");
-      cell.innerText = content;
+      cell.append(...this.parsePlaceholder(content));
       return cell;
     }
     static _tagsMap = /* @__PURE__ */ new Map([
