@@ -43,8 +43,10 @@ export class SlotResourcesDisplay
 
         Settings.instance.addEventListener(Settings.zoomChangedEvent, () =>
         {
-            displayContainer.style.padding = `0 ${10 / Settings.instance.zoom}px`;
-            displayContainer.style.gap = `${4 / Settings.instance.zoom}px`;
+            let zoomScale = Math.max(Settings.instance.zoom, SlotResourcesDisplay._minZoomMultiplier);
+
+            displayContainer.style.padding = `0 ${10 / zoomScale}px`;
+            displayContainer.style.gap = `${4 / zoomScale}px`;
             this.update();
         });
 
@@ -81,7 +83,8 @@ export class SlotResourcesDisplay
         {
             this._resourcesDisplay.classList.remove("hidden");
 
-            let displayHeight = 24 / Settings.instance.zoom;
+            let zoomScale = Math.max(Settings.instance.zoom, SlotResourcesDisplay._minZoomMultiplier);
+            let displayHeight = 24 / zoomScale;
 
             this._resourcesAmountDisplay.style.fontSize = `${displayHeight * 0.6}px`;
             this._resourcesAmountDisplay.innerText = `${+this._relatedSlot.resourcesAmount.toFixed(3)}`;
@@ -105,4 +108,6 @@ export class SlotResourcesDisplay
     private _slotsGroup: SVGGElement;
     private _resourcesDisplay: SVGForeignObjectElement;
     private _resourcesAmountDisplay: HTMLDivElement;
+
+    private static _minZoomMultiplier = 0.5;
 }
