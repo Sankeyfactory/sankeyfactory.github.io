@@ -44,9 +44,25 @@ async function main()
                 && !PanZoomConfiguration.isPanning
                 && !PanZoomConfiguration.isZooming)
             {
-                MouseHandler.getInstance().startDraggingNode(event, node);
+                MouseHandler.getInstance().startDraggingNode(
+                    node,
+                    { x: event.clientX, y: event.clientY }
+                );
             }
         };
+
+        node.nodeSvg.addEventListener("touchstart", (event) =>
+        {
+            if (event.touches.length === 1 && Settings.instance.isCanvasLocked)
+            {
+                let touch = event.touches[0];
+
+                MouseHandler.getInstance().startDraggingNode(
+                    node,
+                    { x: touch.clientX, y: touch.clientY }
+                );
+            }
+        });
 
         resourcesSummary.registerNode(node);
     };
@@ -180,10 +196,20 @@ async function main()
         MouseHandler.getInstance().handleMouseUp();
     };
 
+    window.addEventListener("touchend", () =>
+    {
+        MouseHandler.getInstance().handleMouseUp();
+    });
+
     window.onmousemove = (event) =>
     {
         MouseHandler.getInstance().handleMouseMove(event);
     };
+
+    window.addEventListener("touchmove", (event) =>
+    {
+        MouseHandler.getInstance().handleTouchMove(event);
+    });
 }
 
 main().catch((reason) =>

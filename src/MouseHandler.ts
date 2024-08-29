@@ -28,27 +28,7 @@ export class MouseHandler
     {
         if (this.mouseStatus === MouseHandler.MouseStatus.DraggingNode)
         {
-            if (this.draggedNode == undefined)
-            {
-                throw Error("Dragged node wasn't saved.");
-            }
-
-            let previousPos = this.draggedNode.position;
-
-            let zoomScale = PanZoomConfiguration.context.getTransform().scale;
-
-            let mousePosDelta: Point = {
-                x: event.clientX - this.lastMousePos.x,
-                y: event.clientY - this.lastMousePos.y
-            };
-
-            this.draggedNode.position = {
-                x: previousPos.x + mousePosDelta.x / zoomScale,
-                y: previousPos.y + mousePosDelta.y / zoomScale
-            };
-
-            this.lastMousePos.x = event.clientX;
-            this.lastMousePos.y = event.clientY;
+            this.dragNodeTo({ x: event.clientX, y: event.clientY });
         }
         else if (
             this.mouseStatus === MouseHandler.MouseStatus.ConnectingInputSlot
@@ -76,6 +56,17 @@ export class MouseHandler
                 .build();
 
             this.slotConnectingLine.setAttribute("d", path);
+        }
+    }
+
+    public handleTouchMove(event: TouchEvent)
+    {
+        if (this.mouseStatus === MouseHandler.MouseStatus.DraggingNode
+            && event.touches.length === 1)
+        {
+            let touch = event.touches[0];
+
+            this.dragNodeTo({ x: touch.clientX, y: touch.clientY });
         }
     }
 
@@ -170,6 +161,31 @@ export class MouseHandler
         }
     }
 
+    private dragNodeTo(position: Point)
+    {
+        if (this.draggedNode == undefined)
+        {
+            throw Error("Dragged node wasn't saved.");
+        }
+
+        let previousPos = this.draggedNode.position;
+
+        let zoomScale = PanZoomConfiguration.context.getTransform().scale;
+
+        let mousePosDelta: Point = {
+            x: position.x - this.lastMousePos.x,
+            y: position.y - this.lastMousePos.y
+        };
+
+        this.draggedNode.position = {
+            x: previousPos.x + mousePosDelta.x / zoomScale,
+            y: previousPos.y + mousePosDelta.y / zoomScale
+        };
+
+        this.lastMousePos.x = position.x;
+        this.lastMousePos.y = position.y;
+    }
+
     private startConnectingSlot(
         event: MouseEvent,
         firstSlot: SankeySlotExceeding | SankeySlotMissing,
@@ -211,7 +227,7 @@ export class MouseHandler
         this.viewport.appendChild(this.slotConnectingLine);
     }
 
-    public startDraggingNode(event: MouseEvent, node: SankeyNode)
+    public startDraggingNode(node: SankeyNode, position: Point)
     {
         if (this.mouseStatus === MouseHandler.MouseStatus.Free)
         {
@@ -219,8 +235,8 @@ export class MouseHandler
 
             this.draggedNode = node;
 
-            this.lastMousePos.x = event.clientX;
-            this.lastMousePos.y = event.clientY;
+            this.lastMousePos.x = position.x;
+            this.lastMousePos.y = position.y;
         }
     }
 
