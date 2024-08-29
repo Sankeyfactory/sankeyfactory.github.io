@@ -697,6 +697,8 @@ div#node-creation-modal .title span.game-version {
 #node-creation-modal div.recipe {
     display: flex;
 
+    position: relative;
+
     box-sizing: border-box;
 
     height: 64px;
@@ -704,6 +706,35 @@ div#node-creation-modal .title span.game-version {
 
     padding: 8px;
     gap: 4px;
+}
+
+#node-creation-modal .recipe div.progress-bar {
+    position: absolute;
+
+    height: 100%;
+
+    bottom: 0;
+    left: 0;
+}
+
+#node-creation-modal .recipe.animate-progress div.progress-bar {
+
+    animation-name: progress-bar;
+    animation-timing-function: linear;
+    animation-duration: 0.2s;
+
+    background-color: #ffffff;
+    opacity: 0.1;
+}
+
+@keyframes progress-bar {
+    0% {
+        width: 0%;
+    }
+
+    100% {
+        width: 100%;
+    }
 }
 
 #node-creation-modal div.recipe:hover {

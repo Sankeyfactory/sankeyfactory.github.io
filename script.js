@@ -3606,6 +3606,7 @@
       recipeSelector.title = recipe.displayName;
       let isEventRecipe = false;
       for (const product of recipe.products) {
+        let progressBar = this.createHtmlElement("div", "progress-bar");
         let itemIcon = document.createElement("img");
         itemIcon.classList.add("item-icon");
         let resource = loadSatisfactoryResource(product.id);
@@ -3615,14 +3616,15 @@
         }
         itemIcon.alt = recipe.displayName;
         itemIcon.loading = "lazy";
+        recipeSelector.appendChild(progressBar);
         recipeSelector.appendChild(itemIcon);
       }
       recipeSelector.addEventListener("click", (event) => {
         event.stopPropagation();
         if (this._selectedRecipe?.recipe === recipe) {
-          this.discardSelectedRecipe();
+          this.discardSelectedRecipeDelayed(recipeSelector);
         } else {
-          this.selectRecipe(recipe, machine, recipeSelector);
+          this.selectRecipeDelayed(recipe, machine, recipeSelector);
         }
       });
       recipeSelector.addEventListener("dblclick", (event) => {
@@ -3681,13 +3683,47 @@
       ));
     }
     selectRecipe(recipe, madeIn, recipeSelector) {
+      if (this.stopProgressBar != void 0) this.stopProgressBar();
+      recipeSelector.classList.remove("animate-progress");
       this._selectedRecipe = { recipe, madeIn };
       this.dispatchEvent(new Event(_RecipeSelectionModal.recipeSelectedEvent));
       recipeSelector.classList.add("selected");
     }
+    selectRecipeDelayed(recipe, madeIn, recipeSelector) {
+      if (this.stopProgressBar != void 0) this.stopProgressBar();
+      recipeSelector.classList.add("animate-progress");
+      let progressBarTimerId = setTimeout(() => {
+        this._selectedRecipe = { recipe, madeIn };
+        this.dispatchEvent(new Event(_RecipeSelectionModal.recipeSelectedEvent));
+        recipeSelector.classList.add("selected");
+        recipeSelector.classList.remove("animate-progress");
+        this.stopProgressBar = void 0;
+      }, 200);
+      this.stopProgressBar = () => {
+        clearTimeout(progressBarTimerId);
+        recipeSelector.classList.remove("animate-progress");
+        this.stopProgressBar = void 0;
+      };
+    }
     discardSelectedRecipe() {
+      if (this.stopProgressBar != void 0) this.stopProgressBar();
       this._selectedRecipe = void 0;
       this.dispatchEvent(new Event(_RecipeSelectionModal.recipeSelectedEvent));
+    }
+    discardSelectedRecipeDelayed(recipeSelector) {
+      if (this.stopProgressBar != void 0) this.stopProgressBar();
+      recipeSelector.classList.add("animate-progress");
+      let progressBarTimerId = setTimeout(() => {
+        this._selectedRecipe = void 0;
+        this.dispatchEvent(new Event(_RecipeSelectionModal.recipeSelectedEvent));
+        recipeSelector.classList.remove("animate-progress");
+        this.stopProgressBar = void 0;
+      }, 200);
+      this.stopProgressBar = () => {
+        clearTimeout(progressBarTimerId);
+        recipeSelector.classList.remove("animate-progress");
+        this.stopProgressBar = void 0;
+      };
     }
     confirmRecipe() {
       if (this._selectedRecipe != void 0) {
@@ -3719,6 +3755,7 @@
     _selectedRecipePower = this._selectedRecipeDisplay.querySelector("#selected-recipe-power>.text");
     _confirmRecipeButton = this._modalContainer.querySelector("#confirm-recipe");
     _discardRecipeButton = this._modalContainer.querySelector("#discard-recipe");
+    stopProgressBar;
   };
 
   // src/main.ts
