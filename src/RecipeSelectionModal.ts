@@ -178,6 +178,8 @@ export class RecipeSelectionModal extends EventTarget
 
         for (const product of recipe.products)
         {
+            let progressBar = this.createHtmlElement("div", "progress-bar");
+
             let itemIcon = document.createElement("img");
             itemIcon.classList.add("item-icon");
 
@@ -192,6 +194,7 @@ export class RecipeSelectionModal extends EventTarget
             itemIcon.alt = recipe.displayName;
             itemIcon.loading = "lazy";
 
+            recipeSelector.appendChild(progressBar);
             recipeSelector.appendChild(itemIcon);
         }
 
@@ -201,11 +204,11 @@ export class RecipeSelectionModal extends EventTarget
 
             if (this._selectedRecipe?.recipe === recipe)
             {
-                this.discardSelectedRecipe();
+                this.discardSelectedRecipeDelayed(recipeSelector);
             }
             else
             {
-                this.selectRecipe(recipe, machine, recipeSelector);
+                this.selectRecipeDelayed(recipe, machine, recipeSelector);
             }
         });
 
@@ -303,6 +306,10 @@ export class RecipeSelectionModal extends EventTarget
 
     private selectRecipe(recipe: BuildingRecipe, madeIn: Building, recipeSelector: Element)
     {
+        if (this.stopProgressBar != undefined) this.stopProgressBar();
+
+        recipeSelector.classList.remove("animate-progress");
+
         this._selectedRecipe = { recipe: recipe, madeIn: madeIn };
 
         this.dispatchEvent(new Event(RecipeSelectionModal.recipeSelectedEvent));
@@ -310,11 +317,64 @@ export class RecipeSelectionModal extends EventTarget
         recipeSelector.classList.add("selected");
     }
 
+    private selectRecipeDelayed(recipe: BuildingRecipe, madeIn: Building, recipeSelector: Element)
+    {
+        if (this.stopProgressBar != undefined) this.stopProgressBar();
+
+        recipeSelector.classList.add("animate-progress");
+
+        let progressBarTimerId = setTimeout(() =>
+        {
+            this._selectedRecipe = { recipe: recipe, madeIn: madeIn };
+
+            this.dispatchEvent(new Event(RecipeSelectionModal.recipeSelectedEvent));
+
+            recipeSelector.classList.add("selected");
+            recipeSelector.classList.remove("animate-progress");
+
+            this.stopProgressBar = undefined;
+        }, 200);
+
+        this.stopProgressBar = () =>
+        {
+            clearTimeout(progressBarTimerId);
+            recipeSelector.classList.remove("animate-progress");
+            this.stopProgressBar = undefined;
+        };
+    }
+
     private discardSelectedRecipe(): void
     {
+        if (this.stopProgressBar != undefined) this.stopProgressBar();
+
         this._selectedRecipe = undefined;
 
         this.dispatchEvent(new Event(RecipeSelectionModal.recipeSelectedEvent));
+    }
+
+    private discardSelectedRecipeDelayed(recipeSelector: Element): void
+    {
+        if (this.stopProgressBar != undefined) this.stopProgressBar();
+
+        recipeSelector.classList.add("animate-progress");
+
+        let progressBarTimerId = setTimeout(() =>
+        {
+            this._selectedRecipe = undefined;
+
+            this.dispatchEvent(new Event(RecipeSelectionModal.recipeSelectedEvent));
+
+            recipeSelector.classList.remove("animate-progress");
+
+            this.stopProgressBar = undefined;
+        }, 200);
+
+        this.stopProgressBar = () =>
+        {
+            clearTimeout(progressBarTimerId);
+            recipeSelector.classList.remove("animate-progress");
+            this.stopProgressBar = undefined;
+        };
     }
 
     private confirmRecipe(): void
@@ -362,4 +422,6 @@ export class RecipeSelectionModal extends EventTarget
 
     private _confirmRecipeButton = this._modalContainer.querySelector("#confirm-recipe") as HTMLDivElement;
     private _discardRecipeButton = this._modalContainer.querySelector("#discard-recipe") as HTMLDivElement;
+
+    private stopProgressBar?: () => void;
 }
