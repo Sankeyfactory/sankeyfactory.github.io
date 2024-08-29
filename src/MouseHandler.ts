@@ -8,6 +8,7 @@ import { SankeySlotExceeding } from "./Sankey/Slots/SankeySlotExceeding";
 import { Curve } from "./Geometry/Curve";
 import { SvgPathBuilder } from "./SVG/SvgPathBuilder";
 import { PanZoomConfiguration } from "./PanZoomConfiguration";
+import { Settings } from "./Settings";
 
 export class MouseHandler
 {
@@ -94,6 +95,7 @@ export class MouseHandler
             this.slotConnectingLine = undefined;
             this.slotConnectingCurve = undefined;
             this.mouseStatus = MouseHandler.MouseStatus.Free;
+            Settings.instance.connectingResource = undefined;
         }
     }
 
@@ -104,6 +106,8 @@ export class MouseHandler
             this.mouseStatus = MouseHandler.MouseStatus.ConnectingInputSlot;
 
             this.startConnectingSlot(event, targetSlot, true);
+
+            Settings.instance.connectingResource = { type: "input", id: targetSlot.resourceId };
         }
         else if (this.mouseStatus === MouseHandler.MouseStatus.ConnectingOutputSlot)
         {
@@ -136,6 +140,8 @@ export class MouseHandler
             this.mouseStatus = MouseHandler.MouseStatus.ConnectingOutputSlot;
 
             this.startConnectingSlot(event, targetSlot, false);
+
+            Settings.instance.connectingResource = { type: "output", id: targetSlot.resourceId };
         }
         else if (this.mouseStatus === MouseHandler.MouseStatus.ConnectingInputSlot)
         {

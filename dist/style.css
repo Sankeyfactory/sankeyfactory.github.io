@@ -342,6 +342,14 @@ svg#canvas {
     align-self: stretch;
 }
 
+.slots-group .resources-display.correct div.amount {
+    color: var(--exceeding);
+}
+
+.slots-group .resources-display.wrong div.amount {
+    color: var(--missing);
+}
+
 /* Node links */
 
 path.link-hint {

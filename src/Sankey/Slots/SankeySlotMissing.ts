@@ -14,7 +14,7 @@ export class SankeySlotMissing extends InputSankeySlot
     {
         super(slotsGroup, slotsGroupSvg, resource, "missing");
 
-        this._resourcesDisplay = new SlotResourcesDisplay(this, slotsGroupSvg, true);
+        this._resourcesDisplay = new SlotResourcesDisplay(this, slotsGroupSvg, "input");
 
         this.slotSvgRect.addEventListener("click", (event) =>
         {

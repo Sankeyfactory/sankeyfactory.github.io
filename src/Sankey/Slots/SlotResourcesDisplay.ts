@@ -5,11 +5,11 @@ import { SankeySlot } from "./SankeySlot";
 
 export class SlotResourcesDisplay
 {
-    constructor(relatedSlot: SankeySlot, slotsGroup: SVGGElement, isDirectedLeft: boolean)
+    constructor(relatedSlot: SankeySlot, slotsGroup: SVGGElement, type: "input" | "output")
     {
         this._relatedSlot = relatedSlot;
         this._slotsGroup = slotsGroup;
-        this._isDirectedLeft = isDirectedLeft;
+        this._type = type;
 
         this._resourcesDisplay = SvgFactory.createSvgForeignObject("resources-display");
         this._resourcesAmountDisplay = document.createElement("div");
@@ -47,6 +47,28 @@ export class SlotResourcesDisplay
             displayContainer.style.gap = `${4 / Settings.instance.zoom}px`;
             this.update();
         });
+
+        Settings.instance.addEventListener(Settings.connectingResourceIdChangedEvent, () =>
+        {
+            let resource = Settings.instance.connectingResource;
+
+            this._resourcesDisplay.classList.remove("correct");
+            this._resourcesDisplay.classList.remove("wrong");
+
+            if (resource != undefined)
+            {
+                if (resource.id === this._relatedSlot.resourceId && resource.type !== this._type)
+                {
+                    this._resourcesDisplay.classList.add("correct");
+                    this._resourcesDisplay.classList.remove("wrong");
+                }
+                else 
+                {
+                    this._resourcesDisplay.classList.add("wrong");
+                    this._resourcesDisplay.classList.remove("correct");
+                }
+            }
+        });
     }
 
     private update(): void
@@ -67,7 +89,7 @@ export class SlotResourcesDisplay
             let slotHeight = +this._relatedSlot.slotSvgRect.getAttribute("height")!;
             let slotY = +this._relatedSlot.slotSvgRect.getAttribute("y")!;
 
-            let xOffset = this._isDirectedLeft ? 0 : SankeySlot.slotWidth;
+            let xOffset = this._type === "input" ? 0 : SankeySlot.slotWidth;
 
             this._resourcesDisplay.setAttribute("height", `${displayHeight}`);
             this._resourcesDisplay.setAttribute("width", "1");
@@ -78,7 +100,7 @@ export class SlotResourcesDisplay
 
     private _relatedSlot: SankeySlot;
 
-    private _isDirectedLeft: boolean;
+    private _type: string;
 
     private _slotsGroup: SVGGElement;
     private _resourcesDisplay: SVGForeignObjectElement;

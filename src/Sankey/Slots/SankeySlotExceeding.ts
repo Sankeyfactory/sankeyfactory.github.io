@@ -14,7 +14,7 @@ export class SankeySlotExceeding extends OutputSankeySlot
     {
         super(slotsGroup, slotsGroupSvg, resource, "exceeding");
 
-        this._resourcesDisplay = new SlotResourcesDisplay(this, slotsGroupSvg, false);
+        this._resourcesDisplay = new SlotResourcesDisplay(this, slotsGroupSvg, "output");
 
         this.slotSvgRect.addEventListener("click", (event) =>
         {
