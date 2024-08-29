@@ -21,7 +21,7 @@ jobs:
     - run: npm install
     - run: npm run compile
     - run: npm run export-satisfactory-data
-    - run: npm run build-app
+    - run: npm run build-app-prod
 
     - name: Deploy with gh-pages
       run: |

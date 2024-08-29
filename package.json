@@ -14,6 +14,7 @@
     "export-satisfactory-data": "npm run build-satisfactory-exporter && node src/Tools/SatisfactoryRecipeExporter/Exporter.js",
     "build-satisfactory-icon-exporter": "npx esbuild --platform=node src/Tools/SatisfactoryIconExporter/Exporter.ts --bundle --sourcemap --outfile=src/Tools/SatisfactoryIconExporter/Exporter.js",
     "export-satisfactory-icons": "npm run build-satisfactory-icon-exporter && node src/Tools/SatisfactoryIconExporter/Exporter.js",
-    "build-app": "npx esbuild src/main.ts --bundle --outfile=dist/script.js"
+    "build-app": "npx esbuild src/main.ts --bundle --outfile=dist/script.js",
+    "build-app-prod": "npx esbuild src/main.ts --bundle --minify=true --outfile=dist/script.js"
   }
 }
