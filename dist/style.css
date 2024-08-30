@@ -616,6 +616,9 @@ div#node-creation-modal .title span.game-version {
 
     background-color: var(--background-lv1);
 
+    border: 2px solid var(--background-lv1);
+    border-bottom: none;
+
     border-radius: 8px 8px 0 0;
 }
 
@@ -629,10 +632,11 @@ div#node-creation-modal .title span.game-version {
     /* Bigger than regular selector by 2 pixels to overlap tab border */
     height: 58px;
 
+    padding-bottom: 2px;
+
     background-color: var(--background-lv1);
 
-    border: 2px solid var(--border);
-    border-bottom: none;
+    border-color: var(--border);
 
     cursor: default;
 }
@@ -643,6 +647,13 @@ div#node-creation-modal .title span.game-version {
 
     /* To disable image dragging */
     pointer-events: none;
+}
+
+#node-creation-modal .tab-selector svg {
+    height: 44px;
+    width: 44px;
+
+    fill: var(--foreground);
 }
 
 /* Node creation modal's recipe tabs */

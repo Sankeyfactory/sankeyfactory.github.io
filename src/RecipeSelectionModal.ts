@@ -5,6 +5,7 @@ import satisfactoryData from '../dist/GameData/Satisfactory.json';
 import { loadSatisfactoryRecipe, loadSatisfactoryResource, satisfactoryIconPath, toItemsInMinute } from './GameData/GameData';
 import { GameMachine } from './GameData/GameMachine';
 import { GameRecipe } from './GameData/GameRecipe';
+import { SvgIcons } from './SVG/SvgIcons';
 
 export class RecipeSelectionModal extends EventTarget
 {
@@ -88,6 +89,29 @@ export class RecipeSelectionModal extends EventTarget
 
     private setupTabs(): void
     {
+        let allTabSelector = this.createHtmlElement<HTMLDivElement>("div", "tab-selector");
+
+        allTabSelector.title = "All";
+
+        let allIcon = SvgIcons.createIcon("three-dots");
+
+        let allRecipesTab = this.createHtmlElement<HTMLDivElement>("div", "recipes-tab");
+
+        let allTabBasicRecipesGroup = this.createRecipesGroup("Basic recipes");
+        let allTabAlternateRecipesGroup = this.createRecipesGroup("Alternate recipes");
+        let allTabEventsRecipesGroup = this.createRecipesGroup("Events recipes");
+
+        type RecipesGroup = typeof allTabBasicRecipesGroup;
+
+        let appendIfNotEmpty = (group: RecipesGroup, recipesTab: HTMLDivElement) =>
+        {
+            if (group.div.childElementCount !== 0)
+            {
+                recipesTab.append(group.title);
+                recipesTab.appendChild(group.div);
+            }
+        };
+
         for (const machine of satisfactoryData.machines)
         {
             let tabSelector = this.createHtmlElement<HTMLDivElement>("div", "tab-selector");
@@ -106,32 +130,21 @@ export class RecipeSelectionModal extends EventTarget
             let alternateRecipesGroup = this.createRecipesGroup("Alternate recipes");
             let eventsRecipesGroup = this.createRecipesGroup("Events recipes");
 
-            machine.recipes.forEach((recipe: BuildingRecipe) => this.appendRecipes(
-                basicRecipesGroup.div,
-                eventsRecipesGroup.div,
-                recipe,
-                machine
-            ));
-
-            machine.alternateRecipes.forEach((recipe: BuildingRecipe) => this.appendRecipes(
-                alternateRecipesGroup.div,
-                eventsRecipesGroup.div,
-                recipe,
-                machine
-            ));
-
-            let appendIfNotEmpty = (group: typeof basicRecipesGroup) =>
+            machine.recipes.forEach((recipe: BuildingRecipe) =>
             {
-                if (group.div.childElementCount !== 0)
-                {
-                    recipesTab.append(group.title);
-                    recipesTab.appendChild(group.div);
-                }
-            };
+                this.appendRecipes(basicRecipesGroup.div, eventsRecipesGroup.div, recipe, machine);
+                this.appendRecipes(allTabBasicRecipesGroup.div, allTabEventsRecipesGroup.div, recipe, machine);
+            });
 
-            appendIfNotEmpty(basicRecipesGroup);
-            appendIfNotEmpty(alternateRecipesGroup);
-            appendIfNotEmpty(eventsRecipesGroup);
+            machine.alternateRecipes.forEach((recipe: BuildingRecipe) =>
+            {
+                this.appendRecipes(alternateRecipesGroup.div, eventsRecipesGroup.div, recipe, machine);
+                this.appendRecipes(allTabAlternateRecipesGroup.div, allTabEventsRecipesGroup.div, recipe, machine);
+            });
+
+            appendIfNotEmpty(basicRecipesGroup, recipesTab);
+            appendIfNotEmpty(alternateRecipesGroup, recipesTab);
+            appendIfNotEmpty(eventsRecipesGroup, recipesTab);
 
             tabSelector.addEventListener("click", () =>
             {
@@ -154,6 +167,31 @@ export class RecipeSelectionModal extends EventTarget
 
             this._recipeTabs.appendChild(recipesTab);
         }
+
+        appendIfNotEmpty(allTabBasicRecipesGroup, allRecipesTab);
+        appendIfNotEmpty(allTabAlternateRecipesGroup, allRecipesTab);
+        appendIfNotEmpty(allTabEventsRecipesGroup, allRecipesTab);
+
+        allTabSelector.addEventListener("click", () =>
+        {
+            this.dispatchEvent(new Event(RecipeSelectionModal.recipesTabSwitchedEvent));
+
+            allRecipesTab.classList.add("active");
+            allTabSelector.classList.add("active");
+        });
+
+        this.addEventListener(RecipeSelectionModal.recipesTabSwitchedEvent, () =>
+        {
+            allRecipesTab.classList.remove("active");
+            allTabSelector.classList.remove("active");
+
+            this.discardSelectedRecipe();
+        });
+
+        allTabSelector.appendChild(allIcon);
+        this._tabSelectors.appendChild(allTabSelector);
+
+        this._recipeTabs.appendChild(allRecipesTab);
     }
 
     private createRecipesGroup(name: string): { div: HTMLDivElement, title: HTMLHeadingElement; }
@@ -447,11 +485,17 @@ export class RecipeSelectionModal extends EventTarget
 
         for (const recipeElement of recipeElements)
         {
+            if (query === "")
+            {
+                recipeElement.classList.remove("filtered-out");
+                continue;
+            }
+
             let recipe = loadSatisfactoryRecipe(recipeElement.dataset.recipeId!);
 
             let applyFilter = (searchIn: string) =>
             {
-                if (query === "" || searchIn.toLowerCase().includes(query.toLowerCase()))
+                if (searchIn.toLowerCase().includes(query.toLowerCase()))
                 {
                     recipeElement.classList.remove("filtered-out");
                 }
