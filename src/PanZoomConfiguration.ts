@@ -8,6 +8,8 @@ export class PanZoomConfiguration
     {
         this._panContext = panzoom(document.querySelector("#viewport")!, {
             zoomDoubleClickSpeed: 1, // disables double click zoom
+            minZoom: 0.05,
+            maxZoom: 25,
             beforeMouseDown: () =>
             {
                 let shouldIgnore = !this._isPanning;

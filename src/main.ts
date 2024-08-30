@@ -10,6 +10,7 @@ import { PanZoomConfiguration } from "./PanZoomConfiguration";
 import { SvgIcons } from './SVG/SvgIcons';
 import { HelpModal } from './HelpWindow/HelpModal';
 import { RecipeSelectionModal } from './RecipeSelectionModal';
+import { CanvasGrid } from "./CanvasGrid";
 
 async function main()
 {
@@ -18,15 +19,25 @@ async function main()
     let zoomRatioDisplay = document.querySelector("p#ratio-display") as HTMLParagraphElement;
     let canvas = document.querySelector("#canvas") as SVGElement;
 
-    let _helpModal = new HelpModal();
+    let helpModal = new HelpModal();
 
     PanZoomConfiguration.setPanningButtons(["Space"], ["Meta"]);
     PanZoomConfiguration.setZoomingButtons([], ["Control"]);
     PanZoomConfiguration.configurePanContext(canvas);
 
+    let canvasGrid = new CanvasGrid();
+
     Settings.instance.addEventListener(Settings.zoomChangedEvent, () =>
     {
         zoomRatioDisplay.textContent = `Zoom: ${Settings.instance.zoom.toFixed(2)}x`;
+
+        canvasGrid.updateGridSize();
+        canvasGrid.updateGridPosition();
+    });
+
+    PanZoomConfiguration.context.on("pan", () =>
+    {
+        canvasGrid.updateGridPosition();
     });
 
     let resourcesSummary = new ResourcesSummary();
@@ -97,8 +108,6 @@ async function main()
     };
 
     let lockButton = document.querySelector("div.button#lock-viewport") as HTMLDivElement;
-    let unlockedIcon = document.querySelector("div.button#lock-viewport>svg.unlocked") as SVGElement;
-    let lockedIcon = document.querySelector("div.button#lock-viewport>svg.locked") as SVGElement;
 
     lockButton.onclick = () =>
     {
@@ -109,13 +118,34 @@ async function main()
     {
         if (Settings.instance.isCanvasLocked)
         {
-            unlockedIcon.classList.add("hidden");
-            lockedIcon.classList.remove("hidden");
+            lockButton.classList.add("on");
+            lockButton.classList.remove("off");
         }
         else
         {
-            unlockedIcon.classList.remove("hidden");
-            lockedIcon.classList.add("hidden");
+            lockButton.classList.remove("on");
+            lockButton.classList.add("off");
+        }
+    });
+
+    let gridToggle = document.querySelector("#container div.controls #grid-toggle") as HTMLDivElement;
+
+    gridToggle.onclick = () =>
+    {
+        Settings.instance.isGridEnabled = !Settings.instance.isGridEnabled;
+    };
+
+    Settings.instance.addEventListener(Settings.isGridEnabledChangedEvent, () =>
+    {
+        if (Settings.instance.isGridEnabled)
+        {
+            gridToggle.classList.add("on");
+            gridToggle.classList.remove("off");
+        }
+        else
+        {
+            gridToggle.classList.remove("on");
+            gridToggle.classList.add("off");
         }
     });
 
@@ -128,6 +158,12 @@ async function main()
             event.preventDefault();
             MouseHandler.getInstance().cancelConnectingSlots();
         }
+    });
+
+    canvas.addEventListener("dblclick", (event) =>
+    {
+        let nodePosition = { x: event.clientX, y: event.clientY };
+        openNodeCreation(MouseHandler.clientToCanvasPosition(nodePosition));
     });
 
     let canvasContextMenu = new CanvasContextMenu(canvas);
@@ -144,10 +180,14 @@ async function main()
         openNodeCreation(contextMenuPos);
     });
 
-    canvas.addEventListener("dblclick", (event) =>
+    canvasContextMenu.addEventListener(CanvasContextMenu.cancelLinkingOptionClickedEvent, () =>
     {
-        let nodePosition = { x: event.clientX, y: event.clientY };
-        openNodeCreation(MouseHandler.clientToCanvasPosition(nodePosition));
+        MouseHandler.getInstance().cancelConnectingSlots();
+    });
+
+    canvasContextMenu.addEventListener(CanvasContextMenu.showHelpOptionClickedEvent, () =>
+    {
+        helpModal.openModal();
     });
 
     canvasContextMenu.addEventListener(CanvasContextMenu.lockCanvasSwitchClickedEvent, () =>
@@ -158,6 +198,16 @@ async function main()
     Settings.instance.addEventListener(Settings.isCanvasLockedChangedEvent, () =>
     {
         canvasContextMenu.setCanvasLockedSwitchState(Settings.instance.isCanvasLocked);
+    });
+
+    canvasContextMenu.addEventListener(CanvasContextMenu.toggleGridSwitchClickedEvent, () =>
+    {
+        Settings.instance.isGridEnabled = !Settings.instance.isGridEnabled;
+    });
+
+    Settings.instance.addEventListener(Settings.isGridEnabledChangedEvent, () =>
+    {
+        canvasContextMenu.setGridSwitchState(Settings.instance.isGridEnabled);
     });
 
     window.addEventListener("keypress", (event) =>

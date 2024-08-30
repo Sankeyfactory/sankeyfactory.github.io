@@ -21,6 +21,19 @@
     <div id="container">
         <svg id="canvas">
             <g id="viewport">
+                <g class="grid hidden">
+                    <defs>
+                        <pattern id="small-grid-pattern" width="20" height="20" patternUnits="userSpaceOnUse">
+                            <circle r="1" cx="10" cy="10" />
+                        </pattern>
+                        <pattern id="big-grid-pattern" width="100" height="100" patternUnits="userSpaceOnUse">
+                            <rect width="100" height="100" fill="url(#small-grid-pattern)" />
+                            <circle r="2" cx="10" cy="10" />
+                        </pattern>
+                    </defs>
+
+                    <rect x="-100" y="-100" width="0" height="0" fill="url(#big-grid-pattern)" />
+                </g>
                 <g class="links"> </g>
                 <g class="nodes"> </g>
             </g>
@@ -34,12 +47,16 @@
                 <div class="button" id="open-help" title="Help">
                     <svg class="question-mark_icon-placeholder"></svg>
                 </div>
-                <div class="button" id="cancel-linking" title="Cancel connecting machines">
+                <div class="button" id="cancel-linking" title="Cancel connecting nodes">
                     <svg class="unlink_icon-placeholder"></svg>
                 </div>
-                <div class="button" id="lock-viewport" title="Lock canvas">
-                    <svg class="unlocked unlocked-lock_icon-placeholder"></svg>
-                    <svg class="locked hidden locked-lock_icon-placeholder"></svg>
+                <div class="button toggle off" id="grid-toggle" title="Toggle grid">
+                    <svg class="off grid_icon-placeholder"></svg>
+                    <svg class="on disable-grid_icon-placeholder"></svg>
+                </div>
+                <div class="button toggle off" id="lock-viewport" title="Lock canvas">
+                    <svg class="off unlocked-lock_icon-placeholder"></svg>
+                    <svg class="on locked-lock_icon-placeholder"></svg>
                 </div>
                 <div class="button" id="create-node" title="Create node">
                     <svg class="plus_icon-placeholder"></svg>
@@ -449,13 +466,31 @@
             </div>
             <div class="switch" id="lock-canvas-switch">
                 <div class="option when-enabled">
-                    <svg class="locked locked-lock_icon-placeholder"></svg>
+                    <svg class="locked-lock_icon-placeholder"></svg>
                     <div class="text">Unlock canvas</div>
                 </div>
                 <div class="option when-disabled">
-                    <svg class="unlocked unlocked-lock_icon-placeholder"></svg>
+                    <svg class="unlocked-lock_icon-placeholder"></svg>
                     <div class="text">Lock canvas</div>
                 </div>
+            </div>
+            <div class="switch" id="toggle-grid-switch">
+                <div class="option when-enabled">
+                    <svg class="disable-grid_icon-placeholder"></svg>
+                    <div class="text">Disable grid</div>
+                </div>
+                <div class="option when-disabled">
+                    <svg class="grid_icon-placeholder"></svg>
+                    <div class="text">Enable grid</div>
+                </div>
+            </div>
+            <div class="option" id="cancel-linking-option">
+                <svg class="unlink_icon-placeholder"></svg>
+                <div class="text">Cancel connecting nodes</div>
+            </div>
+            <div class="option" id="show-help-option">
+                <svg class="question-mark_icon-placeholder"></svg>
+                <div class="text">Show help</div>
             </div>
         </div>
     </div>

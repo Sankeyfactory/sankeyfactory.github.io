@@ -3,6 +3,7 @@ import { PanZoomConfiguration } from "./PanZoomConfiguration";
 export class Settings extends EventTarget
 {
     public static readonly isCanvasLockedChangedEvent = "canvas-locked-changed";
+    public static readonly isGridEnabledChangedEvent = "grid-enabled-changed";
     public static readonly zoomChangedEvent = "canvas-locked-changed";
     public static readonly connectingResourceIdChangedEvent = "connecting-resource-id-changed";
 
@@ -30,6 +31,18 @@ export class Settings extends EventTarget
         this._isCanvasLocked = canvasLocked;
 
         this.dispatchEvent(new Event(Settings.isCanvasLockedChangedEvent));
+    }
+
+    public get isGridEnabled(): boolean
+    {
+        return this._isGridEnabled;
+    }
+
+    public set isGridEnabled(value: boolean)
+    {
+        this._isGridEnabled = value;
+
+        this.dispatchEvent(new Event(Settings.isGridEnabledChangedEvent));
     }
 
     public get zoom(): number
@@ -64,7 +77,8 @@ export class Settings extends EventTarget
     private static readonly _instance = new Settings();
 
     private _isCanvasLocked = false;
-    private _zoom = 0;
+    private _isGridEnabled = false;
+    private _zoom = 1;
     private _connectingResource?: Settings.ConnectingResource;
 }
 

@@ -8,6 +8,8 @@ import { NodeContextMenu } from '../ContextMenu/NodeContextMenu';
 import { NodeConfiguration } from './NodeConfiguration/NodeConfiguration';
 import { overclockPower, overclockToShards, toItemsInMinute } from '../GameData/GameData';
 import { NodeResourceDisplay } from './NodeResourceDisplay';
+import { CanvasGrid } from "../CanvasGrid";
+import { Settings } from "../Settings";
 
 export class SankeyNode extends EventTarget
 {
@@ -17,7 +19,7 @@ export class SankeyNode extends EventTarget
 
     public nodeSvg: SVGElement;
     public nodeSvgGroup: SVGGElement;
-    public static readonly nodeWidth = 70;
+    public static readonly nodeWidth = 80;
 
     public constructor(
         position: Point,
@@ -37,10 +39,12 @@ export class SankeyNode extends EventTarget
         this._inputResourcesAmount = this._recipe.ingredients.reduce(sumResources, 0);
         this._outputResourcesAmount = this._recipe.products.reduce(sumResources, 0);
 
-        this.nodeSvgGroup = SvgFactory.createSvgGroup({
+        this.nodeSvgGroup = SvgFactory.createSvgGroup(new Point(0, 0), "node", "animate-appearance");
+
+        this.position = {
             x: position.x - SankeyNode.nodeWidth / 2 - SankeySlot.slotWidth,
             y: position.y - this.height / 2
-        }, "node", "animate-appearance");
+        };
 
         this.nodeSvg = SvgFactory.createSvgRect({
             width: SankeyNode.nodeWidth,
@@ -87,17 +91,18 @@ export class SankeyNode extends EventTarget
 
     public get position(): Point
     {
-        let transform = this.nodeSvgGroup.getAttribute("transform") ?? "translate(0, 0)";
-        let transformRegex = /translate\((?<x>-?\d+(?:\.\d+)?), ?(?<y>-?\d+(?:\.\d+)?)\)/;
-
-        let match = transformRegex.exec(transform)!;
-        let { x, y } = match.groups!;
-
-        return { x: +x, y: +y };
+        return this._position;
     }
 
     public set position(position: Point)
     {
+        this._position = { ...position };
+
+        if (Settings.instance.isGridEnabled)
+        {
+            position = CanvasGrid.alignPoint(position);
+        }
+
         this.nodeSvgGroup.setAttribute("transform", `translate(${position.x}, ${position.y})`);
 
         for (const group of this._inputSlotGroups)
@@ -302,10 +307,11 @@ export class SankeyNode extends EventTarget
     private _overclockRatio = 1;
 
     private _height: number;
+    private _position = new Point(0, 0);
 
     private _inputSlotGroups: SlotsGroup[] = [];
     private _outputSlotGroups: SlotsGroup[] = [];
     private _resourceDisplay: NodeResourceDisplay;
 
-    private static readonly _nodeHeight = 280;
+    private static readonly _nodeHeight = 300;
 }

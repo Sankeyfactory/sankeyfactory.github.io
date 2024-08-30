@@ -46,7 +46,7 @@ export class HelpModal
         });
     }
 
-    private openModal(): void
+    public openModal(): void
     {
         HelpModal._modalContainer.classList.remove("hidden");
         HelpModal._modalContent.scrollTop = 0;
