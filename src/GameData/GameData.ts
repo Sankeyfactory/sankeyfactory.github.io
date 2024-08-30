@@ -49,14 +49,14 @@ export function loadSatisfactoryRecipe(recipeId: string): GameRecipe
 {
     for (const machine of satisfactoryData.machines)
     {
-        let result = machine.recipes.find((recipe) => recipe.id === recipeId);
+        let result = machine.recipes.find((recipe: GameRecipe) => recipe.id === recipeId);
 
         if (result != undefined)
         {
             return result;
         }
 
-        let alternate = machine.alternateRecipes.find((recipe) => recipe.id === recipeId);
+        let alternate = machine.alternateRecipes.find((recipe: GameRecipe) => recipe.id === recipeId);
 
         if (alternate != undefined)
         {
