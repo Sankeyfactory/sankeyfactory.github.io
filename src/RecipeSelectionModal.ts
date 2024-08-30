@@ -2,7 +2,7 @@
 // @ts-ignore
 import satisfactoryData from '../dist/GameData/Satisfactory.json';
 
-import { loadSatisfactoryResource, satisfactoryIconPath, toItemsInMinute } from './GameData/GameData';
+import { loadSatisfactoryRecipe, loadSatisfactoryResource, satisfactoryIconPath, toItemsInMinute } from './GameData/GameData';
 import { GameMachine } from './GameData/GameMachine';
 import { GameRecipe } from './GameData/GameRecipe';
 
@@ -70,6 +70,8 @@ export class RecipeSelectionModal extends EventTarget
                 this.confirmRecipe();
             }
         });
+
+        this.configureSearchField();
     }
 
     public openModal(): void
@@ -173,6 +175,7 @@ export class RecipeSelectionModal extends EventTarget
         let recipeSelector = document.createElement("div");
         recipeSelector.classList.add("recipe");
         recipeSelector.title = recipe.displayName;
+        recipeSelector.dataset.recipeId = recipe.id;
 
         let isEventRecipe = false;
 
@@ -377,6 +380,110 @@ export class RecipeSelectionModal extends EventTarget
         };
     }
 
+    private configureSearchField(): void
+    {
+        let updateFlagElement = (
+            flag: "recipeNames" | "ingredients" | "products",
+            flagElement: HTMLDivElement
+        ): void =>
+        {
+            if (this._searchFlags[flag])
+            {
+                flagElement.classList.add("checked");
+            }
+            else
+            {
+                flagElement.classList.remove("checked");
+            }
+
+            this.searchRecipes(this._searchInputField.value);
+        };
+
+        this._searchInputField.value = "";
+
+        updateFlagElement("recipeNames", this._searchRecipeNamesFlag);
+        updateFlagElement("ingredients", this._searchIngredientsFlag);
+        updateFlagElement("products", this._searchProductsFlag);
+
+        this._searchRecipeNamesFlag.addEventListener("click", (event) =>
+        {
+            event.stopPropagation();
+
+            this._searchFlags.recipeNames = !this._searchFlags.recipeNames;
+            updateFlagElement("recipeNames", this._searchRecipeNamesFlag);
+        });
+
+        this._searchIngredientsFlag.addEventListener("click", (event) =>
+        {
+            event.stopPropagation();
+
+            this._searchFlags.ingredients = !this._searchFlags.ingredients;
+            updateFlagElement("ingredients", this._searchIngredientsFlag);
+        });
+
+        this._searchProductsFlag.addEventListener("click", (event) =>
+        {
+            event.stopPropagation();
+
+            this._searchFlags.products = !this._searchFlags.products;
+            updateFlagElement("products", this._searchProductsFlag);
+        });
+
+        this._searchInputField.addEventListener("input", () =>
+        {
+            this.searchRecipes(this._searchInputField.value);
+        });
+
+        this._clearSearchButton.addEventListener("click", () =>
+        {
+            this._searchInputField.value = "";
+            this.searchRecipes(this._searchInputField.value);
+        });
+    }
+
+    private searchRecipes(query: string): void
+    {
+        let recipeElements = this._recipeTabs.querySelectorAll<HTMLDivElement>(".recipe");
+
+        for (const recipeElement of recipeElements)
+        {
+            let recipe = loadSatisfactoryRecipe(recipeElement.dataset.recipeId!);
+
+            let applyFilter = (searchIn: string) =>
+            {
+                if (query === "" || searchIn.toLowerCase().includes(query.toLowerCase()))
+                {
+                    recipeElement.classList.remove("filtered-out");
+                }
+            };
+
+            recipeElement.classList.add("filtered-out");
+
+            if (this._searchFlags.recipeNames)
+            {
+                applyFilter(recipe.displayName);
+            }
+
+            if (this._searchFlags.ingredients)
+            {
+                for (const ingredient of recipe.ingredients)
+                {
+                    let resource = loadSatisfactoryResource(ingredient.id);
+                    applyFilter(resource.displayName);
+                }
+            }
+
+            if (this._searchFlags.products)
+            {
+                for (const product of recipe.products)
+                {
+                    let resource = loadSatisfactoryResource(product.id);
+                    applyFilter(resource.displayName);
+                }
+            }
+        }
+    }
+
     private confirmRecipe(): void
     {
         if (this._selectedRecipe != undefined)
@@ -424,4 +531,13 @@ export class RecipeSelectionModal extends EventTarget
     private _discardRecipeButton = this._modalContainer.querySelector("#discard-recipe") as HTMLDivElement;
 
     private stopProgressBar?: () => void;
+
+    private _searchInputField = this._modalContainer.querySelector(".search-field input") as HTMLInputElement;
+    private _clearSearchButton = this._modalContainer.querySelector(".search-field .clear-button") as HTMLInputElement;
+
+    private _searchRecipeNamesFlag = this._modalContainer.querySelector(".search-container #recipe-names-flag") as HTMLDivElement;
+    private _searchIngredientsFlag = this._modalContainer.querySelector(".search-container #ingredients-flag") as HTMLDivElement;
+    private _searchProductsFlag = this._modalContainer.querySelector(".search-container #products-flag") as HTMLDivElement;
+
+    private _searchFlags = { recipeNames: true, ingredients: true, products: true };
 }
