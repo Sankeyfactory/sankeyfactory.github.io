@@ -30,6 +30,8 @@
 
     --missing: #FF6363;
     --exceeding: #9CEF9A;
+
+    --grid: #444447;
 }
 
 @font-face {
@@ -449,6 +451,14 @@ g.links .resource-display img.icon {
 
 #container>.controls .button:hover svg {
     fill: var(--foreground-accent);
+}
+
+#container>.controls .button.toggle.off svg.on {
+    display: none;
+}
+
+#container>.controls .button.toggle.on svg.off {
+    display: none;
 }
 
 #container>.controls .zoom-controls p#ratio-display {
@@ -1467,4 +1477,10 @@ div#resources-summary div.content {
     fill: var(--dim-foreground-light);
 
     height: 20px;
+}
+
+/* Grid */
+
+#canvas .grid pattern circle {
+    fill: var(--grid);
 }
