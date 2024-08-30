@@ -147,9 +147,12 @@ export class SankeyLink
             y: (curve1.startPoint.y + curve1.endPoint.y) / 2 + avgHeight / 2,
         };
 
-        this._resourceDisplay.setAttribute("x", `${middlePoint.x - resourceDisplaySize / 2}`);
+        // For text to not clip or wrap.
+        let width = resourceDisplaySize + 100;
+
+        this._resourceDisplay.setAttribute("x", `${middlePoint.x - width / 2}`);
         this._resourceDisplay.setAttribute("y", `${middlePoint.y - resourceDisplaySize / 2}`);
-        this._resourceDisplay.setAttribute("width", `${resourceDisplaySize}`);
+        this._resourceDisplay.setAttribute("width", `${width}`);
         this._resourceDisplay.setAttribute("height", `${resourceDisplaySize}`);
 
         let amountText = this._resourceDisplay.querySelector("div.resource-amount") as HTMLDivElement;
@@ -173,7 +176,7 @@ export class SankeyLink
 
         this._resourceAmountDisplay = document.createElement("div");
         this._resourceAmountDisplay.classList.add("resource-amount");
-        this._resourceAmountDisplay.innerText = `${resource.amount}/min`;
+        this._resourceAmountDisplay.innerText = `${+resource.amount.toFixed(3)}/min`;
 
         container.appendChild(icon);
         container.appendChild(this._resourceAmountDisplay);
