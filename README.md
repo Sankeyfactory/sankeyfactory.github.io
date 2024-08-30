@@ -1,9 +1,11 @@
-# Sankeyfactory (W.I.P.)
+# Sankeyfactory
 A tool for planning Satisfactory production chains with convenient sankey diagram view.
 
-The tool: [https://sankeyfactory.github.io](https://sankeyfactory.github.io) (it's not yet ready to use).
+The tool: [https://sankeyfactory.github.io](https://sankeyfactory.github.io).
 
 The recipes are up-to-date with Satisfactory version `0.8.3.3` (Update 8 latest patch).
+
+[![Static Badge](https://img.shields.io/badge/Buy%20me%20a%20coffee-Donate-green?style=for-the-badge&logo=buymeacoffee&logoColor=green)](https://buymeacoffee.com/andev0)
 
 ## Table of contents
 
@@ -17,7 +19,16 @@ The recipes are up-to-date with Satisfactory version `0.8.3.3` (Update 8 latest 
 - [Extracting the game files](#extracting-the-game-files)
 
 ## Screenshots
-![Design screenshot](screenshots/iron.png)
+
+<details>
+
+<summary>Show screenshots</summary>
+
+![Canvas](screenshots/Canvas.png)
+
+![Node configuration](screenshots/Node%20configuration.png)
+
+</details>
 
 ## Building
 
