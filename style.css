@@ -161,7 +161,8 @@ svg#canvas,
 #node-creation-modal div.title-row,
 #node-creation-modal div.content,
 div.context-menu,
-#machine-configuration-container {
+#machine-configuration-container,
+#node-creation-modal .search-container div.flags {
     user-select: none;
     -moz-user-select: none;
     -webkit-user-select: none;
@@ -754,6 +755,10 @@ div#node-creation-modal .title span.game-version {
     pointer-events: none;
 }
 
+#node-creation-modal .recipe.filtered-out {
+    display: none;
+}
+
 /* Node creation modal's selected recipe */
 
 #node-creation-modal div#selected-recipe {
@@ -834,6 +839,186 @@ div#node-creation-modal .title span.game-version {
     padding: 12px 0;
 
     border-radius: 8px;
+}
+
+/* Node creation modal's search */
+
+#node-creation-modal div.search-container {
+    display: flex;
+    flex-direction: column;
+
+    gap: 16px;
+
+    padding: 16px;
+    padding-top: 0;
+}
+
+#node-creation-modal .search-container div.search-field {
+    display: flex;
+    align-items: stretch;
+
+    height: 48px;
+}
+
+#node-creation-modal .search-container .search-field div.search-icon-container,
+#node-creation-modal .search-container .search-field div.clear-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    box-sizing: border-box;
+
+    padding-right: 12px;
+    padding-left: 14px;
+
+    background-color: var(--background-lv1);
+    border: 2px solid var(--border);
+}
+
+#node-creation-modal .search-container .search-field .search-icon-container svg,
+#node-creation-modal .search-container .search-field .clear-button svg {
+    width: 22px;
+    height: 22px;
+
+    fill: var(--dim-foreground);
+}
+
+#node-creation-modal .search-container .search-field div.search-icon-container {
+    order: -1;
+
+    border-right: none;
+
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+}
+
+#node-creation-modal .search-container .search-field div.clear-button {
+    border-left: none;
+
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+
+    cursor: pointer;
+}
+
+#node-creation-modal .search-container .search-field div.clear-button:hover {
+    background-color: var(--background-lv2);
+}
+
+#node-creation-modal .search-container .search-field .clear-button svg {
+    fill: var(--foreground);
+}
+
+#node-creation-modal .search-container .search-field .clear-button:hover svg {
+    fill: var(--foreground-accent);
+}
+
+#node-creation-modal .search-container .search-field input {
+    flex-grow: 1;
+
+    outline: none;
+    border: none;
+    border-top: 2px solid var(--border);
+    border-bottom: 2px solid var(--border);
+
+    background-color: var(--background-lv1);
+    color: var(--foreground);
+
+    font-size: 16px;
+}
+
+#node-creation-modal .search-container .search-field input:placeholder-shown {
+    border-right: 2px solid var(--border);
+
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+#node-creation-modal .search-container .search-field input::placeholder {
+    color: var(--dim-foreground-light);
+}
+
+#node-creation-modal .search-container .search-field input:focus,
+#node-creation-modal .search-container .search-field input:focus~div.search-icon-container,
+#node-creation-modal .search-container .search-field input:focus~div.clear-button {
+    border-color: var(--border-accent);
+    background-color: var(--background-lv2);
+}
+
+#node-creation-modal .search-container .search-field input:placeholder-shown~div.clear-button {
+    display: none;
+}
+
+#node-creation-modal .search-container div.flags {
+    display: flex;
+    align-items: center;
+
+    gap: 24px;
+}
+
+@media screen and (max-width: 800px) {
+    #node-creation-modal .search-container div.flags {
+        flex-direction: column;
+        align-items: start;
+
+        gap: 8px;
+    }
+}
+
+#node-creation-modal .search-container .flags div.flag {
+    display: flex;
+    align-items: center;
+
+    height: 24px;
+
+    gap: 8px;
+
+    cursor: pointer;
+}
+
+#node-creation-modal .search-container .flags div.flag div.checkbox {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    box-sizing: border-box;
+
+    width: 20px;
+    height: 20px;
+
+    border: 2px solid var(--border);
+    background-color: var(--background-lv1);
+
+    border-radius: 4px;
+}
+
+#node-creation-modal .search-container .flags div.flag div.checkbox svg {
+    fill: var(--foreground);
+}
+
+#node-creation-modal .search-container .flags div.flag:not(.checked) div.checkbox svg {
+    display: none;
+}
+
+#node-creation-modal .search-container .flags div.flag:not(.checked) div.text {
+    color: var(--dim-foreground);
+}
+
+#node-creation-modal .search-container .flags div.flag:hover div.checkbox {
+    background-color: var(--background-lv2);
+    border-color: var(--border-accent);
+}
+
+#node-creation-modal .search-container .flags div.flag:hover div.checkbox svg {
+    fill: var(--foreground-accent);
+}
+
+#node-creation-modal .search-container .flags div.flag:hover div.text {
+    color: var(--dim-foreground-light);
+}
+
+#node-creation-modal .search-container .flags div.flag.checked:hover div.text {
+    color: var(--foreground-accent);
 }
 
 /* Context menus */
