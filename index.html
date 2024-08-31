@@ -44,11 +44,11 @@
                 <p id="ratio-display">Zoom: 1.0x</p>
             </div>
             <div class="row">
+                <div class="button hidden" id="cancel-linking" title="Cancel connecting nodes">
+                    <svg class="unlink_icon-placeholder"></svg>
+                </div>
                 <div class="button" id="open-help" title="Help">
                     <svg class="question-mark_icon-placeholder"></svg>
-                </div>
-                <div class="button" id="cancel-linking" title="Cancel connecting nodes">
-                    <svg class="unlink_icon-placeholder"></svg>
                 </div>
                 <div class="button toggle off" id="grid-toggle" title="Toggle grid">
                     <svg class="off grid_icon-placeholder"></svg>
@@ -473,6 +473,10 @@
 
     <div id="canvas-context-menu-container" class="context-menu-container hidden">
         <div class="context-menu">
+            <div class="option hidden" id="cancel-linking-option">
+                <svg class="unlink_icon-placeholder"></svg>
+                <div class="text">Cancel connecting nodes</div>
+            </div>
             <div class="option" id="create-node-option">
                 <svg class="plus_icon-placeholder"></svg>
                 <div class="text">Create node</div>
@@ -496,10 +500,6 @@
                     <svg class="grid_icon-placeholder"></svg>
                     <div class="text">Enable grid</div>
                 </div>
-            </div>
-            <div class="option" id="cancel-linking-option">
-                <svg class="unlink_icon-placeholder"></svg>
-                <div class="text">Cancel connecting nodes</div>
             </div>
             <div class="option" id="show-help-option">
                 <svg class="question-mark_icon-placeholder"></svg>
