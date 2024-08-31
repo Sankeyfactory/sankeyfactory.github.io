@@ -15,7 +15,6 @@ export class SlotResourcesDisplay
         this._resourcesAmountDisplay = document.createElement("div");
 
         this.createResourceDisplay();
-        this.update();
 
         this._relatedSlot.addEventListener(SankeySlot.boundsChangedEvent, this.update.bind(this));
     }
@@ -41,14 +40,18 @@ export class SlotResourcesDisplay
 
         this._slotsGroup.appendChild(this._resourcesDisplay);
 
-        Settings.instance.addEventListener(Settings.zoomChangedEvent, () =>
+        let updateZoomSize = () =>
         {
             let zoomScale = Math.max(Settings.instance.zoom, SlotResourcesDisplay._minZoomMultiplier);
 
             displayContainer.style.padding = `0 ${10 / zoomScale}px`;
             displayContainer.style.gap = `${4 / zoomScale}px`;
             this.update();
-        });
+        };
+
+        updateZoomSize();
+
+        Settings.instance.addEventListener(Settings.zoomChangedEvent, updateZoomSize);
 
         Settings.instance.addEventListener(Settings.connectingResourceIdChangedEvent, () =>
         {
