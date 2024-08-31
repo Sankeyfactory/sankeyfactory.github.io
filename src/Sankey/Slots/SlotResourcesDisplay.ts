@@ -121,5 +121,5 @@ export class SlotResourcesDisplay
     private _resourcesAmountDisplay: HTMLDivElement;
 
     private static _minZoomMultiplier = 0.5;
-    private static _maxZoomMultiplier = 2.0;
+    private static _maxZoomMultiplier = 1.5;
 }
