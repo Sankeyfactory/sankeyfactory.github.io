@@ -60,7 +60,7 @@ export class SankeyNode extends EventTarget
 
         this._resourceDisplay = new NodeResourceDisplay(this, recipe, machine);
         this._resourceDisplay.setBounds({
-            x: 10,
+            x: SankeySlot.slotWidth,
             y: 0,
             width: SankeyNode.nodeWidth,
             height: this.height

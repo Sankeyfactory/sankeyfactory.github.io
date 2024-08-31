@@ -27,6 +27,8 @@ async function main()
 
     let canvasGrid = new CanvasGrid();
 
+    zoomRatioDisplay.textContent = `Zoom: ${Settings.instance.zoom.toFixed(2)}x`;
+
     Settings.instance.addEventListener(Settings.zoomChangedEvent, () =>
     {
         zoomRatioDisplay.textContent = `Zoom: ${Settings.instance.zoom.toFixed(2)}x`;
