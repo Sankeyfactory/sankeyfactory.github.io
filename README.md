@@ -28,6 +28,8 @@ The recipes are up-to-date with Satisfactory version `0.8.3.3` (Update 8 latest 
 
 ![Node configuration](screenshots/Node%20configuration.png)
 
+![Mobile](screenshots/Mobile.png)
+
 </details>
 
 ## Building
