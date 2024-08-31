@@ -78,7 +78,9 @@ export class SlotResourcesDisplay
 
     private update(): void
     {
-        if (this._relatedSlot.resourcesAmount === 0)
+        let resourcesAmount = +this._relatedSlot.resourcesAmount.toFixed(3);
+
+        if (resourcesAmount === 0)
         {
             this._resourcesDisplay.classList.add("hidden");
         }
@@ -90,7 +92,7 @@ export class SlotResourcesDisplay
             let displayHeight = 24 / zoomScale;
 
             this._resourcesAmountDisplay.style.fontSize = `${displayHeight * 0.6}px`;
-            this._resourcesAmountDisplay.innerText = `${+this._relatedSlot.resourcesAmount.toFixed(3)}`;
+            this._resourcesAmountDisplay.innerText = `${resourcesAmount}`;
 
             let slotHeight = +this._relatedSlot.slotSvgRect.getAttribute("height")!;
             let slotY = +this._relatedSlot.slotSvgRect.getAttribute("y")!;
