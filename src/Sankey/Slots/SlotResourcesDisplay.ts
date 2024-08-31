@@ -42,7 +42,10 @@ export class SlotResourcesDisplay
 
         let updateZoomSize = () =>
         {
-            let zoomScale = Math.max(Settings.instance.zoom, SlotResourcesDisplay._minZoomMultiplier);
+            let zoomScale = Math.max(
+                SlotResourcesDisplay._minZoomMultiplier,
+                Math.min(SlotResourcesDisplay._maxZoomMultiplier, Settings.instance.zoom)
+            );
 
             displayContainer.style.padding = `0 ${10 / zoomScale}px`;
             displayContainer.style.gap = `${4 / zoomScale}px`;
@@ -88,7 +91,10 @@ export class SlotResourcesDisplay
         {
             this._resourcesDisplay.classList.remove("hidden");
 
-            let zoomScale = Math.max(Settings.instance.zoom, SlotResourcesDisplay._minZoomMultiplier);
+            let zoomScale = Math.max(
+                SlotResourcesDisplay._minZoomMultiplier,
+                Math.min(SlotResourcesDisplay._maxZoomMultiplier, Settings.instance.zoom)
+            );
             let displayHeight = 24 / zoomScale;
 
             this._resourcesAmountDisplay.style.fontSize = `${displayHeight * 0.6}px`;
@@ -115,4 +121,5 @@ export class SlotResourcesDisplay
     private _resourcesAmountDisplay: HTMLDivElement;
 
     private static _minZoomMultiplier = 0.5;
+    private static _maxZoomMultiplier = 2.0;
 }
