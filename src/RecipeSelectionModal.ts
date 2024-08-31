@@ -472,6 +472,11 @@ export class RecipeSelectionModal extends EventTarget
             this.searchRecipes(this._searchInputField.value);
         });
 
+        this._searchInputField.addEventListener("keydown", (event) =>
+        {
+            event.stopPropagation();
+        });
+
         this._clearSearchButton.addEventListener("click", () =>
         {
             this._searchInputField.value = "";
