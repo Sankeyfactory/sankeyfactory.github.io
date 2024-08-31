@@ -723,6 +723,8 @@ div#node-creation-modal .title span.game-version {
 
     box-sizing: border-box;
 
+    border: 2px solid var(--background-lv1);
+
     height: 64px;
     width: 64px;
 
@@ -767,6 +769,8 @@ div#node-creation-modal .title span.game-version {
 
 #node-creation-modal div.recipe.selected {
     background-color: var(--background-lv2);
+    border-color: var(--border);
+    border-radius: 8px;
 }
 
 #node-creation-modal .recipe img.item-icon {
