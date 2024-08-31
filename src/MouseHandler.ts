@@ -96,6 +96,9 @@ export class MouseHandler
             this.slotConnectingCurve = undefined;
             this.mouseStatus = MouseHandler.MouseStatus.Free;
             Settings.instance.connectingResource = undefined;
+
+            document.querySelector(".controls #cancel-linking")!.classList.add("hidden");
+            document.querySelector("#canvas-context-menu-container #cancel-linking-option")!.classList.add("hidden");
         }
     }
 
@@ -231,6 +234,9 @@ export class MouseHandler
         this.slotConnectingLine.setAttribute("d", path);
 
         this.viewport.appendChild(this.slotConnectingLine);
+
+        document.querySelector(".controls #cancel-linking")!.classList.remove("hidden");
+        document.querySelector("#canvas-context-menu-container #cancel-linking-option")!.classList.remove("hidden");
     }
 
     public startDraggingNode(node: SankeyNode, position: Point)
