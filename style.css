@@ -734,6 +734,11 @@ div#node-creation-modal .title span.game-version {
 
     padding: 8px;
     gap: 4px;
+
+    border-radius: 0px;
+
+    transition-property: border-radius, border-color;
+    transition-duration: 0.2s;
 }
 
 #node-creation-modal .recipe div.progress-bar {
@@ -774,6 +779,7 @@ div#node-creation-modal .title span.game-version {
 #node-creation-modal div.recipe.selected {
     background-color: var(--background-lv2);
     border-color: var(--border);
+
     border-radius: 8px;
 }
 
