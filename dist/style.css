@@ -171,6 +171,10 @@ div.context-menu,
     -ms-user-select: none;
 }
 
+span.background {
+    color: transparent;
+}
+
 /* Most upper-level containers */
 
 html {
@@ -1397,16 +1401,21 @@ div#resources-summary div.content {
 
 #help-modal-container div.content {
     display: flex;
-    align-items: start;
+    flex-direction: column;
 
     min-width: 50%;
 
-    padding: 0 8px;
+    padding: 0 16px;
     padding-bottom: 16px;
 
-    gap: 16px;
-
     overflow-y: scroll;
+}
+
+#help-modal-container .content div.row {
+    display: flex;
+    align-items: start;
+
+    gap: 16px;
 }
 
 @media screen and (max-width: 800px) {
@@ -1419,13 +1428,13 @@ div#resources-summary div.content {
         border-radius: 0;
     }
 
-    #help-modal-container div.content {
+    #help-modal-container .content div.row {
         flex-direction: column;
     }
 }
 
 #help-modal-container .content table {
-    flex-grow: 1;
+    width: 100%;
 }
 
 #help-modal-container .content table th {
@@ -1435,8 +1444,12 @@ div#resources-summary div.content {
 
 #help-modal-container .content table td,
 #help-modal-container .content table th {
-    padding: 4px 8px;
+    padding: 4px 0;
+}
+
+#help-modal-container .content table td:nth-child(1) {
     min-width: max-content;
+    padding-right: 16px;
 }
 
 #help-modal-container .content table td:nth-child(2) {
@@ -1481,6 +1494,47 @@ div#resources-summary div.content {
     fill: var(--dim-foreground-light);
 
     height: 20px;
+}
+
+/* Social links */
+
+#help-modal-container div.social-links {
+    display: flex;
+    align-items: stretch;
+
+    gap: 16px;
+}
+
+#help-modal-container .social-links a.social-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+
+    padding: 8px;
+    gap: 8px;
+
+    border-radius: 8px;
+
+    border: 2px solid;
+
+    background-color: var(--background-lv1);
+    border-color: var(--border);
+
+    text-decoration: none;
+}
+
+#help-modal-container .social-links a.social-link:hover {
+    background-color: var(--background-lv2);
+    border-color: var(--border-accent);
+}
+
+#help-modal-container .social-links .social-link svg {
+    width: 24px;
+    height: 24px;
+
+    fill: var(--foreground);
 }
 
 /* Grid */
