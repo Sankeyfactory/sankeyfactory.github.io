@@ -101,6 +101,11 @@ export class RecipeSelectionModal extends EventTarget
         let allTabAlternateRecipesGroup = this.createRecipesGroup("Alternate recipes");
         let allTabEventsRecipesGroup = this.createRecipesGroup("Events recipes");
 
+        allTabSelector.appendChild(allIcon);
+        this._tabSelectors.appendChild(allTabSelector);
+
+        this._recipeTabs.appendChild(allRecipesTab);
+
         type RecipesGroup = typeof allTabBasicRecipesGroup;
 
         let appendIfNotEmpty = (group: RecipesGroup, recipesTab: HTMLDivElement) =>
@@ -187,11 +192,6 @@ export class RecipeSelectionModal extends EventTarget
 
             this.discardSelectedRecipe();
         });
-
-        allTabSelector.appendChild(allIcon);
-        this._tabSelectors.appendChild(allTabSelector);
-
-        this._recipeTabs.appendChild(allRecipesTab);
     }
 
     private createRecipesGroup(name: string): { div: HTMLDivElement, title: HTMLHeadingElement; }
