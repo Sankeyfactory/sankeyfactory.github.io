@@ -9,6 +9,7 @@ import { Curve } from "./Geometry/Curve";
 import { SvgPathBuilder } from "./SVG/SvgPathBuilder";
 import { PanZoomConfiguration } from "./PanZoomConfiguration";
 import { Settings } from "./Settings";
+import { AppData } from "./AppData";
 
 export class MouseHandler
 {
@@ -81,6 +82,8 @@ export class MouseHandler
 
             this.lastMousePos.x = 0;
             this.lastMousePos.y = 0;
+
+            AppData.saveToUrl();
         }
     }
 

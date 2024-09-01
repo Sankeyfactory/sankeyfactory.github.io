@@ -7,6 +7,7 @@ import { SankeySlot } from "./Slots/SankeySlot";
 import { Point } from '../Geometry/Point';
 import { loadSatisfactoryResource, satisfactoryIconPath } from '../GameData/GameData';
 import { LinkContextMenu } from '../ContextMenu/LinkContextMenu';
+import { AppData } from "../AppData";
 
 export class SankeyLink
 {
@@ -18,6 +19,8 @@ export class SankeyLink
 
         linksGroup.appendChild(link._svgPath);
         linksGroup.appendChild(link._resourceDisplay);
+
+        AppData.saveToUrl();
     }
 
     public constructor(firstSlot: SankeySlot, secondSlot: SankeySlot, panContext: PanZoom)

@@ -79,17 +79,25 @@ export class SankeyNode extends EventTarget
     {
         for (const slotsGroup of this._inputSlotGroups)
         {
+            AppData.isSavingEnabled = false;
+
             slotsGroup.delete();
         }
 
         for (const slotsGroup of this._outputSlotGroups)
         {
+            AppData.isSavingEnabled = false;
+
             slotsGroup.delete();
         }
 
         this.nodeSvgGroup.remove();
 
         this.dispatchEvent(new Event(SankeyNode.deletionEvent));
+
+        AppData.isSavingEnabled = true;
+
+        AppData.saveToUrl();
     }
 
     public toSerializable(): AppData.SerializableNode
@@ -321,6 +329,8 @@ export class SankeyNode extends EventTarget
         {
             this.machinesAmount = configurator.machinesAmount;
             this.overclockRatio = configurator.overclockRatio;
+
+            AppData.saveToUrl();
         });
     }
 

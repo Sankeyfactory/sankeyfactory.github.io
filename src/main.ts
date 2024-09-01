@@ -159,29 +159,13 @@ async function main()
         }
     });
 
-    function loadFromUrl()
+    AppData.onDataLoad = () =>
     {
-        let dataEncoded = location.hash.slice(1);
-        if (dataEncoded == ``) return;
-
-        let dataCompressedString = atob(decodeURI(dataEncoded));
-        let dataCompressed: number[] = [];
-        for (let i = 0; i < dataCompressedString.length; ++i)
+        for (const node of AppData.nodes)
         {
-            dataCompressed.push(dataCompressedString.charCodeAt(i));
+            registerNode(node);
         }
-        let dataStream = new Blob([new Uint8Array(dataCompressed)]).stream().pipeThrough(new DecompressionStream(`deflate`));
-
-        new Response(dataStream).text().then(savedData =>
-        {
-            AppData.deserialize(savedData);
-
-            for (const node of AppData.nodes)
-            {
-                registerNode(node);
-            }
-        });
-    }
+    };
 
     window.addEventListener("keydown", (event) =>
     {
@@ -195,27 +179,12 @@ async function main()
 
         if (event.code === "KeyS")
         {
-            if (AppData.nodes.length === 0)
-            {
-                location.hash = "";
-                return;
-            }
-
-            let savedData = AppData.serialize();
-
-            let dataCompressedStream = new Blob([savedData]).stream().pipeThrough(new CompressionStream(`deflate`));
-
-            new Response(dataCompressedStream).arrayBuffer().then((dataCompressed) =>
-            {
-                let dataEncoded = encodeURI(btoa(String.fromCharCode(...new Uint8Array(dataCompressed))));
-
-                location.hash = dataEncoded;
-            });
+            AppData.saveToUrl();
         }
 
         if (event.code === "KeyR")
         {
-            loadFromUrl();
+            AppData.loadFromUrl();
         }
     });
 
@@ -320,7 +289,7 @@ async function main()
         MouseHandler.getInstance().handleTouchMove(event);
     });
 
-    loadFromUrl();
+    AppData.loadFromUrl();
 }
 
 main().catch((reason) =>

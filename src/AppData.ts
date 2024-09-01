@@ -1,7 +1,9 @@
 import { SankeyNode } from "./Sankey/SankeyNode";
 
-export class AppData
+export class AppData extends EventTarget
 {
+    public static onDataLoad: () => void;
+
     public static serialize(): string
     {
         let data: AppData.SerializableData = { nodes: [] };
@@ -39,6 +41,64 @@ export class AppData
         {
             this._nodes[nodeIndex].connectDeserializedSlots(data.nodes[nodeIndex], nodeIds);
         }
+
+        this.onDataLoad();
+    }
+
+    public static loadFromUrl()
+    {
+        this.isSavingEnabled = false;
+
+        let dataEncoded = location.hash.slice(1);
+        if (dataEncoded == ``) return;
+
+        let dataCompressedString = atob(decodeURI(dataEncoded));
+        let dataCompressed: number[] = [];
+        for (let i = 0; i < dataCompressedString.length; ++i)
+        {
+            dataCompressed.push(dataCompressedString.charCodeAt(i));
+        }
+        let dataStream = new Blob([new Uint8Array(dataCompressed)]).stream().pipeThrough(new DecompressionStream(`deflate`));
+
+        new Response(dataStream).text().then(savedData =>
+        {
+            AppData.deserialize(savedData);
+        });
+
+        this.isSavingEnabled = true;
+    }
+
+    public static saveToUrl()
+    {
+        if (this.isSavingEnabled)
+        {
+            if (AppData.nodes.length === 0)
+            {
+                location.hash = "";
+                return;
+            }
+
+            let savedData = AppData.serialize();
+
+            let dataCompressedStream = new Blob([savedData]).stream().pipeThrough(new CompressionStream(`deflate`));
+
+            new Response(dataCompressedStream).arrayBuffer().then((dataCompressed) =>
+            {
+                let dataEncoded = encodeURI(btoa(String.fromCharCode(...new Uint8Array(dataCompressed))));
+
+                location.hash = dataEncoded;
+            });
+        }
+    }
+
+    public static get isSavingEnabled(): boolean
+    {
+        return this._isSavingEnabled;
+    }
+
+    public static set isSavingEnabled(value: boolean)
+    {
+        this._isSavingEnabled = value;
     }
 
     private static dataFromArray(array: any[]): AppData.SerializableData
@@ -100,6 +160,8 @@ export class AppData
 
             this._nodes.splice(index, 1);
         });
+
+        this.saveToUrl();
     }
 
     public static get nodes(): SankeyNode[]
@@ -138,6 +200,8 @@ export class AppData
     };
 
     private static _nodes: SankeyNode[] = [];
+
+    private static _isSavingEnabled = true;
 }
 
 // Don't change positions and types of existing properties!
