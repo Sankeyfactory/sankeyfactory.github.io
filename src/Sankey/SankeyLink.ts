@@ -26,6 +26,9 @@ export class SankeyLink
         this._secondSlot = secondSlot;
         this._panContext = panContext;
 
+        firstSlot.connectedTo = secondSlot;
+        secondSlot.connectedTo = firstSlot;
+
         let pushResourcesAmount = (from: SankeySlot, to: SankeySlot) =>
         {
             if (to.resourcesAmount >= from.resourcesAmount)

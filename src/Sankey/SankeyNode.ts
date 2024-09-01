@@ -6,10 +6,13 @@ import { GameRecipe } from "../GameData/GameRecipe";
 import { GameMachine } from "../GameData/GameMachine";
 import { NodeContextMenu } from '../ContextMenu/NodeContextMenu';
 import { NodeConfiguration } from './NodeConfiguration/NodeConfiguration';
-import { overclockPower, overclockToShards, toItemsInMinute } from '../GameData/GameData';
+import { loadSatisfactoryRecipe, overclockPower, overclockToShards, toItemsInMinute } from '../GameData/GameData';
 import { NodeResourceDisplay } from './NodeResourceDisplay';
 import { CanvasGrid } from "../CanvasGrid";
 import { Settings } from "../Settings";
+import { AppData } from "../AppData";
+import { SankeyLink } from "./SankeyLink";
+import { PanZoomConfiguration } from "../PanZoomConfiguration";
 
 export class SankeyNode extends EventTarget
 {
@@ -21,6 +24,8 @@ export class SankeyNode extends EventTarget
     public nodeSvgGroup: SVGGElement;
     public static readonly nodeWidth = 80;
 
+    public readonly id: number;
+
     public constructor(
         position: Point,
         recipe: GameRecipe,
@@ -29,6 +34,7 @@ export class SankeyNode extends EventTarget
     {
         super();
 
+        this.id = SankeyNode.acquireId();
         this._recipe = { ...recipe };
         this._machine = { ...machine };
         this._height = SankeyNode._nodeHeight;
@@ -41,10 +47,7 @@ export class SankeyNode extends EventTarget
 
         this.nodeSvgGroup = SvgFactory.createSvgGroup(new Point(0, 0), "node", "animate-appearance");
 
-        this.position = {
-            x: position.x - SankeyNode.nodeWidth / 2 - SankeySlot.slotWidth,
-            y: position.y - this.height / 2
-        };
+        this.centerPosition = position;
 
         this.nodeSvg = SvgFactory.createSvgRect({
             width: SankeyNode.nodeWidth,
@@ -89,6 +92,97 @@ export class SankeyNode extends EventTarget
         this.dispatchEvent(new Event(SankeyNode.deletionEvent));
     }
 
+    public toSerializable(): AppData.SerializableNode
+    {
+        let outputGroups: AppData.SerializableSlotsGroup[] = [];
+
+        for (const group of this._outputSlotGroups)
+        {
+            outputGroups.push(group.toSerializable());
+        }
+
+        let serializable: AppData.SerializableNode = {
+            id: this.id,
+            recipeId: this._recipe.id,
+            machinesAmount: this.machinesAmount,
+            overclockRatio: this.overclockRatio,
+            positionX: this.position.x,
+            positionY: this.position.y,
+            outputsGroups: outputGroups,
+        };
+
+        return serializable;
+    }
+
+    public static fromSerializable(serializable: AppData.SerializableNode): SankeyNode
+    {
+        let recipe = loadSatisfactoryRecipe(serializable.recipeId);
+
+        let node = new SankeyNode(
+            { x: serializable.positionX, y: serializable.positionY },
+            recipe.recipe,
+            recipe.machine,
+        );
+
+        node.position = { x: serializable.positionX, y: serializable.positionY };
+
+        node.machinesAmount = serializable.machinesAmount;
+        node.overclockRatio = serializable.overclockRatio;
+
+        return node;
+    }
+
+    public connectDeserializedSlots(
+        serializable: AppData.SerializableNode,
+        nodeIds: Map<number, SankeyNode>)
+    {
+        for (const group of serializable.outputsGroups)
+        {
+            for (const slot of group.connectedOutputs)
+            {
+                let destinationNode = nodeIds.get(slot.connectedTo);
+
+                if (destinationNode == undefined)
+                {
+                    throw Error(`Error loading connected slot`);
+                }
+
+                let first = this.addOutputSlot(group.resourceId, slot.resourcesAmount);
+                let second = destinationNode.addInputSlot(group.resourceId, slot.resourcesAmount);
+
+                SankeyLink.connect(first, second, PanZoomConfiguration.context);
+            }
+        }
+    }
+
+    private addInputSlot(resourceId: string, resourcesAmount: number): SankeySlot
+    {
+        let inputGroup = this._inputSlotGroups.find(
+            inGroup => inGroup.resourceId === resourceId
+        );
+
+        if (inputGroup == undefined)
+        {
+            throw Error(`Error finding group with ${resourceId}`);
+        }
+
+        return inputGroup.addSlot(resourcesAmount);
+    }
+
+    private addOutputSlot(resourceId: string, resourcesAmount: number): SankeySlot
+    {
+        let outputGroup = this._outputSlotGroups.find(
+            outGroup => outGroup.resourceId === resourceId
+        );
+
+        if (outputGroup == undefined)
+        {
+            throw Error(`Error finding group with ${resourceId}`);
+        }
+
+        return outputGroup.addSlot(resourcesAmount);
+    }
+
     public get position(): Point
     {
         return this._position;
@@ -114,6 +208,14 @@ export class SankeyNode extends EventTarget
         {
             group.dispatchEvent(new Event(SlotsGroup.boundsChangedEvent));
         }
+    }
+
+    public set centerPosition(position: Point)
+    {
+        this.position = {
+            x: position.x - SankeyNode.nodeWidth / 2 - SankeySlot.slotWidth,
+            y: position.y - this.height / 2,
+        };
     }
 
     public get height(): number
@@ -297,6 +399,11 @@ export class SankeyNode extends EventTarget
         this.multiplyResourcesAmount(difference);
     }
 
+    private static acquireId(): number
+    {
+        return SankeyNode._nextId++;
+    }
+
     private _recipe: GameRecipe;
     private _machine: GameMachine;
 
@@ -312,6 +419,8 @@ export class SankeyNode extends EventTarget
     private _inputSlotGroups: SlotsGroup[] = [];
     private _outputSlotGroups: SlotsGroup[] = [];
     private _resourceDisplay: NodeResourceDisplay;
+
+    private static _nextId = 0;
 
     private static readonly _nodeHeight = 300;
 }

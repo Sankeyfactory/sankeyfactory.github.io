@@ -510,12 +510,12 @@ export class RecipeSelectionModal extends EventTarget
 
             if (this._searchFlags.recipeNames)
             {
-                applyFilter(recipe.displayName);
+                applyFilter(recipe.recipe.displayName);
             }
 
             if (this._searchFlags.ingredients)
             {
-                for (const ingredient of recipe.ingredients)
+                for (const ingredient of recipe.recipe.ingredients)
                 {
                     let resource = loadSatisfactoryResource(ingredient.id);
                     applyFilter(resource.displayName);
@@ -524,7 +524,7 @@ export class RecipeSelectionModal extends EventTarget
 
             if (this._searchFlags.products)
             {
-                for (const product of recipe.products)
+                for (const product of recipe.recipe.products)
                 {
                     let resource = loadSatisfactoryResource(product.id);
                     applyFilter(resource.displayName);

@@ -1,6 +1,7 @@
 // Ignore import error as the file only appears on launch of the exporting tool.
 // @ts-ignore
 import satisfactoryData from '../../dist/GameData/Satisfactory.json';
+import { GameMachine } from './GameMachine';
 import { GameRecipe } from './GameRecipe';
 
 export function satisfactoryIconPath(path: string): string
@@ -45,7 +46,7 @@ export function loadSatisfactoryResource(resourceId: string): Resource
     return resource;
 }
 
-export function loadSatisfactoryRecipe(recipeId: string): GameRecipe
+export function loadSatisfactoryRecipe(recipeId: string): { recipe: GameRecipe, machine: GameMachine; }
 {
     for (const machine of satisfactoryData.machines)
     {
@@ -53,14 +54,14 @@ export function loadSatisfactoryRecipe(recipeId: string): GameRecipe
 
         if (result != undefined)
         {
-            return result;
+            return { recipe: result, machine: machine };
         }
 
         let alternate = machine.alternateRecipes.find((recipe: GameRecipe) => recipe.id === recipeId);
 
         if (alternate != undefined)
         {
-            return alternate;
+            return { recipe: alternate, machine: machine };
         }
     }
 

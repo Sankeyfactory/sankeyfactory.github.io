@@ -1,3 +1,4 @@
+import { AppData } from "../../AppData";
 import { Rectangle } from "../../Geometry/Rectangle";
 import { SvgFactory } from "../../SVG/SvgFactory";
 import { SlotsGroup } from "../SlotsGroup";
@@ -87,10 +88,30 @@ export abstract class SankeySlot extends EventTarget
         this.dispatchEvent(new Event(SankeySlot.boundsChangedEvent));
     }
 
+    public toSerializable(): AppData.SerializableConnectedSlot
+    {
+        return {
+            connectedTo: this.connectedTo?._parentGroup.parentNode.id ?? -1,
+            resourcesAmount: this.resourcesAmount,
+        };
+    }
+
+    public get connectedTo(): SankeySlot | undefined
+    {
+        return this._connectedTo;
+    }
+
+    public set connectedTo(slot: SankeySlot)
+    {
+        this._connectedTo = slot;
+    }
+
     protected get parentGroup(): SlotsGroup
     {
         return this._parentGroup;
     }
+
+    private _connectedTo?: SankeySlot;
 
     private readonly _resource: RecipeResource;
 

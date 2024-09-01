@@ -6,6 +6,7 @@ import { SankeySlotMissing } from "./Slots/SankeySlotMissing";
 import { SvgFactory } from "../SVG/SvgFactory";
 import { InputSankeySlot } from "./Slots/InputSankeySlot";
 import { OutputSankeySlot } from "./Slots/OutputSankeySlot";
+import { AppData } from "../AppData";
 
 export type SlotsGroupType = "input" | "output";
 
@@ -104,6 +105,18 @@ export class SlotsGroup extends EventTarget
         this._groupSvg.remove();
     }
 
+    public toSerializable(): AppData.SerializableSlotsGroup
+    {
+        let connectedSlots: AppData.SerializableConnectedSlot[] = [];
+
+        for (const slot of this._slots)
+        {
+            connectedSlots.push(slot.toSerializable());
+        }
+
+        return { resourceId: this.resourceId, connectedOutputs: connectedSlots };
+    }
+
     public get height(): number
     {
         let parentResourcesAmount: number;
@@ -168,6 +181,11 @@ export class SlotsGroup extends EventTarget
     public get resourceId(): string
     {
         return this._resource.id;
+    }
+
+    public get parentNode(): SankeyNode
+    {
+        return this._parentNode;
     }
 
     private updateSlotPositions(): void
