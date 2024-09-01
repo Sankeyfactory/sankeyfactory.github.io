@@ -7,6 +7,7 @@ import { SankeySlot } from "./Slots/SankeySlot";
 import { Point } from '../Geometry/Point';
 import { loadSatisfactoryResource, satisfactoryIconPath } from '../GameData/GameData';
 import { LinkContextMenu } from '../ContextMenu/LinkContextMenu';
+import { SankeyNode } from "./SankeyNode";
 
 export class SankeyLink
 {
@@ -18,12 +19,21 @@ export class SankeyLink
 
         linksGroup.appendChild(link._svgPath);
         linksGroup.appendChild(link._resourceDisplay);
+
+        firstSlot.links.push(link);
+        secondSlot.links.push(link);
+
+        firstSlot.parentGroup.parentNode.dispatchEvent(new Event(SankeyNode.connectionsChangedEvent));
+        secondSlot.parentGroup.parentNode.dispatchEvent(new Event(SankeyNode.connectionsChangedEvent));
     }
+
+    public readonly firstSlot: SankeySlot;
+    public readonly secondSlot: SankeySlot;
 
     public constructor(firstSlot: SankeySlot, secondSlot: SankeySlot, panContext: PanZoom)
     {
-        this._firstSlot = firstSlot;
-        this._secondSlot = secondSlot;
+        this.firstSlot = firstSlot;
+        this.secondSlot = secondSlot;
         this._panContext = panContext;
 
         let pushResourcesAmount = (from: SankeySlot, to: SankeySlot) =>
@@ -102,8 +112,8 @@ export class SankeyLink
     {
         /* Placing link svg path */
 
-        let first = Rectangle.fromSvgBounds(this._firstSlot.slotSvgRect, this._panContext);
-        let second = Rectangle.fromSvgBounds(this._secondSlot.slotSvgRect, this._panContext);
+        let first = Rectangle.fromSvgBounds(this.firstSlot.slotSvgRect, this._panContext);
+        let second = Rectangle.fromSvgBounds(this.secondSlot.slotSvgRect, this._panContext);
 
         let curve1 = Curve.fromTwoPoints(
             { x: first.x + first.width, y: first.y },
@@ -195,11 +205,15 @@ export class SankeyLink
 
             this._svgPath.remove();
             this._resourceDisplay.remove();
+
+            this.firstSlot.links.splice(this.firstSlot.links.indexOf(this));
+            this.secondSlot.links.splice(this.secondSlot.links.indexOf(this));
+
+            this.firstSlot.parentGroup.parentNode.dispatchEvent(new Event(SankeyNode.connectionsChangedEvent));
+            this.secondSlot.parentGroup.parentNode.dispatchEvent(new Event(SankeyNode.connectionsChangedEvent));
         }
     }
 
-    private _firstSlot: SankeySlot;
-    private _secondSlot: SankeySlot;
     private _panContext: PanZoom;
     private _svgPath: SVGPathElement;
 

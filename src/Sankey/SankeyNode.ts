@@ -16,12 +16,22 @@ export class SankeyNode extends EventTarget
     public static readonly resourcesAmountChangedEvent = "resources-amount-changed";
     public static readonly changedVacantResourcesAmountEvent = "changed-vacant-resources-amount";
     public static readonly deletionEvent = "deleted";
+    public static readonly positionChangedEvent = "position-changed";
+    public static readonly overclockRatioChangedEvent = "overclock-ratio-changed";
+    public static readonly machinesAmountChangedEvent = "machines-amount-canged";
+    public static readonly connectionsChangedEvent = "connections-changed";
 
-    public nodeSvg: SVGElement;
-    public nodeSvgGroup: SVGGElement;
     public static readonly nodeWidth = 80;
 
+    public readonly id: number;
+    public readonly nodeSvg: SVGElement;
+    public readonly nodeSvgGroup: SVGGElement;
+    public readonly inputSlotGroups: SlotsGroup[] = [];
+    public readonly outputSlotGroups: SlotsGroup[] = [];
+    public readonly recipe: GameRecipe;
+
     public constructor(
+        id: number,
         position: Point,
         recipe: GameRecipe,
         machine: GameMachine,
@@ -29,17 +39,19 @@ export class SankeyNode extends EventTarget
     {
         super();
 
-        this._recipe = { ...recipe };
+        this.recipe = { ...recipe };
         this._machine = { ...machine };
         this._height = SankeyNode._nodeHeight;
 
         let sumResources = (sum: number, product: RecipeResource) =>
             sum + this.toItemsInMinute(product.amount);
 
-        this._inputResourcesAmount = this._recipe.ingredients.reduce(sumResources, 0);
-        this._outputResourcesAmount = this._recipe.products.reduce(sumResources, 0);
+        this._inputResourcesAmount = this.recipe.ingredients.reduce(sumResources, 0);
+        this._outputResourcesAmount = this.recipe.products.reduce(sumResources, 0);
 
         this.nodeSvgGroup = SvgFactory.createSvgGroup(new Point(0, 0), "node", "animate-appearance");
+
+        this.id = id;
 
         this.position = {
             x: position.x - SankeyNode.nodeWidth / 2 - SankeySlot.slotWidth,
@@ -53,8 +65,8 @@ export class SankeyNode extends EventTarget
             y: 0
         }, "machine");
 
-        this._inputSlotGroups = this.createGroups("input", recipe.ingredients);
-        this._outputSlotGroups = this.createGroups("output", recipe.products);
+        this.inputSlotGroups = this.createGroups("input", recipe.ingredients);
+        this.outputSlotGroups = this.createGroups("output", recipe.products);
 
         this.configureContextMenu(recipe, machine);
 
@@ -74,12 +86,12 @@ export class SankeyNode extends EventTarget
 
     public delete()
     {
-        for (const slotsGroup of this._inputSlotGroups)
+        for (const slotsGroup of this.inputSlotGroups)
         {
             slotsGroup.delete();
         }
 
-        for (const slotsGroup of this._outputSlotGroups)
+        for (const slotsGroup of this.outputSlotGroups)
         {
             slotsGroup.delete();
         }
@@ -105,15 +117,17 @@ export class SankeyNode extends EventTarget
 
         this.nodeSvgGroup.setAttribute("transform", `translate(${position.x}, ${position.y})`);
 
-        for (const group of this._inputSlotGroups)
+        for (const group of this.inputSlotGroups)
         {
             group.dispatchEvent(new Event(SlotsGroup.boundsChangedEvent));
         }
 
-        for (const group of this._outputSlotGroups)
+        for (const group of this.outputSlotGroups)
         {
             group.dispatchEvent(new Event(SlotsGroup.boundsChangedEvent));
         }
+
+        this.dispatchEvent(new Event(SankeyNode.positionChangedEvent));
     }
 
     public get height(): number
@@ -125,7 +139,7 @@ export class SankeyNode extends EventTarget
     {
         let result: RecipeResource[] = [];
 
-        for (const slotsGroup of this._inputSlotGroups)
+        for (const slotsGroup of this.inputSlotGroups)
         {
             let amount = slotsGroup.vacantResourcesAmount;
 
@@ -142,7 +156,7 @@ export class SankeyNode extends EventTarget
     {
         let result: RecipeResource[] = [];
 
-        for (const slotsGroup of this._outputSlotGroups)
+        for (const slotsGroup of this.outputSlotGroups)
         {
             let amount = slotsGroup.vacantResourcesAmount;
 
@@ -176,7 +190,7 @@ export class SankeyNode extends EventTarget
         return this._inputResourcesAmount;
     }
 
-    private set inputResourcesAmount(inputResourcesAmount: number)
+    public set inputResourcesAmount(inputResourcesAmount: number)
     {
         this._inputResourcesAmount = inputResourcesAmount;
 
@@ -188,7 +202,7 @@ export class SankeyNode extends EventTarget
         return this._outputResourcesAmount;
     }
 
-    private set outputResourcesAmount(outputResourcesAmount: number)
+    public set outputResourcesAmount(outputResourcesAmount: number)
     {
         this._outputResourcesAmount = outputResourcesAmount;
 
@@ -250,7 +264,7 @@ export class SankeyNode extends EventTarget
 
     private toItemsInMinute(amount: number)
     {
-        return toItemsInMinute(amount, this._recipe.manufacturingDuration);
+        return toItemsInMinute(amount, this.recipe.manufacturingDuration);
     }
 
     private multiplyResourcesAmount(multiplier: number)
@@ -258,12 +272,12 @@ export class SankeyNode extends EventTarget
         this.inputResourcesAmount *= multiplier;
         this.outputResourcesAmount *= multiplier;
 
-        for (const slotsGroup of this._inputSlotGroups)
+        for (const slotsGroup of this.inputSlotGroups)
         {
             slotsGroup.resourcesAmount *= multiplier;
         }
 
-        for (const slotsGroup of this._outputSlotGroups)
+        for (const slotsGroup of this.outputSlotGroups)
         {
             slotsGroup.resourcesAmount *= multiplier;
         }
@@ -274,13 +288,15 @@ export class SankeyNode extends EventTarget
         return this._machinesAmount;
     }
 
-    private set machinesAmount(value: number)
+    public set machinesAmount(value: number)
     {
         let difference = value / this._machinesAmount;
 
         this._machinesAmount = value;
 
         this.multiplyResourcesAmount(difference);
+
+        this.dispatchEvent(new Event(SankeyNode.machinesAmountChangedEvent));
     }
 
     public get overclockRatio(): number
@@ -288,16 +304,17 @@ export class SankeyNode extends EventTarget
         return this._overclockRatio;
     }
 
-    private set overclockRatio(value: number)
+    public set overclockRatio(value: number)
     {
         let difference = value / this._overclockRatio;
 
         this._overclockRatio = value;
 
         this.multiplyResourcesAmount(difference);
+
+        this.dispatchEvent(new Event(SankeyNode.overclockRatioChangedEvent));
     }
 
-    private _recipe: GameRecipe;
     private _machine: GameMachine;
 
     private _inputResourcesAmount: number;
@@ -309,8 +326,6 @@ export class SankeyNode extends EventTarget
     private _height: number;
     private _position = new Point(0, 0);
 
-    private _inputSlotGroups: SlotsGroup[] = [];
-    private _outputSlotGroups: SlotsGroup[] = [];
     private _resourceDisplay: NodeResourceDisplay;
 
     private static readonly _nodeHeight = 300;

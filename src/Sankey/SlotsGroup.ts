@@ -14,6 +14,10 @@ export class SlotsGroup extends EventTarget
     public static readonly boundsChangedEvent = "bounds-changed";
     public static readonly changedVacantResourcesAmountEvent = "changed-vacant-resources-amount";
 
+    public readonly parentNode: SankeyNode;
+    public readonly slots: SankeySlot[] = [];
+    public readonly type: SlotsGroupType;
+
     public constructor(
         node: SankeyNode,
         type: SlotsGroupType,
@@ -22,9 +26,9 @@ export class SlotsGroup extends EventTarget
     {
         super();
 
-        this._type = type;
+        this.type = type;
         this._resource = { ...resource };
-        this._parentNode = node;
+        this.parentNode = node;
 
         let position = type === "input"
             ? new Point(0, startY)
@@ -38,7 +42,7 @@ export class SlotsGroup extends EventTarget
 
         this.addEventListener(SlotsGroup.boundsChangedEvent, () =>
         {
-            for (const slot of this._slots)
+            for (const slot of this.slots)
             {
                 slot.dispatchEvent(new Event(SankeySlot.boundsChangedEvent));
             }
@@ -53,14 +57,14 @@ export class SlotsGroup extends EventTarget
 
         let newSlot: SankeySlot;
 
-        if (this._type === "input")
+        if (this.type === "input")
         {
             newSlot = new InputSankeySlot(this, this._groupSvg, {
                 id: this.resourceId,
                 amount: resourcesAmount
             });
         }
-        else if (this._type === "output")
+        else if (this.type === "output")
         {
             newSlot = new OutputSankeySlot(this, this._groupSvg, {
                 id: this.resourceId,
@@ -72,13 +76,13 @@ export class SlotsGroup extends EventTarget
             throw Error("Unexpected slots group type");
         }
 
-        this._slots.push(newSlot);
+        this.slots.push(newSlot);
 
         newSlot.addEventListener(SankeySlot.deletionEvent, () =>
         {
-            let index = this._slots.findIndex(slot => Object.is(slot, newSlot));
+            let index = this.slots.findIndex(slot => Object.is(slot, newSlot));
 
-            this._slots.splice(index, 1);
+            this.slots.splice(index, 1);
 
             this.updateSlotPositions();
         });
@@ -96,9 +100,9 @@ export class SlotsGroup extends EventTarget
     public delete()
     {
         // Don't use for/for-of because of iterator invalidation after array is spliced by event.
-        while (this._slots.length !== 0)
+        while (this.slots.length !== 0)
         {
-            this._slots[0].delete();
+            this.slots[0].delete();
         }
 
         this._groupSvg.remove();
@@ -108,16 +112,16 @@ export class SlotsGroup extends EventTarget
     {
         let parentResourcesAmount: number;
 
-        if (this._type == "input")
+        if (this.type == "input")
         {
-            parentResourcesAmount = this._parentNode.inputResourcesAmount;
+            parentResourcesAmount = this.parentNode.inputResourcesAmount;
         }
         else
         {
-            parentResourcesAmount = this._parentNode.outputResourcesAmount;
+            parentResourcesAmount = this.parentNode.outputResourcesAmount;
         }
 
-        return this._parentNode.height * (this.resourcesAmount / parentResourcesAmount);
+        return this.parentNode.height * (this.resourcesAmount / parentResourcesAmount);
     }
 
     public get resourcesAmount(): number
@@ -143,9 +147,9 @@ export class SlotsGroup extends EventTarget
                 this._lastSlot.resourcesAmount -= smallerValue;
             }
 
-            for (let i = this._slots.length - 1; i >= 0 && subtractedResources > 0; --i)
+            for (let i = this.slots.length - 1; i >= 0 && subtractedResources > 0; --i)
             {
-                let slot = this._slots[i];
+                let slot = this.slots[i];
 
                 let smallerValue = Math.min(subtractedResources, slot.resourcesAmount);
 
@@ -175,7 +179,7 @@ export class SlotsGroup extends EventTarget
         let freeResourcesAmount = this.resourcesAmount;
         let nextYPosition = 0;
 
-        for (const slot of this._slots)
+        for (const slot of this.slots)
         {
             slot.setYPosition(nextYPosition);
             slot.updateHeight();
@@ -193,11 +197,11 @@ export class SlotsGroup extends EventTarget
     /** Should be called only once. */
     private initializeLastSlot(resource: RecipeResource): SankeySlotMissing | SankeySlotExceeding
     {
-        if (this._type === "input")
+        if (this.type === "input")
         {
             return new SankeySlotMissing(this, this._groupSvg, { ...resource });
         }
-        else if (this._type === "output")
+        else if (this.type === "output")
         {
             return new SankeySlotExceeding(this, this._groupSvg, { ...resource });
         }
@@ -207,14 +211,9 @@ export class SlotsGroup extends EventTarget
         }
     }
 
-    private _type: SlotsGroupType;
-
     private _resource: RecipeResource;
 
-    private _slots: SankeySlot[] = [];
     private _lastSlot: SankeySlotExceeding | SankeySlotMissing;
 
     private _groupSvg: SVGGElement;
-
-    private _parentNode: SankeyNode;
 }

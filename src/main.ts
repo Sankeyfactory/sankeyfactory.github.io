@@ -1,3 +1,7 @@
+// Ignore import error as the file only appears on launch of the exporting tool.
+// @ts-ignore
+import satisfactoryData from '../dist/GameData/Satisfactory.json';
+
 import { SankeyNode } from "./Sankey/SankeyNode";
 import { Point } from "./Geometry/Point";
 import { MouseHandler } from "./MouseHandler";
@@ -11,6 +15,7 @@ import { SvgIcons } from './SVG/SvgIcons';
 import { HelpModal } from './HelpWindow/HelpModal';
 import { RecipeSelectionModal } from './RecipeSelectionModal';
 import { CanvasGrid } from "./CanvasGrid";
+import { SankeyLink } from './Sankey/SankeyLink';
 
 async function main()
 {
@@ -47,9 +52,12 @@ async function main()
     let recipeSelectionModal = new RecipeSelectionModal();
     let nodeCreationPosition: Point;
 
-    function createNode(recipe: GameRecipe, machine: GameMachine)
+    let nodes: SankeyNode[] = [];
+    let nodeId = 0;
+
+    function createNode(recipe: GameRecipe, machine: GameMachine, nodeCreationPosition: Point)
     {
-        const node = new SankeyNode(nodeCreationPosition, recipe, machine);
+        const node = new SankeyNode(nodeId++, nodeCreationPosition, recipe, machine);
 
         node.nodeSvg.onmousedown = (event) =>
         {
@@ -78,13 +86,151 @@ async function main()
         });
 
         resourcesSummary.registerNode(node);
+
+        registerForSave(node);
+
+        return node;
     };
+
+    function registerForSave(node: SankeyNode)
+    {
+      node.addEventListener(SankeyNode.positionChangedEvent, saveState);
+      node.addEventListener(SankeyNode.resourcesAmountChangedEvent, saveState);
+      node.addEventListener(SankeyNode.overclockRatioChangedEvent, saveState);
+      node.addEventListener(SankeyNode.machinesAmountChangedEvent, saveState);
+      node.addEventListener(SankeyNode.connectionsChangedEvent, saveState);
+      node.addEventListener(SankeyNode.deletionEvent, () =>
+      {
+        nodes.splice(nodes.indexOf(node));
+        saveState();
+      });
+
+      nodes.push(node);
+      saveState();
+    }
+
+    type NodeStripped = {
+      id: number,
+      position: Point,
+      inputResourcesAmount: number,
+      outputResourcesAmount: number,
+      overclockRatio: number,
+      machinesAmount: number,
+      inputs: {
+        resourceId: string,
+        resourcesAmount: number,
+        nodes: number[]
+      }[],
+      // outputs: number[],
+      recipe: string
+    };
+
+    let lastSave = Date.now();
+
+    async function saveState()
+    {
+      let time = Date.now();
+      lastSave = time;
+
+      await new Promise(resolve => setTimeout(resolve, 2500));
+
+      if (lastSave > time) return;
+
+      let data = [];
+      for (let node of nodes)
+      {
+        let inputs = node.inputSlotGroups.map(group => ({
+          resourceId: group.resourceId,
+          resourcesAmount: group.resourcesAmount,
+          nodes: group.slots.flatMap(slot => slot.links.map(link => [link, slot] as const))
+                            .map(([link, slot]) => link.firstSlot === slot ? link.secondSlot : link.firstSlot)
+                            .map(slot => slot.parentGroup)
+                            .map(group => group.parentNode)
+                            .map(node => node.id)
+        }));
+
+        let nodeStripped: NodeStripped = {
+          id: node.id,
+          position: node.position,
+          inputResourcesAmount: node.inputResourcesAmount,
+          outputResourcesAmount: node.outputResourcesAmount,
+          overclockRatio: node.overclockRatio,
+          machinesAmount: node.machinesAmount,
+          inputs: inputs,
+          recipe: node.recipe.id
+        };
+        data.push(nodeStripped);
+      }
+      let dataJson = JSON.stringify(data);
+      let dataCompressedStream = new Blob([dataJson]).stream().pipeThrough(new CompressionStream(`deflate`));
+      let dataCompressed = await new Response(dataCompressedStream).arrayBuffer();
+      let dataEncoded = encodeURI(btoa(String.fromCharCode(...new Uint8Array(dataCompressed))));
+      location.hash = dataEncoded;
+    } // ↑ Hell is right here, yeah ↓
+    async function loadState()
+    {
+      let dataEncoded = location.hash.slice(1);
+      if (dataEncoded == ``) return;
+
+      let dataCompressedString = atob(decodeURI(dataEncoded));
+      let dataCompressed: number[] = [];
+      for (let i = 0; i < dataCompressedString.length; ++i)
+      {
+        dataCompressed.push(dataCompressedString.charCodeAt(i));
+      }
+      let dataStream = new Blob([new Uint8Array(dataCompressed)]).stream().pipeThrough(new DecompressionStream(`deflate`));
+      let dataJson = await new Response(dataStream).text();
+      let data: NodeStripped[] = JSON.parse(dataJson);
+
+      for (let nodeStripped of data)
+      {
+        let recipe: GameRecipe | undefined;
+        let machine: GameMachine | undefined;
+        for (let foundMachine of satisfactoryData.machines)
+        {
+          let foundRecipe = foundMachine.recipes.find(recipe => recipe.id === nodeStripped.recipe);
+          if (foundRecipe != null)
+          {
+            recipe = foundRecipe;
+            machine = foundMachine;
+            break;
+          }
+        }
+        if (recipe == null || machine == null) throw new Error();
+
+        let node = createNode(recipe, machine, nodeStripped.position);
+        node.inputResourcesAmount = nodeStripped.inputResourcesAmount;
+        node.machinesAmount = nodeStripped.machinesAmount;
+        node.outputResourcesAmount = nodeStripped.outputResourcesAmount;
+        node.overclockRatio = nodeStripped.overclockRatio;
+      }
+
+      for (let nodeStripped of data)
+      {
+        let node = nodes.find(node => node.id === nodeStripped.id)!;
+
+        for (let input of nodeStripped.inputs)
+        {
+          for (let outputNodeId of input.nodes)
+          {
+            let outputNode = nodes.find(node => node.id === outputNodeId)!;
+            let outputGroup = outputNode.outputSlotGroups.find(group => group.resourceId === input.resourceId)!;
+            let outputSlot = outputGroup.addSlot(input.resourcesAmount);
+
+            let inputGroup = node.inputSlotGroups.find(group => group.resourceId === input.resourceId)!;
+            let inputSlot = inputGroup.addSlot(input.resourcesAmount);
+
+            SankeyLink.connect(outputSlot, inputSlot, PanZoomConfiguration.context);
+          }
+        }
+      }
+    }
 
     recipeSelectionModal.addEventListener(RecipeSelectionModal.recipeConfirmedEvent, () =>
     {
         let recipe = recipeSelectionModal.selectedRecipe!;
 
-        createNode(recipe.recipe, recipe.madeIn);
+        createNode(recipe.recipe, recipe.madeIn, nodeCreationPosition);
     });
 
     function openNodeCreation(nodePosition?: Point)
@@ -262,6 +408,8 @@ async function main()
     {
         MouseHandler.getInstance().handleTouchMove(event);
     });
+
+    await loadState();
 }
 
 main().catch((reason) =>

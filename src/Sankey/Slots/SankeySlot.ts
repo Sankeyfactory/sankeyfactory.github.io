@@ -1,5 +1,6 @@
 import { Rectangle } from "../../Geometry/Rectangle";
 import { SvgFactory } from "../../SVG/SvgFactory";
+import { SankeyLink } from "../SankeyLink";
 import { SlotsGroup } from "../SlotsGroup";
 
 export abstract class SankeySlot extends EventTarget
@@ -10,6 +11,10 @@ export abstract class SankeySlot extends EventTarget
     public static readonly deletionEvent = "deleted";
     public static readonly resourcesAmountChangedEvent = "resources-amount-changed";
 
+    public readonly parentGroup: SlotsGroup;
+
+    public links: SankeyLink[] = [];
+
     public constructor(
         slotsGroup: SlotsGroup,
         slotsGroupSvg: SVGGElement,
@@ -19,7 +24,7 @@ export abstract class SankeySlot extends EventTarget
         super();
 
         this._resource = { ...resource };
-        this._parentGroup = slotsGroup;
+        this.parentGroup = slotsGroup;
 
         let dimensions: Rectangle = {
             width: SankeySlot.slotWidth,
@@ -77,24 +82,17 @@ export abstract class SankeySlot extends EventTarget
 
     public updateHeight(): void
     {
-        let resourcesQuotient = this.resourcesAmount / this._parentGroup.resourcesAmount;
+        let resourcesQuotient = this.resourcesAmount / this.parentGroup.resourcesAmount;
 
         this.slotSvgRect.setAttribute(
             "height",
-            `${this._parentGroup.height * (resourcesQuotient)}`
+            `${this.parentGroup.height * (resourcesQuotient)}`
         );
 
         this.dispatchEvent(new Event(SankeySlot.boundsChangedEvent));
     }
 
-    protected get parentGroup(): SlotsGroup
-    {
-        return this._parentGroup;
-    }
-
     private readonly _resource: RecipeResource;
 
     private readonly _slotSvgRect: SVGRectElement;
-
-    private readonly _parentGroup: SlotsGroup;
 }
