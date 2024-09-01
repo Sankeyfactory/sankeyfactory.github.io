@@ -117,6 +117,23 @@ async function main()
         MouseHandler.getInstance().cancelConnectingSlots();
     };
 
+    let requestClearCanvas = () =>
+    {
+        if (confirm(
+            "Are you sure that you want to clear canvas?\n"
+            + "This will delete all nodes and connections.\n"
+            + "Save the page link if you don't want to lose the data."))
+        {
+            AppData.deleteAllNodes();
+            AppData.saveToUrl();
+        }
+    };
+
+    (document.querySelector("div.button#clear-canvas") as HTMLDivElement).onclick = () =>
+    {
+        requestClearCanvas();
+    };
+
     let lockButton = document.querySelector("div.button#lock-viewport") as HTMLDivElement;
 
     lockButton.onclick = () =>
@@ -176,16 +193,6 @@ async function main()
             event.preventDefault();
             MouseHandler.getInstance().cancelConnectingSlots();
         }
-
-        if (event.code === "KeyS")
-        {
-            AppData.saveToUrl();
-        }
-
-        if (event.code === "KeyR")
-        {
-            AppData.loadFromUrl();
-        }
     });
 
     canvas.addEventListener("dblclick", (event) =>
@@ -236,6 +243,11 @@ async function main()
     Settings.instance.addEventListener(Settings.isGridEnabledChangedEvent, () =>
     {
         canvasContextMenu.setGridSwitchState(Settings.instance.isGridEnabled);
+    });
+
+    canvasContextMenu.addEventListener(CanvasContextMenu.clearCanvasOptionClickedEvent, () =>
+    {
+        requestClearCanvas();
     });
 
     window.addEventListener("keypress", (event) =>

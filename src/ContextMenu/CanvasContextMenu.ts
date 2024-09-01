@@ -7,6 +7,7 @@ export class CanvasContextMenu extends CustomContextMenu
     public static readonly toggleGridSwitchClickedEvent = "toggle-grid-switch-clicked";
     public static readonly cancelLinkingOptionClickedEvent = "cancel-linking-option-clicked";
     public static readonly showHelpOptionClickedEvent = "show-help-option-clicked";
+    public static readonly clearCanvasOptionClickedEvent = "clear-canvas-option-clicked";
 
     public constructor(ownerNode: HTMLElement | SVGElement)
     {
@@ -22,12 +23,15 @@ export class CanvasContextMenu extends CustomContextMenu
             document.querySelector(`#${this.containerId} #cancel-linking-option`) as HTMLDivElement;
         this._showHelpOption =
             document.querySelector(`#${this.containerId} #show-help-option`) as HTMLDivElement;
+        this._clearCanvasOption =
+            document.querySelector(`#${this.containerId} #clear-canvas-option`) as HTMLDivElement;
 
         this.setupMenuOption(this._createNodeOption, CanvasContextMenu.createNodeOptionClickedEvent);
         this.setupMenuOption(this._lockCanvasSwitch, CanvasContextMenu.lockCanvasSwitchClickedEvent);
         this.setupMenuOption(this._toggleGridSwitch, CanvasContextMenu.toggleGridSwitchClickedEvent);
         this.setupMenuOption(this._cancelLinkingOption, CanvasContextMenu.cancelLinkingOptionClickedEvent);
         this.setupMenuOption(this._showHelpOption, CanvasContextMenu.showHelpOptionClickedEvent);
+        this.setupMenuOption(this._clearCanvasOption, CanvasContextMenu.clearCanvasOptionClickedEvent);
     }
 
     public setCanvasLockedSwitchState(enabled: boolean)
@@ -45,4 +49,5 @@ export class CanvasContextMenu extends CustomContextMenu
     private _toggleGridSwitch: HTMLDivElement;
     private _cancelLinkingOption: HTMLDivElement;
     private _showHelpOption: HTMLDivElement;
+    private _clearCanvasOption: HTMLDivElement;
 }

@@ -18,10 +18,7 @@ export class AppData extends EventTarget
 
     public static deserialize(json: string)
     {
-        while (this._nodes.length !== 0)
-        {
-            this._nodes.at(-1)!.delete();
-        }
+        this.deleteAllNodes();
 
         let parsedJson: any[] = JSON.parse(json);
 
@@ -47,23 +44,14 @@ export class AppData extends EventTarget
 
     public static loadFromUrl()
     {
-        this.isSavingEnabled = false;
-
         let dataEncoded = location.hash.slice(1);
         if (dataEncoded == ``) return;
 
-        let dataCompressedString = atob(decodeURI(dataEncoded));
-        let dataCompressed: number[] = [];
-        for (let i = 0; i < dataCompressedString.length; ++i)
-        {
-            dataCompressed.push(dataCompressedString.charCodeAt(i));
-        }
-        let dataStream = new Blob([new Uint8Array(dataCompressed)]).stream().pipeThrough(new DecompressionStream(`deflate`));
+        let savedData = atob(decodeURI(dataEncoded));
 
-        new Response(dataStream).text().then(savedData =>
-        {
-            AppData.deserialize(savedData);
-        });
+        this.isSavingEnabled = false;
+
+        AppData.deserialize(savedData);
 
         this.isSavingEnabled = true;
     }
@@ -80,14 +68,9 @@ export class AppData extends EventTarget
 
             let savedData = AppData.serialize();
 
-            let dataCompressedStream = new Blob([savedData]).stream().pipeThrough(new CompressionStream(`deflate`));
+            let dataEncoded = encodeURI(btoa(savedData));
 
-            new Response(dataCompressedStream).arrayBuffer().then((dataCompressed) =>
-            {
-                let dataEncoded = encodeURI(btoa(String.fromCharCode(...new Uint8Array(dataCompressed))));
-
-                location.hash = dataEncoded;
-            });
+            location.hash = dataEncoded;
         }
     }
 
@@ -148,6 +131,16 @@ export class AppData extends EventTarget
         }
 
         return data;
+    }
+
+    public static deleteAllNodes(): void 
+    {
+        while (this._nodes.length !== 0)
+        {
+            this._nodes.at(-1)!.delete();
+        }
+
+        console.log("Deleting complete");
     }
 
     public static addNode(node: SankeyNode)

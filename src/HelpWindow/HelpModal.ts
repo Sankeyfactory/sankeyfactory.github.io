@@ -84,7 +84,6 @@ export class HelpModal
     private static _modalContainer = document.querySelector("#help-modal-container") as HTMLDivElement;
     private static _modalContent = this._modalContainer.querySelector(".content") as HTMLDivElement;
 
-
     private static _closeButton = this._modalContainer.querySelector(".title-row .close") as HTMLDivElement;
     private static _openModalButton = document.querySelector("#open-help") as HTMLDivElement;
 }
