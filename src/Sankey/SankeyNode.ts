@@ -107,13 +107,20 @@ export class SankeyNode extends EventTarget
             outputGroups.push(group.toSerializable());
         }
 
+        let position = { ...this.position };
+
+        if (Settings.instance.isGridEnabled)
+        {
+            position = CanvasGrid.alignPoint(position);
+        }
+
         let serializable: AppData.SerializableNode = {
             id: this.id,
             recipeId: this._recipe.id,
             machinesAmount: this.machinesAmount,
             overclockRatio: this.overclockRatio,
-            positionX: this.position.x,
-            positionY: this.position.y,
+            positionX: position.x,
+            positionY: position.y,
             outputsGroups: outputGroups,
         };
 

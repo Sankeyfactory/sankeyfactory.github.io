@@ -8,7 +8,7 @@ export class CanvasGrid
     {
         let stepRound = (value: number, step: number, offset: number) =>
         {
-            return Math.round((value + offset) / step) * step + offset;
+            return Math.round((value - offset) / step) * step + offset;
         };
 
         let x = stepRound(point.x, CanvasGrid.smallGridSize, CanvasGrid.smallGridSize / 2);
