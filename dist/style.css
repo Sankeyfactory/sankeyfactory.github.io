@@ -424,23 +424,35 @@ g.links .resource-display img.icon {
     bottom: 0;
     right: 0;
 
-    padding: 8px;
+    padding-bottom: 8px;
     gap: 8px;
 
     pointer-events: none;
+
+    max-width: 100%;
 }
 
 #container>.controls div.row {
     display: flex;
-    flex-direction: row;
     justify-content: end;
 
+    max-width: 100%;
+}
+
+#container>.controls .row div.scroll-container {
+    display: flex;
+
+    flex-grow: 1;
+
+    padding: 0 8px;
     gap: 8px;
+
+    overflow-x: scroll;
 }
 
 #container>.controls div.button {
-    width: 56px;
-    height: 56px;
+    min-width: 56px;
+    min-height: 56px;
 
     font-size: 14px;
 
@@ -467,6 +479,7 @@ g.links .resource-display img.icon {
 
 #container>.controls .zoom-controls p#ratio-display {
     margin: 0;
+    padding-right: 8px;
 }
 
 /* Modal windows */
@@ -1300,6 +1313,7 @@ div#resources-summary {
     top: 0;
 
     width: 360px;
+    max-width: 100%;
     max-height: 100%;
 }
 
@@ -1315,7 +1329,9 @@ div#resources-summary div.content {
     padding: 20px;
     gap: 20px;
 
-    overflow-y: scroll;
+    max-width: 100%;
+
+    overflow: scroll;
 
     background-color: var(--background-lv0);
     border-right: 2px solid var(--border);
