@@ -49,16 +49,16 @@ export class AppData extends EventTarget
 
         let savedData = atob(decodeURI(dataEncoded));
 
-        this.isSavingEnabled = false;
+        this.lockSaving();
 
         AppData.deserialize(savedData);
 
-        this.isSavingEnabled = true;
+        this.unlockSaving();
     }
 
     public static saveToUrl()
     {
-        if (this.isSavingEnabled)
+        if (this._savingLocks === 0)
         {
             if (AppData.nodes.length === 0)
             {
@@ -74,14 +74,14 @@ export class AppData extends EventTarget
         }
     }
 
-    public static get isSavingEnabled(): boolean
+    public static lockSaving()
     {
-        return this._isSavingEnabled;
+        ++this._savingLocks;
     }
 
-    public static set isSavingEnabled(value: boolean)
+    public static unlockSaving()
     {
-        this._isSavingEnabled = value;
+        --this._savingLocks;
     }
 
     private static dataFromArray(array: any[]): AppData.SerializableData
@@ -139,8 +139,6 @@ export class AppData extends EventTarget
         {
             this._nodes.at(-1)!.delete();
         }
-
-        console.log("Deleting complete");
     }
 
     public static addNode(node: SankeyNode)
@@ -194,7 +192,7 @@ export class AppData extends EventTarget
 
     private static _nodes: SankeyNode[] = [];
 
-    private static _isSavingEnabled = true;
+    private static _savingLocks = 0;
 }
 
 // Don't change positions and types of existing properties!

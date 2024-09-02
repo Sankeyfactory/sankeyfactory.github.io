@@ -124,7 +124,10 @@ async function main()
             + "This will delete all nodes and connections.\n"
             + "Save the page link if you don't want to lose the data."))
         {
+            AppData.lockSaving();
             AppData.deleteAllNodes();
+            AppData.unlockSaving();
+
             AppData.saveToUrl();
         }
     };

@@ -77,17 +77,15 @@ export class SankeyNode extends EventTarget
 
     public delete()
     {
+        AppData.lockSaving();
+
         for (const slotsGroup of this._inputSlotGroups)
         {
-            AppData.isSavingEnabled = false;
-
             slotsGroup.delete();
         }
 
         for (const slotsGroup of this._outputSlotGroups)
         {
-            AppData.isSavingEnabled = false;
-
             slotsGroup.delete();
         }
 
@@ -95,7 +93,7 @@ export class SankeyNode extends EventTarget
 
         this.dispatchEvent(new Event(SankeyNode.deletionEvent));
 
-        AppData.isSavingEnabled = true;
+        AppData.unlockSaving();
 
         AppData.saveToUrl();
     }
