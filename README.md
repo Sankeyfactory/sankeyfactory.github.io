@@ -24,7 +24,9 @@ The recipes are up-to-date with Satisfactory version `0.8.3.3` (Update 8 latest 
 
 <summary>Show screenshots</summary>
 
-![Canvas](screenshots/Canvas.png)
+![Plan example](screenshots/IronFactory.png)
+
+![Plan example](screenshots/Canvas.png)
 
 ![Node configuration](screenshots/Node%20configuration.png)
 
