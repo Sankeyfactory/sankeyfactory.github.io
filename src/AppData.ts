@@ -45,6 +45,13 @@ export class AppData extends EventTarget
     public static loadFromUrl()
     {
         let dataEncoded = location.hash.slice(1);
+        let dataEncodedFromStorage = this.loadFromLocalStorage();
+
+        if (dataEncoded == ``) {
+            dataEncoded = dataEncodedFromStorage;
+            location.hash = dataEncoded;
+        } 
+
         if (dataEncoded == ``) return;
 
         let savedData = atob(decodeURI(dataEncoded));
@@ -69,10 +76,19 @@ export class AppData extends EventTarget
             let savedData = AppData.serialize();
 
             let dataEncoded = encodeURI(btoa(savedData));
+            this.saveToLocalStorage(dataEncoded);
 
             location.hash = dataEncoded;
         }
     }
+
+    private static saveToLocalStorage(data: string) {
+        localStorage.setItem('saveState', data);
+      }
+    
+      static loadFromLocalStorage(): string {
+        return localStorage.getItem('saveState') ?? '';
+      }
 
     public static lockSaving()
     {
