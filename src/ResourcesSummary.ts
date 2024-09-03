@@ -56,10 +56,17 @@ export class ResourcesSummary
         {
             for (const resource of node.missingResources)
             {
-                resources.set(resource.id, (resources.get(resource.id) ?? 0) + resource.amount);
+                if (+resource.amount.toFixed(3) > 0)
+                {
+                    resources.set(resource.id, (resources.get(resource.id) ?? 0) + resource.amount);
+                }
             }
 
-            powerConsumption += node.powerConsumption;
+            if (+node.powerConsumption.toFixed(3) > 0)
+            {
+                powerConsumption += node.powerConsumption;
+            }
+
             requiredPowerShards += node.requiredPowerShards;
         }
 
@@ -74,7 +81,10 @@ export class ResourcesSummary
         {
             for (const resource of node.exceedingResources)
             {
-                resources.set(resource.id, (resources.get(resource.id) ?? 0) + resource.amount);
+                if (+resource.amount.toFixed(3) > 0)
+                {
+                    resources.set(resource.id, (resources.get(resource.id) ?? 0) + resource.amount);
+                }
             }
         }
 
