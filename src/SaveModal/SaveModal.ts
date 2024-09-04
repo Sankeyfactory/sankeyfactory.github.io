@@ -4,6 +4,7 @@ import { FactoryStorage } from "../FactoryStorage";
 export class SaveModal
 {
     private static _saveFactoryButton = document.querySelector("#save-factory") as HTMLDivElement;
+    private static _deleteFactoryButton = document.querySelector("#delete-factory") as HTMLDivElement;
     private static _saveFactoryModalButton = document.querySelector("#save-factory-modal-button") as HTMLDivElement;
     private static _factoryNameInput = document.querySelector("#new-factory-name") as HTMLInputElement;
     private static _saveSelect = document.querySelector("#save-name") as HTMLSelectElement
@@ -116,6 +117,36 @@ export class SaveModal
             // Otherwise, update the save of the factory
             this.saveFactory(factoryName);
         });
+        SaveModal._deleteFactoryButton.addEventListener("click", (event) =>
+            {
+                // Event from the Delete Save button on the main canvas
+                event.stopPropagation();
+                let saveSelect = SaveModal._saveSelect
+                let idx = saveSelect.selectedIndex;
+                let selectedOption = saveSelect.options[idx];
+                let factoryName = selectedOption.text || SaveModal.saveNewText
+                // Nothing is selected, so just return
+                if (factoryName == SaveModal.saveNewText) {
+                    return;
+                }
+                // Otherwise, delete the save of the factory
+                if (confirm(
+                    "Are you sure that you want to delete this save?\n"
+                    + "This will delete all nodes and connections.\n"
+                    + "All data will be lost."))
+                {
+                    AppData.lockSaving();
+                    FactoryStorage.instance.deleteSavedFactory(factoryName);
+                    AppData.deleteAllNodes();
+                    let saveSelect = SaveModal._saveSelect
+                    let idx = saveSelect.selectedIndex;
+                    saveSelect.remove(idx);
+                    SaveModal.resetDropdownToDefault();
+                    AppData.unlockSaving();
+        
+                    AppData.saveToUrl();   
+                }
+            });
         SaveModal._closeButton.addEventListener("click", (event) =>
         {
             if (this._isOpened)

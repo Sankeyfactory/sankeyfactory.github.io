@@ -432,6 +432,7 @@ g.links .resource-display img.icon {
 #container>.load-container div.button {
     width: 36px;
     font-size: 14px;
+    margin-right: 10px;
 }
 
 #container>.load-container .button svg {

@@ -120,6 +120,27 @@ export class FactoryStorage
         onSuccessCallback(loadedData);
     }
 
+    public deleteSavedFactory(factoryName: string): void
+    {
+        // Remove from Database
+        if (this.database === null)
+        {
+            throw Error(`Error deleting, database is not initialized`);
+        }
+        let transaction = this.database.transaction("SavedFactories", "readwrite");
+        let savedFactories = transaction.objectStore("SavedFactories");
+        let request = savedFactories.delete(factoryName);
+        request.onsuccess = function() {
+            // Update our in-mem data
+            FactoryStorage.instance.savedFactories.delete(factoryName);
+        };
+        
+        request.onerror = function() {
+            throw Error("Error Deleting: " + request.error);
+        };
+
+    }
+
     public getSavedFactoryNames(): string[]
     {
         return Array.from(this.savedFactories.keys())
