@@ -12,7 +12,6 @@ import { CanvasGrid } from "../CanvasGrid";
 import { Settings } from "../Settings";
 import { AppData } from "../AppData";
 import { SankeyLink } from "./SankeyLink";
-import { PanZoomConfiguration } from "../PanZoomConfiguration";
 
 export class SankeyNode extends EventTarget
 {
@@ -163,12 +162,17 @@ export class SankeyNode extends EventTarget
                 let first = this.addOutputSlot(group.resourceId, slot.resourcesAmount);
                 let second = destinationNode.addInputSlot(group.resourceId, slot.resourcesAmount);
 
-                SankeyLink.connect(first, second, PanZoomConfiguration.context);
+                SankeyLink.connect(first, second);
             }
         }
     }
 
-    private addInputSlot(resourceId: string, resourcesAmount: number): SankeySlot
+    public get recipe()
+    {
+        return this._recipe;
+    }
+
+    public addInputSlot(resourceId: string, resourcesAmount: number): SankeySlot
     {
         let inputGroup = this._inputSlotGroups.find(
             inGroup => inGroup.resourceId === resourceId
@@ -182,7 +186,7 @@ export class SankeyNode extends EventTarget
         return inputGroup.addSlot(resourcesAmount);
     }
 
-    private addOutputSlot(resourceId: string, resourcesAmount: number): SankeySlot
+    public addOutputSlot(resourceId: string, resourcesAmount: number): SankeySlot
     {
         let outputGroup = this._outputSlotGroups.find(
             outGroup => outGroup.resourceId === resourceId
@@ -303,6 +307,16 @@ export class SankeyNode extends EventTarget
         return this._outputResourcesAmount;
     }
 
+    public get inputSlotGroups()
+    {
+        return this._inputSlotGroups;
+    }
+
+    public get outputSlotGroups()
+    {
+        return this._outputSlotGroups;
+    }
+
     private set outputResourcesAmount(outputResourcesAmount: number)
     {
         this._outputResourcesAmount = outputResourcesAmount;
@@ -391,7 +405,7 @@ export class SankeyNode extends EventTarget
         return this._machinesAmount;
     }
 
-    private set machinesAmount(value: number)
+    public set machinesAmount(value: number)
     {
         let difference = value / this._machinesAmount;
 

@@ -8,12 +8,13 @@ import { Point } from '../Geometry/Point';
 import { loadSatisfactoryResource, satisfactoryIconPath } from '../GameData/GameData';
 import { LinkContextMenu } from '../ContextMenu/LinkContextMenu';
 import { AppData } from "../AppData";
+import { PanZoomConfiguration } from "../PanZoomConfiguration";
 
 export class SankeyLink
 {
-    public static connect(firstSlot: SankeySlot, secondSlot: SankeySlot, panContext: PanZoom) 
+    public static connect(firstSlot: SankeySlot, secondSlot: SankeySlot) 
     {
-        let link = new SankeyLink(firstSlot, secondSlot, panContext);
+        let link = new SankeyLink(firstSlot, secondSlot, PanZoomConfiguration.context);
 
         let linksGroup = document.querySelector("#viewport>g.links")!;
 

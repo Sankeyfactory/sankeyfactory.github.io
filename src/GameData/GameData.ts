@@ -1,6 +1,7 @@
 // Ignore import error as the file only appears on launch of the exporting tool.
 // @ts-ignore
 import satisfactoryData from '../../dist/GameData/Satisfactory.json';
+
 import { GameMachine } from './GameMachine';
 import { GameRecipe } from './GameRecipe';
 
@@ -66,4 +67,68 @@ export function loadSatisfactoryRecipe(recipeId: string): { recipe: GameRecipe, 
     }
 
     throw Error(`Couldn't find recipe "${recipeId}"`);
+}
+
+/** If there are multiple suitable recipes or none, returns `undefined` */
+export function loadSingleSatisfactoryRecipe(requiredItem: { id: string; type: "input" | "output"; }):
+    { recipe: GameRecipe; machine: GameMachine; resourceAmount: number; } | undefined
+{
+    let suitableRecipe: GameRecipe | undefined = undefined;
+    let suitableMachine: GameMachine | undefined = undefined;
+    let resourceAmount = 0;
+
+    for (const machine of satisfactoryData.machines)
+    {
+        const findSingle = (recipe: typeof machine.recipes[0], resources: RecipeResource[]) =>
+        {
+            let foundResource = resources.find(
+                resource => resource.id === requiredItem.id
+            );
+
+            if (foundResource != undefined)
+            {
+                if (suitableRecipe != undefined || suitableMachine != undefined)
+                {
+                    return false;
+                }
+
+                suitableRecipe = recipe;
+                suitableMachine = machine;
+                resourceAmount = foundResource.amount;
+            }
+
+            return true;
+        };
+
+        for (const recipe of machine.recipes)
+        {
+            if ((requiredItem.type === "input" && !findSingle(recipe, recipe.ingredients))
+                || (requiredItem.type === "output" && !findSingle(recipe, recipe.products)))
+            {
+                return undefined;
+            }
+        }
+
+        for (const recipe of machine.alternateRecipes)
+        {
+            if ((requiredItem.type === "input" && !findSingle(recipe, recipe.ingredients))
+                || (requiredItem.type === "output" && !findSingle(recipe, recipe.products)))
+            {
+                return undefined;
+            }
+        }
+    }
+
+    if (suitableRecipe == undefined || suitableMachine == undefined)
+    {
+        return undefined;
+    }
+    else
+    {
+        return {
+            recipe: suitableRecipe,
+            machine: suitableMachine,
+            resourceAmount: resourceAmount,
+        };
+    }
 }

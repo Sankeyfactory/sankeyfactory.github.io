@@ -14,6 +14,9 @@ import { RecipeSelectionModal } from './RecipeSelectionModal';
 import { CanvasGrid } from "./CanvasGrid";
 import { AppData } from "./AppData";
 import { FactoryStorage } from "./FactoryStorage";
+import { loadSatisfactoryResource, loadSingleSatisfactoryRecipe } from "./GameData/GameData";
+import { SankeyLink } from "./Sankey/SankeyLink";
+import { SlotsGroup } from "./Sankey/SlotsGroup";
 
 async function main()
 {
@@ -88,13 +91,23 @@ async function main()
         resourcesSummary.registerNode(node);
     };
 
-    function createNode(recipe: GameRecipe, machine: GameMachine)
+    let onceNodeCreated: ((node: SankeyNode) => void) | undefined;
+
+    function createNode(recipe: GameRecipe, machine: GameMachine): SankeyNode
     {
         const node = new SankeyNode(nodeCreationPosition, recipe, machine);
 
         registerNode(node);
 
         AppData.addNode(node);
+
+        if (onceNodeCreated != undefined)
+        {
+            onceNodeCreated(node);
+            onceNodeCreated = undefined;
+        }
+
+        return node;
     };
 
     recipeSelectionModal.addEventListener(RecipeSelectionModal.recipeConfirmedEvent, () =>
@@ -262,6 +275,103 @@ async function main()
     canvasContextMenu.addEventListener(CanvasContextMenu.clearCanvasOptionClickedEvent, () =>
     {
         requestClearCanvas();
+    });
+
+    canvasContextMenu.addEventListener(CanvasContextMenu.nodeFromLinkOptionClickedEvent, () =>
+    {
+        let slot = MouseHandler.getInstance().firstConnectingSlot;
+
+        if (slot == undefined)
+        {
+            return;
+        }
+
+        let contextMenuPos = canvasContextMenu.openingPosition;
+
+        if (contextMenuPos == undefined)
+        {
+            throw Error("Context menu position undefined");
+        }
+
+        contextMenuPos = MouseHandler.clientToCanvasPosition(contextMenuPos);
+
+        let type: "input" | "output";
+
+        if (MouseHandler.getInstance().mouseStatus === MouseHandler.MouseStatus.ConnectingInputSlot)
+        {
+            type = "output";
+        }
+        else if (MouseHandler.getInstance().mouseStatus === MouseHandler.MouseStatus.ConnectingOutputSlot)
+        {
+            type = "input";
+        }
+        else
+        {
+            return;
+        }
+
+        nodeCreationPosition = contextMenuPos;
+
+        let suitableRecipe = loadSingleSatisfactoryRecipe({ id: slot.resourceId, type: type });
+
+
+
+        onceNodeCreated = (node: SankeyNode) =>
+        {
+            let resourcesAmount = slot.resourcesAmount;
+
+            let group: SlotsGroup | undefined;
+
+            if (type === "input")
+            {
+                group = node.inputSlotGroups.find(group => group.resourceId === slot.resourceId);
+            }
+            else
+            {
+                group = node.outputSlotGroups.find(group => group.resourceId === slot.resourceId);
+            }
+
+            if (group == undefined)
+            {
+                return;
+            }
+
+            let resourcesMultiplier = resourcesAmount / group.resourcesAmount;
+
+            node.machinesAmount = resourcesMultiplier;
+
+            let newSlot1 = slot.splitOffSlot(resourcesAmount);
+
+            if (type === "input")
+            {
+                let newSlot2 = node.addInputSlot(slot.resourceId, resourcesAmount);
+                SankeyLink.connect(newSlot1, newSlot2);
+            }
+            else
+            {
+                let newSlot2 = node.addOutputSlot(slot.resourceId, resourcesAmount);
+                SankeyLink.connect(newSlot1, newSlot2);
+            }
+        };
+
+        if (suitableRecipe != undefined)
+        {
+            createNode(suitableRecipe.recipe, suitableRecipe.machine);
+        }
+        else
+        {
+            recipeSelectionModal.openWithSearch(
+                loadSatisfactoryResource(slot.resourceId).displayName,
+                {
+                    ingredients: type === "input",
+                    products: type === "output",
+                    recipeNames: false,
+                    exactMatch: true,
+                }
+            );
+        }
+
+        MouseHandler.getInstance().cancelConnectingSlots();
     });
 
     window.addEventListener("keypress", (event) =>
