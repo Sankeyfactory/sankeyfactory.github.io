@@ -416,6 +416,44 @@ g.links .resource-display img.icon {
 
 /* Canvas controls */
 
+#container>.load-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+
+    position: absolute;
+
+    top: 0;
+    text-align: center;
+    width: 100%;
+}
+
+#container>.load-container div.button {
+    width: 36px;
+    font-size: 14px;
+}
+
+#container>.load-container .button svg {
+    fill: var(--foreground);
+}
+
+#container>.load-container .button:hover svg {
+    fill: var(--foreground-accent);
+}
+
+#container>.load-container select {
+    color: black;
+    height: 40px;
+    width: 20%;
+    margin-right: 10px;
+    font-size: 14pt;
+}
+
+#container>.load-container select>option {
+    color: black;
+}
+
 #container>.controls {
     display: flex;
     flex-direction: column;
@@ -1563,4 +1601,49 @@ div#resources-summary div.content {
 
 #canvas .grid pattern circle {
     fill: var(--grid);
+}
+
+/* Save window */
+
+#save-modal-container div.modal-window {
+    min-width: calc(0% + 800px);
+    max-width: calc(0% + 800px);
+    max-height: calc(90% + 0px);
+    min-height: calc(0% + 0px);
+
+    transition-property: min-width, min-height, max-width, max-height;
+    transition-duration: 0.2s;
+    transition-timing-function: ease-in-out;
+}
+
+#save-modal-container .modal-window div.content {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+
+    padding: 16px;
+    padding-top: 0;
+
+    gap: 20px;
+}
+
+#save-modal-container input {
+    height: 40px;
+    color: black;
+    font-size: 14pt;
+}
+
+#save-modal-container .row.buttons {
+    height: 40px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+    padding-bottom: 16px;
+}
+
+#save-modal-container .button {
+    height: 40px;
+    width: 50%;
 }

@@ -66,6 +66,12 @@ export class PanZoomConfiguration
         window.addEventListener("keydown", (event) =>
         {
             if (event.repeat) { return; }
+            // Don't process key press events if user is typing in the save-name field.
+            let activeElement = document.activeElement ? document.activeElement.id : ""
+            if (activeElement == "new-factory-name")
+            {
+                return;
+            }
 
             let anyCodeDown = requiredCodes.includes(event.code);
             let anyKeyDown = requiredKeys.includes(event.key);

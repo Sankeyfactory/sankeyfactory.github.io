@@ -9,9 +9,11 @@ import { ResourcesSummary } from "./ResourcesSummary";
 import { PanZoomConfiguration } from "./PanZoomConfiguration";
 import { SvgIcons } from './SVG/SvgIcons';
 import { HelpModal } from './HelpWindow/HelpModal';
+import { SaveModal } from './SaveModal/SaveModal';
 import { RecipeSelectionModal } from './RecipeSelectionModal';
 import { CanvasGrid } from "./CanvasGrid";
 import { AppData } from "./AppData";
+import { FactoryStorage } from "./FactoryStorage";
 
 async function main()
 {
@@ -21,6 +23,13 @@ async function main()
     let canvas = document.querySelector("#canvas") as SVGElement;
 
     let helpModal = new HelpModal();
+    let saveModal = new SaveModal();
+
+    // Load factory storage
+    FactoryStorage.initStorage(() => {
+        let loadedName = FactoryStorage.instance.getFactoryNameFromHash();
+        saveModal.updateFactoryNameDropdown(loadedName);
+    })
 
     PanZoomConfiguration.setPanningButtons(["Space"], ["Meta"]);
     PanZoomConfiguration.setZoomingButtons([], ["Control"]);

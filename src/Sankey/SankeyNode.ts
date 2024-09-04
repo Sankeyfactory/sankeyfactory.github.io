@@ -419,6 +419,12 @@ export class SankeyNode extends EventTarget
         return SankeyNode._nextId++;
     }
 
+    // Sets the ID to the provided number. This keeps different factory hashes consistent between loads.
+    public static setNextId(nextId: number): void
+    {
+        SankeyNode._nextId = nextId;
+    }
+
     private _recipe: GameRecipe;
     private _machine: GameMachine;
 

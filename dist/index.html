@@ -39,6 +39,14 @@
             </g>
         </svg>
 
+        <div class="load-container">
+            <select id="save-name" class="save-name">
+            </select>
+            <div class="button" id="save-factory" title="Save Factory">
+                <svg class="save_icon-placeholder"></svg>
+            </div>
+        </div>
+
         <div class="controls">
             <div class="row zoom-controls">
                 <p id="ratio-display">Zoom: 1.0x</p>
@@ -471,6 +479,25 @@
                             </td>
                         </tr>
                     </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dimming modal-window-container hidden" id="save-modal-container">
+        <div class="modal-window">
+            <div class="title-row">
+                <h2 class="title">What do you want to name this factory?</h2>
+                <div class="close">
+                    <svg class="cross_icon-placeholder"></svg>
+                </div>
+            </div>
+            <div class="content">
+                <input type="text" id="new-factory-name" />
+            </div>
+            <div class="row buttons">
+                <div class="button" id="save-factory-modal-button">
+                    Save
                 </div>
             </div>
         </div>

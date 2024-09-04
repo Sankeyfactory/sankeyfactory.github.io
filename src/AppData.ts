@@ -1,3 +1,4 @@
+import { FactoryStorage } from "./FactoryStorage";
 import { SankeyNode } from "./Sankey/SankeyNode";
 
 export class AppData extends EventTarget
@@ -54,6 +55,23 @@ export class AppData extends EventTarget
         AppData.deserialize(savedData);
 
         this.unlockSaving();
+        // Update the URL with the loaded data.
+        // Since nodeIDs potentially changed, this would result in a new URL
+        AppData.saveToUrl();
+    }
+
+    public static loadFromDatabase(factoryName: string)
+    {
+        FactoryStorage.instance.loadFactory(factoryName, (savedData) => {
+            this.lockSaving();
+
+            AppData.deserialize(savedData);
+    
+            this.unlockSaving();
+            // Update the URL with the loaded data.
+            // Since nodeIDs potentially changed, this would result in a new URL
+            AppData.saveToUrl();
+        })
     }
 
     public static saveToUrl()
@@ -139,6 +157,7 @@ export class AppData extends EventTarget
         {
             this._nodes.at(-1)!.delete();
         }
+        SankeyNode.setNextId(0);
     }
 
     public static addNode(node: SankeyNode)
