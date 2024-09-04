@@ -37,6 +37,12 @@ export class SaveModal
         this._isOpened = false;
     }
 
+    public static resetDropdownToDefault(): void
+    {
+        // Select the last value in the dropdown (Save New Factory)
+        SaveModal._saveSelect.options[SaveModal._saveSelect.options.length-1].selected = true
+    }
+
     private saveFactory(factoryName: string): void
     {
         // Prevent the user from breaking their ability to create new Saves

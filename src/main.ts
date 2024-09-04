@@ -138,6 +138,8 @@ async function main()
             AppData.unlockSaving();
 
             AppData.saveToUrl();
+            
+            SaveModal.resetDropdownToDefault();
         }
     };
 
