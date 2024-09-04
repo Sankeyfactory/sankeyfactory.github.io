@@ -11,59 +11,62 @@ import { PanZoomConfiguration } from "./PanZoomConfiguration";
 import { Settings } from "./Settings";
 import { AppData } from "./AppData";
 
-export class MouseHandler
+export class MouseHandler extends EventTarget
 {
+    public static readonly startedConnectingSlotsEvent = "started-connecting-slots";
+    public static readonly finishedConnectingSlotsEvent = "finished-connecting-slots";
+
     public static getInstance()
     {
-        if (this.instance != undefined)
+        if (this._instance != undefined)
         {
-            return this.instance;
+            return this._instance;
         }
         else
         {
-            this.instance = new this();
-            return this.instance;
+            this._instance = new this();
+            return this._instance;
         }
     }
 
     public handleMouseMove(event: MouseEvent)
     {
-        if (this.mouseStatus === MouseHandler.MouseStatus.DraggingNode)
+        if (this._mouseStatus === MouseHandler.MouseStatus.DraggingNode)
         {
             this.dragNodeTo({ x: event.clientX, y: event.clientY });
         }
         else if (
-            this.mouseStatus === MouseHandler.MouseStatus.ConnectingInputSlot
-            || this.mouseStatus === MouseHandler.MouseStatus.ConnectingOutputSlot)
+            this._mouseStatus === MouseHandler.MouseStatus.ConnectingInputSlot
+            || this._mouseStatus === MouseHandler.MouseStatus.ConnectingOutputSlot)
         {
-            if (this.firstConnectingSlot == undefined)
+            if (this._firstConnectingSlot == undefined)
             {
                 throw Error("First connecting slot wasn't saved.");
             }
-            if (this.slotConnectingLine == undefined || this.slotConnectingCurve == undefined)
+            if (this._slotConnectingLine == undefined || this._slotConnectingCurve == undefined)
             {
                 throw Error("Slot connecting line wasn't created.");
             }
 
             const svgMousePos = MouseHandler.clientToCanvasPosition({ x: event.clientX, y: event.clientY });
 
-            this.slotConnectingCurve = Curve.fromTwoPoints(
-                this.slotConnectingCurve.startPoint,
+            this._slotConnectingCurve = Curve.fromTwoPoints(
+                this._slotConnectingCurve.startPoint,
                 svgMousePos
             );
 
             let path = new SvgPathBuilder()
-                .startAt(this.slotConnectingCurve.startPoint)
-                .curve(this.slotConnectingCurve)
+                .startAt(this._slotConnectingCurve.startPoint)
+                .curve(this._slotConnectingCurve)
                 .build();
 
-            this.slotConnectingLine.setAttribute("d", path);
+            this._slotConnectingLine.setAttribute("d", path);
         }
     }
 
     public handleTouchMove(event: TouchEvent)
     {
-        if (this.mouseStatus === MouseHandler.MouseStatus.DraggingNode
+        if (this._mouseStatus === MouseHandler.MouseStatus.DraggingNode
             && event.touches.length === 1)
         {
             let touch = event.touches[0];
@@ -74,14 +77,14 @@ export class MouseHandler
 
     public handleMouseUp()
     {
-        if (this.mouseStatus === MouseHandler.MouseStatus.DraggingNode)
+        if (this._mouseStatus === MouseHandler.MouseStatus.DraggingNode)
         {
-            this.mouseStatus = MouseHandler.MouseStatus.Free;
+            this._mouseStatus = MouseHandler.MouseStatus.Free;
 
-            this.draggedNode = undefined;
+            this._draggedNode = undefined;
 
-            this.lastMousePos.x = 0;
-            this.lastMousePos.y = 0;
+            this._lastMousePos.x = 0;
+            this._lastMousePos.y = 0;
 
             AppData.saveToUrl();
         }
@@ -89,51 +92,53 @@ export class MouseHandler
 
     public cancelConnectingSlots()
     {
-        if (this.mouseStatus == MouseHandler.MouseStatus.ConnectingInputSlot
-            || this.mouseStatus == MouseHandler.MouseStatus.ConnectingOutputSlot
+        if (this._mouseStatus == MouseHandler.MouseStatus.ConnectingInputSlot
+            || this._mouseStatus == MouseHandler.MouseStatus.ConnectingOutputSlot
         )
         {
-            this.firstConnectingSlot = undefined;
-            this.slotConnectingLine?.remove();
-            this.slotConnectingLine = undefined;
-            this.slotConnectingCurve = undefined;
-            this.mouseStatus = MouseHandler.MouseStatus.Free;
+            this._firstConnectingSlot = undefined;
+            this._slotConnectingLine?.remove();
+            this._slotConnectingLine = undefined;
+            this._slotConnectingCurve = undefined;
+            this._mouseStatus = MouseHandler.MouseStatus.Free;
             Settings.instance.connectingResource = undefined;
 
             document.querySelector(".controls #cancel-linking")!.classList.add("hidden");
             document.querySelector("#canvas-context-menu-container #cancel-linking-option")!.classList.add("hidden");
+
+            this.dispatchEvent(new Event(MouseHandler.finishedConnectingSlotsEvent));
         }
     }
 
     public inputSlotClicked(event: MouseEvent, targetSlot: SankeySlotMissing)
     {
-        if (this.mouseStatus === MouseHandler.MouseStatus.Free)
+        if (this._mouseStatus === MouseHandler.MouseStatus.Free)
         {
-            this.mouseStatus = MouseHandler.MouseStatus.ConnectingInputSlot;
+            this._mouseStatus = MouseHandler.MouseStatus.ConnectingInputSlot;
 
             this.startConnectingSlot(event, targetSlot, true);
 
             Settings.instance.connectingResource = { type: "input", id: targetSlot.resourceId };
         }
-        else if (this.mouseStatus === MouseHandler.MouseStatus.ConnectingOutputSlot)
+        else if (this._mouseStatus === MouseHandler.MouseStatus.ConnectingOutputSlot)
         {
-            if (this.firstConnectingSlot == undefined)
+            if (this._firstConnectingSlot == undefined)
             {
                 throw Error("First connecting slot wasn't saved.");
             }
 
-            if (this.firstConnectingSlot.resourceId != targetSlot.resourceId)
+            if (this._firstConnectingSlot.resourceId != targetSlot.resourceId)
             {
                 return;
             }
 
             let resourcesAmount =
-                Math.min(targetSlot.resourcesAmount, this.firstConnectingSlot.resourcesAmount);
+                Math.min(targetSlot.resourcesAmount, this._firstConnectingSlot.resourcesAmount);
 
-            let newSlot1 = this.firstConnectingSlot.splitOffSlot(resourcesAmount);
+            let newSlot1 = this._firstConnectingSlot.splitOffSlot(resourcesAmount);
             let newSlot2 = targetSlot.splitOffSlot(resourcesAmount);
 
-            SankeyLink.connect(newSlot1, newSlot2, PanZoomConfiguration.context);
+            SankeyLink.connect(newSlot1, newSlot2);
 
             this.cancelConnectingSlots();
         }
@@ -141,33 +146,33 @@ export class MouseHandler
 
     public outputSlotClicked(event: MouseEvent, targetSlot: SankeySlotExceeding)
     {
-        if (this.mouseStatus === MouseHandler.MouseStatus.Free)
+        if (this._mouseStatus === MouseHandler.MouseStatus.Free)
         {
-            this.mouseStatus = MouseHandler.MouseStatus.ConnectingOutputSlot;
+            this._mouseStatus = MouseHandler.MouseStatus.ConnectingOutputSlot;
 
             this.startConnectingSlot(event, targetSlot, false);
 
             Settings.instance.connectingResource = { type: "output", id: targetSlot.resourceId };
         }
-        else if (this.mouseStatus === MouseHandler.MouseStatus.ConnectingInputSlot)
+        else if (this._mouseStatus === MouseHandler.MouseStatus.ConnectingInputSlot)
         {
-            if (this.firstConnectingSlot == undefined)
+            if (this._firstConnectingSlot == undefined)
             {
                 throw Error("First connecting slot wasn't saved.");
             }
 
-            if (this.firstConnectingSlot.resourceId != targetSlot.resourceId)
+            if (this._firstConnectingSlot.resourceId != targetSlot.resourceId)
             {
                 return;
             }
 
             let resourcesAmount =
-                Math.min(targetSlot.resourcesAmount, this.firstConnectingSlot.resourcesAmount);
+                Math.min(targetSlot.resourcesAmount, this._firstConnectingSlot.resourcesAmount);
 
-            let newSlot1 = this.firstConnectingSlot.splitOffSlot(resourcesAmount);
+            let newSlot1 = this._firstConnectingSlot.splitOffSlot(resourcesAmount);
             let newSlot2 = targetSlot.splitOffSlot(resourcesAmount);
 
-            SankeyLink.connect(newSlot1, newSlot2, PanZoomConfiguration.context);
+            SankeyLink.connect(newSlot1, newSlot2);
 
             this.cancelConnectingSlots();
         }
@@ -175,27 +180,27 @@ export class MouseHandler
 
     private dragNodeTo(position: Point)
     {
-        if (this.draggedNode == undefined)
+        if (this._draggedNode == undefined)
         {
             throw Error("Dragged node wasn't saved.");
         }
 
-        let previousPos = this.draggedNode.position;
+        let previousPos = this._draggedNode.position;
 
         let zoomScale = PanZoomConfiguration.context.getTransform().scale;
 
         let mousePosDelta: Point = {
-            x: position.x - this.lastMousePos.x,
-            y: position.y - this.lastMousePos.y
+            x: position.x - this._lastMousePos.x,
+            y: position.y - this._lastMousePos.y
         };
 
-        this.draggedNode.position = {
+        this._draggedNode.position = {
             x: previousPos.x + mousePosDelta.x / zoomScale,
             y: previousPos.y + mousePosDelta.y / zoomScale
         };
 
-        this.lastMousePos.x = position.x;
-        this.lastMousePos.y = position.y;
+        this._lastMousePos.x = position.x;
+        this._lastMousePos.y = position.y;
     }
 
     private startConnectingSlot(
@@ -203,7 +208,7 @@ export class MouseHandler
         firstSlot: SankeySlotExceeding | SankeySlotMissing,
         isInput: boolean)
     {
-        this.firstConnectingSlot = firstSlot;
+        this._firstConnectingSlot = firstSlot;
 
         let zoomScale = PanZoomConfiguration.context.getTransform().scale;
 
@@ -222,37 +227,49 @@ export class MouseHandler
 
         const svgMousePos = MouseHandler.clientToCanvasPosition({ x: event.clientX, y: event.clientY });
 
-        this.slotConnectingCurve = Curve.fromTwoPoints(
+        this._slotConnectingCurve = Curve.fromTwoPoints(
             startPos,
             svgMousePos
         );
 
         let path = new SvgPathBuilder()
-            .startAt(this.slotConnectingCurve.startPoint)
-            .curve(this.slotConnectingCurve)
+            .startAt(this._slotConnectingCurve.startPoint)
+            .curve(this._slotConnectingCurve)
             .build();
 
-        this.slotConnectingLine = SvgFactory.createSvgPath("link-hint");
-        this.slotConnectingLine.classList.add(isInput ? "from-input" : "from-output");
-        this.slotConnectingLine.setAttribute("d", path);
+        this._slotConnectingLine = SvgFactory.createSvgPath("link-hint");
+        this._slotConnectingLine.classList.add(isInput ? "from-input" : "from-output");
+        this._slotConnectingLine.setAttribute("d", path);
 
-        this.viewport.appendChild(this.slotConnectingLine);
+        this._viewport.appendChild(this._slotConnectingLine);
 
         document.querySelector(".controls #cancel-linking")!.classList.remove("hidden");
         document.querySelector("#canvas-context-menu-container #cancel-linking-option")!.classList.remove("hidden");
+
+        this.dispatchEvent(new Event(MouseHandler.startedConnectingSlotsEvent));
     }
 
     public startDraggingNode(node: SankeyNode, position: Point)
     {
-        if (this.mouseStatus === MouseHandler.MouseStatus.Free)
+        if (this._mouseStatus === MouseHandler.MouseStatus.Free)
         {
-            this.mouseStatus = MouseHandler.MouseStatus.DraggingNode;
+            this._mouseStatus = MouseHandler.MouseStatus.DraggingNode;
 
-            this.draggedNode = node;
+            this._draggedNode = node;
 
-            this.lastMousePos.x = position.x;
-            this.lastMousePos.y = position.y;
+            this._lastMousePos.x = position.x;
+            this._lastMousePos.y = position.y;
         }
+    }
+
+    public get firstConnectingSlot()
+    {
+        return this._firstConnectingSlot;
+    }
+
+    public get mouseStatus()
+    {
+        return this._mouseStatus;
     }
 
     public static clientToCanvasPosition(clientPosition: Point): Point
@@ -265,20 +282,22 @@ export class MouseHandler
     }
 
     private constructor()
-    { }
+    {
+        super();
+    }
 
-    private static instance: MouseHandler | undefined;
+    private static _instance: MouseHandler | undefined;
 
-    private firstConnectingSlot: SankeySlotMissing | SankeySlotExceeding | undefined;
-    private draggedNode: SankeyNode | undefined;
+    private _firstConnectingSlot: SankeySlotMissing | SankeySlotExceeding | undefined;
+    private _draggedNode: SankeyNode | undefined;
 
-    private slotConnectingLine: SVGPathElement | undefined;
-    private slotConnectingCurve?: Curve;
+    private _slotConnectingLine: SVGPathElement | undefined;
+    private _slotConnectingCurve?: Curve;
 
-    private mouseStatus: MouseHandler.MouseStatus = MouseHandler.MouseStatus.Free;
-    private lastMousePos = new Point(0, 0);
+    private _mouseStatus: MouseHandler.MouseStatus = MouseHandler.MouseStatus.Free;
+    private _lastMousePos = new Point(0, 0);
 
-    private readonly viewport = document.querySelector("#viewport") as SVGGElement;
+    private readonly _viewport = document.querySelector("#viewport") as SVGGElement;
 }
 
 export namespace MouseHandler
