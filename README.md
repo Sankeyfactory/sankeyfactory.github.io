@@ -61,7 +61,13 @@ Once it is installed, you can use it for the project dependencies:
 > npm run build-app
 ```
 
-Once the web application is built, it can be viewed in browser by opening `dist/index.html` file. It doesn't need a server to run.
+Once the web application is built, it can be viewed in browser by opening `dist/index.html` file.
+
+To omit problems with CORS you can also run a local server with
+
+```bash
+> npm run start
+```
 
 > Note that already built files can also be found in `gh-pages` branch of this repository.
 
