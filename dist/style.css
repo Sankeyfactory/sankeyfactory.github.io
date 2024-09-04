@@ -58,6 +58,8 @@
     font-family: Roboto, sans-serif;
 
     color: var(--foreground);
+
+    scrollbar-color: var(--border) var(--background-lv1);
 }
 
 img {
