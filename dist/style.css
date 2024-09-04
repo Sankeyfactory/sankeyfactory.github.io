@@ -449,7 +449,7 @@ g.links .resource-display img.icon {
     padding: 0 8px;
     gap: 8px;
 
-    overflow-x: scroll;
+    overflow-x: auto;
 }
 
 #container>.controls div.button {
@@ -628,7 +628,7 @@ div#node-creation-modal .title span.game-version {
 
     min-height: 58px;
 
-    overflow-x: scroll;
+    overflow-x: auto;
 
     gap: 8px;
 }
@@ -704,7 +704,7 @@ div#node-creation-modal .title span.game-version {
     max-width: 100%;
     min-height: 0;
 
-    overflow-y: scroll;
+    overflow-y: auto;
 
     padding: 12px;
     gap: 12px;
@@ -820,7 +820,7 @@ div#node-creation-modal .title span.game-version {
     min-width: 120px;
     max-width: 120px;
 
-    overflow-y: scroll;
+    overflow-y: auto;
 
     gap: 4px;
 }
@@ -1148,7 +1148,7 @@ div.context-menu {
 
     gap: 20px;
 
-    overflow-y: scroll;
+    overflow-y: auto;
 }
 
 #machine-configuration-container .modal-window div.row {
@@ -1333,7 +1333,7 @@ div#resources-summary div.content {
 
     max-width: 100%;
 
-    overflow: scroll;
+    overflow: auto;
 
     background-color: var(--background-lv0);
     border-right: 2px solid var(--border);
@@ -1432,7 +1432,7 @@ div#resources-summary div.content {
     padding: 0 16px;
     padding-bottom: 16px;
 
-    overflow-y: scroll;
+    overflow-y: auto;
 }
 
 #help-modal-container .content div.row {
