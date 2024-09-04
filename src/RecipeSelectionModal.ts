@@ -39,8 +39,7 @@ export class RecipeSelectionModal extends EventTarget
             }
         });
 
-        this._tabSelectors.children[0].classList.add("active");
-        this._recipeTabs.children[0].classList.add("active");
+        this.openFirstTab();
 
         this._modalContainer.querySelector(".modal-window")!.addEventListener("click", (event) =>
         {
@@ -80,6 +79,24 @@ export class RecipeSelectionModal extends EventTarget
         this._modalContainer.classList.remove("hidden");
 
         this._isOpened = true;
+    }
+
+    public openWithSearch(query: string, flags: RecipeSelectionModal.SearchFlags)
+    {
+        this._rememberedSearch = {
+            query: this._searchInputField.value,
+            flags: { ...this._searchFlags },
+        };
+
+        this.openModal();
+
+        this.openFirstTab();
+
+        this._searchFlags = flags;
+        this.updateAllFlagElements();
+
+        this._searchInputField.value = query;
+        this.searchRecipes(query);
     }
 
     public get selectedRecipe()
@@ -192,6 +209,14 @@ export class RecipeSelectionModal extends EventTarget
 
             this.discardSelectedRecipe();
         });
+    }
+
+    private openFirstTab(): void
+    {
+        this.dispatchEvent(new Event(RecipeSelectionModal.recipesTabSwitchedEvent));
+
+        this._tabSelectors.children[0].classList.add("active");
+        this._recipeTabs.children[0].classList.add("active");
     }
 
     private createRecipesGroup(name: string): { div: HTMLDivElement, title: HTMLHeadingElement; }
@@ -418,37 +443,43 @@ export class RecipeSelectionModal extends EventTarget
         };
     }
 
+    private updateFlagElement(
+        flag: keyof RecipeSelectionModal.SearchFlags,
+        flagElement: HTMLDivElement
+    ): void
+    {
+        if (this._searchFlags[flag])
+        {
+            flagElement.classList.add("checked");
+        }
+        else
+        {
+            flagElement.classList.remove("checked");
+        }
+
+        this.searchRecipes(this._searchInputField.value);
+    };
+
+    private updateAllFlagElements(): void
+    {
+        this.updateFlagElement("recipeNames", this._searchRecipeNamesFlag);
+        this.updateFlagElement("ingredients", this._searchIngredientsFlag);
+        this.updateFlagElement("products", this._searchProductsFlag);
+        this.updateFlagElement("exactMatch", this._exactMatchProductsFlag);
+    }
+
     private configureSearchField(): void
     {
-        let updateFlagElement = (
-            flag: "recipeNames" | "ingredients" | "products",
-            flagElement: HTMLDivElement
-        ): void =>
-        {
-            if (this._searchFlags[flag])
-            {
-                flagElement.classList.add("checked");
-            }
-            else
-            {
-                flagElement.classList.remove("checked");
-            }
-
-            this.searchRecipes(this._searchInputField.value);
-        };
-
         this._searchInputField.value = "";
 
-        updateFlagElement("recipeNames", this._searchRecipeNamesFlag);
-        updateFlagElement("ingredients", this._searchIngredientsFlag);
-        updateFlagElement("products", this._searchProductsFlag);
+        this.updateAllFlagElements();
 
         this._searchRecipeNamesFlag.addEventListener("click", (event) =>
         {
             event.stopPropagation();
 
             this._searchFlags.recipeNames = !this._searchFlags.recipeNames;
-            updateFlagElement("recipeNames", this._searchRecipeNamesFlag);
+            this.updateFlagElement("recipeNames", this._searchRecipeNamesFlag);
         });
 
         this._searchIngredientsFlag.addEventListener("click", (event) =>
@@ -456,7 +487,7 @@ export class RecipeSelectionModal extends EventTarget
             event.stopPropagation();
 
             this._searchFlags.ingredients = !this._searchFlags.ingredients;
-            updateFlagElement("ingredients", this._searchIngredientsFlag);
+            this.updateFlagElement("ingredients", this._searchIngredientsFlag);
         });
 
         this._searchProductsFlag.addEventListener("click", (event) =>
@@ -464,7 +495,15 @@ export class RecipeSelectionModal extends EventTarget
             event.stopPropagation();
 
             this._searchFlags.products = !this._searchFlags.products;
-            updateFlagElement("products", this._searchProductsFlag);
+            this.updateFlagElement("products", this._searchProductsFlag);
+        });
+
+        this._exactMatchProductsFlag.addEventListener("click", (event) =>
+        {
+            event.stopPropagation();
+
+            this._searchFlags.exactMatch = !this._searchFlags.exactMatch;
+            this.updateFlagElement("exactMatch", this._exactMatchProductsFlag);
         });
 
         this._searchInputField.addEventListener("input", () =>
@@ -500,7 +539,12 @@ export class RecipeSelectionModal extends EventTarget
 
             let applyFilter = (searchIn: string) =>
             {
-                if (searchIn.toLowerCase().includes(query.toLowerCase()))
+                if (this._searchFlags.exactMatch && searchIn.toLowerCase() === query.toLowerCase())
+                {
+                    recipeElement.classList.remove("filtered-out");
+                }
+
+                if (!this._searchFlags.exactMatch && searchIn.toLowerCase().includes(query.toLowerCase()))
                 {
                     recipeElement.classList.remove("filtered-out");
                 }
@@ -547,6 +591,17 @@ export class RecipeSelectionModal extends EventTarget
         this._modalContainer.classList.add("hidden");
 
         this._isOpened = false;
+
+        if (this._rememberedSearch != undefined)
+        {
+            this._searchFlags = { ...this._rememberedSearch.flags };
+            this.updateAllFlagElements();
+
+            this._searchInputField.value = this._rememberedSearch.query;
+            this.searchRecipes(this._rememberedSearch.query); // For discarding filters.
+
+            this._rememberedSearch = undefined;
+        }
     }
 
     private createHtmlElement<T = Element>(tag: string, ...classList: string[]): T
@@ -587,6 +642,24 @@ export class RecipeSelectionModal extends EventTarget
     private _searchRecipeNamesFlag = this._modalContainer.querySelector(".search-container #recipe-names-flag") as HTMLDivElement;
     private _searchIngredientsFlag = this._modalContainer.querySelector(".search-container #ingredients-flag") as HTMLDivElement;
     private _searchProductsFlag = this._modalContainer.querySelector(".search-container #products-flag") as HTMLDivElement;
+    private _exactMatchProductsFlag = this._modalContainer.querySelector(".search-container #exact-match-flag") as HTMLDivElement;
 
-    private _searchFlags = { recipeNames: true, ingredients: true, products: true };
+    private _searchFlags: RecipeSelectionModal.SearchFlags = {
+        recipeNames: true,
+        ingredients: true,
+        products: true,
+        exactMatch: false,
+    };
+
+    private _rememberedSearch?: { query: string; flags: RecipeSelectionModal.SearchFlags; };
+}
+
+export namespace RecipeSelectionModal
+{
+    export type SearchFlags = {
+        recipeNames: boolean,
+        ingredients: boolean,
+        products: boolean,
+        exactMatch: boolean,
+    };
 }
