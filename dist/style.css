@@ -1726,23 +1726,24 @@ div#resources-summary div.content {
 
     border-bottom-right-radius: 8px;
 
-    border: 2px solid var(--border);
+    border: 2px solid var(--button-border);
 
     min-width: 44px;
     min-height: 44px;
 
-    background-color: var(--background-lv1);
+    background-color: var(--button-background);
 
     cursor: pointer;
 }
 
 #saves-loader .create-new div.create-button:hover {
-    background-color: var(--background-lv2);
+    background-color: var(--active-button-background);
+    border-color: var(--active-button-border);
 }
 
 #saves-loader .create-new input:placeholder-shown~div.create-button {
     background-color: var(--disabled-button-background);
-    /* border-color: var(--disabled-button-border); */
+    border-color: var(--border);
 
     cursor: default;
 }
