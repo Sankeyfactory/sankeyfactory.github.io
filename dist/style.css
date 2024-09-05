@@ -485,6 +485,22 @@ g.links .resource-display img.icon {
     padding-right: 8px;
 }
 
+@media (pointer: fine) {
+    #container #mobile-controls-hint {
+        display: none;
+    }
+}
+
+#container>.controls .mobile-hint {
+    margin: 0;
+
+    font-size: 12px;
+
+    padding: 2px 8px;
+
+    max-width: min(300px, 100%);
+}
+
 /* Modal windows */
 
 div.modal-window {
