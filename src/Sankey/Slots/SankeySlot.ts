@@ -44,15 +44,15 @@ export abstract class SankeySlot extends EventTarget
 
     public delete(): void
     {
-        AppData.lockSaving();
+        AppData.instance.lockSaving();
 
         this.dispatchEvent(new Event(SankeySlot.deletionEvent));
 
         this.slotSvgRect.remove();
 
-        AppData.unlockSaving();
+        AppData.instance.unlockSaving();
 
-        AppData.saveToUrl();
+        AppData.instance.save();
     }
 
     public get resourcesAmount()

@@ -15,6 +15,7 @@ import { AppData } from "./AppData";
 import { loadSatisfactoryResource, loadSingleSatisfactoryRecipe } from "./GameData/GameData";
 import { SankeyLink } from "./Sankey/SankeyLink";
 import { SlotsGroup } from "./Sankey/SlotsGroup";
+import { SavesLoaderMenu } from "./SavesLoaderMenu";
 
 async function main()
 {
@@ -90,7 +91,7 @@ async function main()
 
         registerNode(node);
 
-        AppData.addNode(node);
+        AppData.instance.addNode(node);
 
         if (onceNodeCreated != undefined)
         {
@@ -137,11 +138,9 @@ async function main()
             + "This will delete all nodes and connections.\n"
             + "Save the page link if you don't want to lose the data."))
         {
-            AppData.lockSaving();
-            AppData.deleteAllNodes();
-            AppData.unlockSaving();
+            AppData.instance.deleteAllNodes();
 
-            AppData.saveToUrl();
+            AppData.instance.save();
         }
     };
 
@@ -191,14 +190,6 @@ async function main()
             gridToggle.classList.add("off");
         }
     });
-
-    AppData.onDataLoad = () =>
-    {
-        for (const node of AppData.nodes)
-        {
-            registerNode(node);
-        }
-    };
 
     window.addEventListener("keydown", (event) =>
     {
@@ -394,27 +385,22 @@ async function main()
         }
     });
 
-    window.onmouseup = () =>
-    {
-        MouseHandler.getInstance().handleMouseUp();
-    };
+    window.addEventListener("mouseup", () => MouseHandler.getInstance().handleMouseUp());
+    window.addEventListener("touchend", () => MouseHandler.getInstance().handleMouseUp());
+    window.addEventListener("mousemove", e => MouseHandler.getInstance().handleMouseMove(e));
+    window.addEventListener("touchmove", e => MouseHandler.getInstance().handleTouchMove(e));
 
-    window.addEventListener("touchend", () =>
+    AppData.instance.addEventListener(AppData.dataLoadedEvent, () =>
     {
-        MouseHandler.getInstance().handleMouseUp();
+        for (const node of AppData.instance.nodes)
+        {
+            registerNode(node);
+        }
     });
 
-    window.onmousemove = (event) =>
-    {
-        MouseHandler.getInstance().handleMouseMove(event);
-    };
+    AppData.instance.loadFromUrl();
 
-    window.addEventListener("touchmove", (event) =>
-    {
-        MouseHandler.getInstance().handleTouchMove(event);
-    });
-
-    AppData.loadFromUrl();
+    let _savesLoaderMenu = new SavesLoaderMenu();
 }
 
 main().catch((reason) =>

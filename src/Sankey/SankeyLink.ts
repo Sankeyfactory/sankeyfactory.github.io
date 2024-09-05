@@ -21,7 +21,7 @@ export class SankeyLink
         linksGroup.appendChild(link._svgPath);
         linksGroup.appendChild(link._resourceDisplay);
 
-        AppData.saveToUrl();
+        AppData.instance.save();
     }
 
     public constructor(firstSlot: SankeySlot, secondSlot: SankeySlot, panContext: PanZoom)

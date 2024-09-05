@@ -67,6 +67,12 @@ export class PanZoomConfiguration
         {
             if (event.repeat) { return; }
 
+            let activeTag = document.activeElement?.tagName;
+            if (activeTag === "input")
+            {
+                return;
+            }
+
             let anyCodeDown = requiredCodes.includes(event.code);
             let anyKeyDown = requiredKeys.includes(event.key);
 
