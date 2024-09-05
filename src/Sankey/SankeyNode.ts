@@ -76,7 +76,7 @@ export class SankeyNode extends EventTarget
 
     public delete()
     {
-        AppData.lockSaving();
+        AppData.instance.lockSaving();
 
         for (const slotsGroup of this._inputSlotGroups)
         {
@@ -92,9 +92,9 @@ export class SankeyNode extends EventTarget
 
         this.dispatchEvent(new Event(SankeyNode.deletionEvent));
 
-        AppData.unlockSaving();
+        AppData.instance.unlockSaving();
 
-        AppData.saveToUrl();
+        AppData.instance.save();
     }
 
     public toSerializable(): AppData.SerializableNode
@@ -349,7 +349,7 @@ export class SankeyNode extends EventTarget
             this.machinesAmount = configurator.machinesAmount;
             this.overclockRatio = configurator.overclockRatio;
 
-            AppData.saveToUrl();
+            AppData.instance.save();
         });
     }
 
@@ -433,7 +433,6 @@ export class SankeyNode extends EventTarget
         return SankeyNode._nextId++;
     }
 
-    // Sets the ID to the provided number. This keeps different factory hashes consistent between loads.
     public static setNextId(nextId: number): void
     {
         SankeyNode._nextId = nextId;

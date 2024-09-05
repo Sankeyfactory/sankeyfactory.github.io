@@ -86,7 +86,7 @@ export class MouseHandler extends EventTarget
             this._lastMousePos.x = 0;
             this._lastMousePos.y = 0;
 
-            AppData.saveToUrl();
+            AppData.instance.save();
         }
     }
 

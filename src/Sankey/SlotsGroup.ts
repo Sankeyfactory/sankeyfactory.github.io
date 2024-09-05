@@ -96,7 +96,7 @@ export class SlotsGroup extends EventTarget
 
     public delete()
     {
-        AppData.lockSaving();
+        AppData.instance.lockSaving();
 
         // Don't use for/for-of because of iterator invalidation after array is spliced by event.
         while (this._slots.length !== 0)
@@ -106,9 +106,9 @@ export class SlotsGroup extends EventTarget
 
         this._groupSvg.remove();
 
-        AppData.unlockSaving();
+        AppData.instance.unlockSaving();
 
-        AppData.saveToUrl();
+        AppData.instance.save();
     }
 
     public toSerializable(): AppData.SerializableSlotsGroup

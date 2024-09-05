@@ -1,11 +1,158 @@
-import { FactoryStorage } from "./FactoryStorage";
 import { SankeyNode } from "./Sankey/SankeyNode";
 
 export class AppData extends EventTarget
 {
-    public static onDataLoad: () => void;
+    public static readonly dataLoadedEvent = "data-loaded";
+    public static readonly databasePlanSelectionChangedEvent = "database-plan-selection-changed";
 
-    public static serialize(): string
+    public static get instance(): AppData
+    {
+        return AppData._instance;
+    }
+
+    public loadFromUrl()
+    {
+        this._database = AppData.fetchDatabase();
+
+        console.log(`Fetched database:`);
+        console.log(this._database);
+
+        let dataEncoded = location.hash.slice(1);
+
+        if (dataEncoded === "")
+        {
+            console.log(`Initializing from database`);
+            this.loadDatabasePlan(this.currentPlanName);
+        }
+        else
+        {
+            console.log(`Initializing from URL`);
+            this.currentPlanName = this.getDatabasePlanName(dataEncoded);
+            console.log(`Found suitable plan ${this.currentPlanName}`);
+            this.loadFromEncoded(dataEncoded);
+        }
+    }
+
+    public save()
+    {
+        if (this._savingLocks === 0)
+        {
+            let dataEncoded;
+
+            if (this.nodes.length === 0)
+            {
+                dataEncoded = "";
+            }
+            else
+            {
+                let savedData = this.serialize();
+                dataEncoded = encodeURI(btoa(savedData));
+            }
+
+            this.saveToUrl(dataEncoded);
+            this.saveToDatabasePlan(this.currentPlanName, dataEncoded);
+        }
+    }
+
+    public lockSaving()
+    {
+        ++this._savingLocks;
+    }
+
+    public unlockSaving()
+    {
+        --this._savingLocks;
+    }
+
+    public deleteAllNodes(): void 
+    {
+        AppData.instance.lockSaving();
+
+        while (this._nodes.length !== 0)
+        {
+            this._nodes.at(-1)!.delete();
+        }
+
+        SankeyNode.setNextId(0);
+
+        AppData.instance.unlockSaving();
+    }
+
+    public addNode(node: SankeyNode)
+    {
+        this._nodes.push(node);
+
+        node.addEventListener(SankeyNode.deletionEvent, () =>
+        {
+            let index = this._nodes.findIndex(registeredNode => Object.is(node, registeredNode));
+
+            this._nodes.splice(index, 1);
+        });
+
+        this.save();
+    }
+
+    public loadDatabasePlan(planName: string): void
+    {
+        console.log(`Loading plan ${planName}`);
+
+        this.currentPlanName = planName;
+
+        for (const dbPlanName in this._database.plans)
+        {
+            let dataEncoded = this._database.plans[planName];
+
+            if (dbPlanName === planName)
+            {
+                this.loadFromEncoded(dataEncoded);
+                return;
+            }
+        }
+
+        if (planName !== "")
+        {
+            // If suitable plan wasn't found, load the "None" one.
+            this.loadDatabasePlan("");
+        }
+    }
+
+    public deleteDatabasePlan(planName: string)
+    {
+        delete (this._database.plans[planName]);
+
+        if (this.currentPlanName === planName)
+        {
+            this.loadDatabasePlan("");
+        }
+
+        AppData.pushToDatabase(this._database);
+    }
+
+    public createAndSelectDatabasePlan(planName: string)
+    {
+        let dataEncoded = this._database.plans[this.currentPlanName] ?? "";
+
+        this.saveToDatabasePlan(planName, dataEncoded);
+
+        this.currentPlanName = planName;
+    }
+
+    public get nodes(): SankeyNode[]
+    {
+        return this._nodes;
+    }
+
+    public get databasePlanNames(): string[]
+    {
+        return Object.keys(this._database.plans);
+    }
+
+    public get currentPlanName(): string
+    {
+        return this._database.currentPlan;
+    }
+
+    private serialize(): string
     {
         let data: AppData.SerializableData = { nodes: [] };
 
@@ -17,13 +164,16 @@ export class AppData extends EventTarget
         return JSON.stringify(AppData.objToArray(data));
     }
 
-    public static deserialize(json: string)
+    private saveToUrl(dataEncoded: string): void
     {
-        this.deleteAllNodes();
+        location.hash = dataEncoded;
+    }
 
+    private loadFromJson(json: string)
+    {
         let parsedJson: any[] = JSON.parse(json);
 
-        let data = this.dataFromArray(parsedJson);
+        let data = AppData.dataFromArray(parsedJson);
 
         let nodeIds = new Map<number, SankeyNode>();
 
@@ -39,67 +189,92 @@ export class AppData extends EventTarget
         {
             this._nodes[nodeIndex].connectDeserializedSlots(data.nodes[nodeIndex], nodeIds);
         }
-
-        this.onDataLoad();
     }
 
-    public static loadFromUrl()
+    private loadFromEncoded(dataEncoded: string): void
     {
-        let dataEncoded = location.hash.slice(1);
-        if (dataEncoded == ``) return;
+        this.deleteAllNodes();
+
+        if (dataEncoded === "")
+        {
+            return;
+        }
 
         let savedData = atob(decodeURI(dataEncoded));
 
         this.lockSaving();
 
-        AppData.deserialize(savedData);
+        this.loadFromJson(savedData);
+
+        this.dispatchEvent(new Event(AppData.dataLoadedEvent));
 
         this.unlockSaving();
-        // Update the URL with the loaded data.
-        // Since nodeIDs potentially changed, this would result in a new URL
-        AppData.saveToUrl();
+
+        this.saveToUrl(dataEncoded);
     }
 
-    public static loadFromDatabase(factoryName: string)
+    private saveToDatabasePlan(planName: string, dataEncoded: string): void
     {
-        FactoryStorage.instance.loadFactory(factoryName, (savedData) => {
-            this.lockSaving();
-
-            AppData.deserialize(savedData);
-    
-            this.unlockSaving();
-            // Update the URL with the loaded data.
-            // Since nodeIDs potentially changed, this would result in a new URL
-            AppData.saveToUrl();
-        })
+        this._database.plans[planName] = dataEncoded;
+        AppData.pushToDatabase(this._database);
     }
 
-    public static saveToUrl()
+    private getDatabasePlanName(dataEncoded: string)
     {
-        if (this._savingLocks === 0)
+        let suitableName = "";
+
+        for (const planName in this._database.plans)
         {
-            if (AppData.nodes.length === 0)
+            if (planName === "") continue;
+
+            if (dataEncoded === this._database.plans[planName])
             {
-                location.hash = "";
-                return;
+                if (suitableName === "")
+                {
+                    suitableName = planName;
+                }
+                else
+                {
+                    // If there are two or more plans with the same data, we can't decide which
+                    // one is more suitable.
+                    return "";
+                }
             }
-
-            let savedData = AppData.serialize();
-
-            let dataEncoded = encodeURI(btoa(savedData));
-
-            location.hash = dataEncoded;
         }
+
+        return suitableName;
     }
 
-    public static lockSaving()
+    private set currentPlanName(planName: string)
     {
-        ++this._savingLocks;
+        this._database.currentPlan = planName;
+
+        this.dispatchEvent(new Event(AppData.databasePlanSelectionChangedEvent));
+
+        AppData.pushToDatabase(this._database);
     }
 
-    public static unlockSaving()
+    private static fetchDatabase(): AppData.Database
     {
-        --this._savingLocks;
+        let database: AppData.Database;
+
+        let localStorageDatabase = localStorage.getItem("sankeyfactory-database");
+
+        if (localStorageDatabase != null)
+        {
+            database = JSON.parse(localStorageDatabase) as AppData.Database;
+        }
+        else
+        {
+            database = { ...this._defaultDatabase };
+        }
+
+        return database;
+    }
+
+    private static pushToDatabase(data: AppData.Database)
+    {
+        localStorage.setItem("sankeyfactory-database", JSON.stringify(data));
     }
 
     private static dataFromArray(array: any[]): AppData.SerializableData
@@ -151,34 +326,6 @@ export class AppData extends EventTarget
         return data;
     }
 
-    public static deleteAllNodes(): void 
-    {
-        while (this._nodes.length !== 0)
-        {
-            this._nodes.at(-1)!.delete();
-        }
-        SankeyNode.setNextId(0);
-    }
-
-    public static addNode(node: SankeyNode)
-    {
-        this._nodes.push(node);
-
-        node.addEventListener(SankeyNode.deletionEvent, () =>
-        {
-            let index = this._nodes.findIndex(registeredNode => Object.is(node, registeredNode));
-
-            this._nodes.splice(index, 1);
-        });
-
-        this.saveToUrl();
-    }
-
-    public static get nodes(): SankeyNode[]
-    {
-        return this._nodes;
-    }
-
     private static objToArray(obj: any)
     {
         return Object.keys(obj).map(function (property): any
@@ -209,9 +356,14 @@ export class AppData extends EventTarget
         return result;
     };
 
-    private static _nodes: SankeyNode[] = [];
+    private static _instance = new AppData();
 
-    private static _savingLocks = 0;
+    private _nodes: SankeyNode[] = [];
+
+    private _savingLocks = 0;
+
+    private static _defaultDatabase: AppData.Database = { currentPlan: "", plans: {} };
+    private _database: AppData.Database = { ...AppData._defaultDatabase };
 }
 
 // Don't change positions and types of existing properties!
@@ -246,5 +398,13 @@ export namespace AppData
         positionY: number,
 
         outputsGroups: SerializableSlotsGroup[],
+    };
+};
+
+export namespace AppData
+{
+    export type Database = {
+        currentPlan: string,
+        plans: Record<string, string>,
     };
 };
