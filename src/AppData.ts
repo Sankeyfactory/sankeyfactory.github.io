@@ -14,21 +14,15 @@ export class AppData extends EventTarget
     {
         this._database = AppData.fetchDatabase();
 
-        console.log(`Fetched database:`);
-        console.log(this._database);
-
         let dataEncoded = location.hash.slice(1);
 
         if (dataEncoded === "")
         {
-            console.log(`Initializing from database`);
             this.loadDatabasePlan(this.currentPlanName);
         }
         else
         {
-            console.log(`Initializing from URL`);
             this.currentPlanName = this.getDatabasePlanName(dataEncoded);
-            console.log(`Found suitable plan ${this.currentPlanName}`);
             this.loadFromEncoded(dataEncoded);
         }
     }
@@ -94,8 +88,6 @@ export class AppData extends EventTarget
 
     public loadDatabasePlan(planName: string): void
     {
-        console.log(`Loading plan ${planName}`);
-
         this.currentPlanName = planName;
 
         for (const dbPlanName in this._database.plans)
