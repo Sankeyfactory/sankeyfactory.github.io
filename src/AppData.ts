@@ -24,6 +24,7 @@ export class AppData extends EventTarget
         {
             this.currentPlanName = this.getDatabasePlanName(dataEncoded);
             this.loadFromEncoded(dataEncoded);
+            this.saveToDatabasePlan(this.currentPlanName, dataEncoded);
         }
     }
 
@@ -189,6 +190,7 @@ export class AppData extends EventTarget
 
         if (dataEncoded === "")
         {
+            this.saveToUrl(dataEncoded);
             return;
         }
 
