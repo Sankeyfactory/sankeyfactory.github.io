@@ -1763,6 +1763,8 @@ div#resources-summary div.content {
     border-top: 2px solid var(--border);
     border-bottom: 2px solid var(--border);
 
+    background-color: var(--background-lv0);
+
     cursor: pointer;
 }
 
