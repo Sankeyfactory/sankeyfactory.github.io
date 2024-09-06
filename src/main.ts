@@ -109,6 +109,11 @@ async function main()
         createNode(recipe.recipe, recipe.madeIn);
     });
 
+    recipeSelectionModal.addEventListener(RecipeSelectionModal.modalClosedEvent, () =>
+    {
+        onceNodeCreated = undefined;
+    });
+
     function openNodeCreation(nodePosition?: Point)
     {
         let pageCenter = {
@@ -293,8 +298,6 @@ async function main()
         nodeCreationPosition = contextMenuPos;
 
         let suitableRecipe = loadSingleSatisfactoryRecipe({ id: slot.resourceId, type: type });
-
-
 
         onceNodeCreated = (node: SankeyNode) =>
         {

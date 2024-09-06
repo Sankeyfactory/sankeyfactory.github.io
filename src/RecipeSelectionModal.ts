@@ -12,6 +12,7 @@ export class RecipeSelectionModal extends EventTarget
     public static readonly recipeConfirmedEvent = "recipe-confirmed";
     public static readonly recipeSelectedEvent = "recipe-selected";
     public static readonly recipesTabSwitchedEvent = "recipes-tab-switched";
+    public static readonly modalClosedEvent = "modal-closed";
 
     constructor()
     {
@@ -581,8 +582,8 @@ export class RecipeSelectionModal extends EventTarget
     {
         if (this._selectedRecipe != undefined)
         {
-            this.closeModal();
             this.dispatchEvent(new Event(RecipeSelectionModal.recipeConfirmedEvent));
+            this.closeModal();
         }
     }
 
@@ -602,6 +603,8 @@ export class RecipeSelectionModal extends EventTarget
 
             this._rememberedSearch = undefined;
         }
+
+        this.dispatchEvent(new Event(RecipeSelectionModal.modalClosedEvent));
     }
 
     private createHtmlElement<T = Element>(tag: string, ...classList: string[]): T
