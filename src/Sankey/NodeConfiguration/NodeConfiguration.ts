@@ -46,33 +46,17 @@ export class NodeConfiguration extends EventTarget
 
         this.setupTableElements(recipe, machine);
 
-        let updateResetButton = () =>
+        this.addEventListener(NodeConfiguration.machinesAmountChangedEvent, () =>
         {
-            if (this._isOpened)
-            {
-                if (this.machinesAmount !== this._openingMachinesAmount
-                    || this.overclockRatio !== this._openingOverclockRatio)
-                {
-                    NodeConfiguration._restoreButton.classList.remove("disabled");
-                }
-                else
-                {
-                    NodeConfiguration._restoreButton.classList.add("disabled");
-                }
+            this.updateResetButton();
+            this.updateRestoreButton();
+        });
 
-                if (this.machinesAmount !== 1 || this.overclockRatio !== 1)
-                {
-                    NodeConfiguration._resetButton.classList.remove("disabled");
-                }
-                else
-                {
-                    NodeConfiguration._resetButton.classList.add("disabled");
-                }
-            }
-        };
-
-        this.addEventListener(NodeConfiguration.machinesAmountChangedEvent, updateResetButton);
-        this.addEventListener(NodeConfiguration.overclockChangedEvent, updateResetButton);
+        this.addEventListener(NodeConfiguration.overclockChangedEvent, () =>
+        {
+            this.updateResetButton();
+            this.updateRestoreButton();
+        });
 
         NodeConfiguration._restoreButton.addEventListener("click", () =>
         {
@@ -120,7 +104,7 @@ export class NodeConfiguration extends EventTarget
         this.machinesAmount = this._openingMachinesAmount;
         this.overclockRatio = this._openingOverclockRatio;
 
-        // Machines amount group
+        /* Machines amount group */
 
         NodeConfiguration._machinesColumn.appendChild(this._machineConfigurator!);
 
@@ -137,7 +121,7 @@ export class NodeConfiguration extends EventTarget
             this._amountConfigurators.powerConfigurator!
         );
 
-        // Overclock group
+        /* Overclock group */
 
         NodeConfiguration._multipliersColumn.appendChild(this._overclockConfigurator!);
 
@@ -154,13 +138,14 @@ export class NodeConfiguration extends EventTarget
             this._overclockConfigurators.powerConfigurator!
         );
 
-        // Modal window
-
-        NodeConfiguration._restoreButton.classList.add("disabled");
+        /* Modal window */
 
         NodeConfiguration._modalContainer.classList.remove("hidden");
 
         this._isOpened = true;
+
+        this.updateResetButton();
+        this.updateRestoreButton();
     }
 
     private closeConfigurationWindow(): void
@@ -311,6 +296,37 @@ export class NodeConfiguration extends EventTarget
             )
             .subscribeToOverclock()
             .build();
+    }
+
+    private updateRestoreButton() 
+    {
+        if (this._isOpened)
+        {
+            if (this.machinesAmount !== this._openingMachinesAmount
+                || this.overclockRatio !== this._openingOverclockRatio)
+            {
+                NodeConfiguration._restoreButton.classList.remove("disabled");
+            }
+            else
+            {
+                NodeConfiguration._restoreButton.classList.add("disabled");
+            }
+        }
+    }
+
+    private updateResetButton() 
+    {
+        if (this._isOpened)
+        {
+            if (this.machinesAmount !== 1 || this.overclockRatio !== 1)
+            {
+                NodeConfiguration._resetButton.classList.remove("disabled");
+            }
+            else
+            {
+                NodeConfiguration._resetButton.classList.add("disabled");
+            }
+        }
     }
 
     public get machinesAmount(): number
