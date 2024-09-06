@@ -43,6 +43,9 @@
             <div class="row zoom-controls">
                 <p id="ratio-display">Zoom: 1.0x</p>
             </div>
+            <div class="row" id="mobile-controls-hint">
+                <p class="mobile-hint">To move nodes on touchscreen, lock the canvas first</p>
+            </div>
             <div class="row">
                 <div class="scroll-container">
                     <div class="button hidden" id="cancel-linking" title="Cancel connecting nodes">
@@ -63,6 +66,31 @@
                         <svg class="on locked-lock_icon-placeholder"></svg>
                     </div>
                     <div class="button" id="create-node" title="Create node">
+                        <svg class="plus_icon-placeholder"></svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="saves-loader" class="collapsed">
+            <div class="loaded-plan">
+                <div class="plan-name placeholder">Load plan</div>
+                <div class="icon-container">
+                    <svg class="collapse-icon chevron-up_icon-placeholder"></svg>
+                </div>
+            </div>
+            <div class="collapsible-container">
+                <div class="plan-selectors">
+                    <div id="none-plan-selector" class="plan-selector selected">
+                        <div class="plan-name">None</div>
+                    </div>
+                </div>
+                <div class="create-new">
+                    <input type="text" placeholder="Plan name">
+                    <div class="clear-button">
+                        <svg class="cross_icon-placeholder"></svg>
+                    </div>
+                    <div class="create-button">
                         <svg class="plus_icon-placeholder"></svg>
                     </div>
                 </div>
@@ -229,10 +257,15 @@
                 </div>
             </div>
             <div class="row buttons">
-                <div class="button restore-button dimmed disabled">
+                <div class="button reset-button dimmed disabled"
+                    title="Resets machines amount to 1 and overclock to 100%.">
+                    Reset
+                </div>
+                <div class="button restore-button dimmed disabled"
+                    title="Restores machines amount and overclock to values before opening configuration.">
                     Restore
                 </div>
-                <div class="button apply-button">
+                <div class="button apply-button" title="Applies changes to node configuration.">
                     Apply
                 </div>
             </div>

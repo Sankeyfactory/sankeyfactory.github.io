@@ -166,7 +166,8 @@ svg#canvas,
 #node-creation-modal div.content,
 div.context-menu,
 #machine-configuration-container,
-#node-creation-modal .search-container div.flags {
+#node-creation-modal .search-container div.flags,
+#saves-loader {
     user-select: none;
     -moz-user-select: none;
     -webkit-user-select: none;
@@ -482,6 +483,22 @@ g.links .resource-display img.icon {
 #container>.controls .zoom-controls p#ratio-display {
     margin: 0;
     padding-right: 8px;
+}
+
+@media (pointer: fine) {
+    #container #mobile-controls-hint {
+        display: none;
+    }
+}
+
+#container>.controls .mobile-hint {
+    margin: 0;
+
+    font-size: 12px;
+
+    padding: 2px 8px;
+
+    max-width: min(300px, 100%);
 }
 
 /* Modal windows */
@@ -1385,7 +1402,9 @@ div#resources-summary div.content {
 #resources-summary div.collapse-button {
     display: flex;
 
-    gap: 4px;
+    height: 36px;
+
+    gap: 8px;
 
     padding-right: 36px;
 
@@ -1393,8 +1412,9 @@ div#resources-summary div.content {
 }
 
 #resources-summary .collapse-button svg {
-    width: 36px;
-    height: 36px;
+    width: 20px;
+    height: 20px;
+
     fill: var(--foreground);
 }
 
@@ -1565,4 +1585,218 @@ div#resources-summary div.content {
 
 #canvas .grid pattern circle {
     fill: var(--grid);
+}
+
+/* Saves loader */
+
+#saves-loader {
+    display: flex;
+    flex-direction: column;
+
+    position: absolute;
+    top: 16px;
+    right: 16px;
+
+    width: 300px;
+    max-height: calc(100% - 32px);
+    max-width: calc(100% - 32px);
+}
+
+@media screen and (max-width: 700px) {
+    #saves-loader {
+        /* If screen is too narrow, the loader should appear under resources summary */
+        top: 56px;
+    }
+}
+
+#saves-loader div.loaded-plan {
+    display: flex;
+    align-items: center;
+
+    box-sizing: border-box;
+
+    max-width: 100%;
+    height: 48px;
+
+    padding-left: 16px;
+    border-radius: 8px;
+
+    background-color: var(--background-lv1);
+
+    cursor: pointer;
+}
+
+#saves-loader.collapsed .loaded-plan svg {
+    scale: 1 -1;
+}
+
+#saves-loader .loaded-plan svg {
+    height: 20px;
+    fill: white;
+}
+
+#saves-loader div.loaded-plan:hover,
+#saves-loader .plan-selector div.plan-name:hover,
+#saves-loader .plan-selector div.delete-button:hover,
+#saves-loader .plan-selector.selected div.plan-name {
+    background-color: var(--background-lv2);
+}
+
+#saves-loader.expanded div.loaded-plan {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+#saves-loader .loaded-plan div.plan-name {
+    flex-grow: 1;
+}
+
+#saves-loader .loaded-plan div.plan-name.placeholder {
+    color: var(--dim-foreground);
+}
+
+#saves-loader .loaded-plan div.icon-container,
+#saves-loader .plan-selector div.delete-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 48px;
+    min-height: 48px;
+}
+
+#saves-loader div.collapsible-container {
+    display: flex;
+    flex-direction: column;
+
+    min-height: 0;
+}
+
+#saves-loader.collapsed div.collapsible-container {
+    display: none;
+}
+
+#saves-loader .collapsible-container svg {
+    height: 22px;
+    fill: white;
+}
+
+#saves-loader div.plan-selectors {
+    overflow-y: auto;
+}
+
+#saves-loader div.plan-selector {
+    display: flex;
+    align-items: stretch;
+
+    height: 48px;
+
+    background-color: var(--background-lv1);
+}
+
+#saves-loader .plan-selector div.plan-name {
+    display: flex;
+    align-items: center;
+
+    flex-grow: 1;
+
+    padding-left: 16px;
+
+    cursor: pointer;
+}
+
+#saves-loader .plan-selector div.delete-button {
+    cursor: pointer;
+}
+
+#saves-loader div.create-new {
+    display: flex;
+    align-items: stretch;
+
+    height: 48px;
+
+    border-radius: 0 0 8px 8px;
+}
+
+#saves-loader .create-new input {
+    flex-grow: 1;
+
+    box-sizing: border-box;
+
+    border: 2px solid var(--border);
+    border-right: none;
+    outline: none;
+
+    border-bottom-left-radius: 8px;
+    padding-left: 16px;
+
+    font-size: 16px;
+
+    background-color: var(--background-lv0);
+}
+
+#saves-loader .create-new div.create-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-bottom-right-radius: 8px;
+
+    border: 2px solid var(--button-border);
+
+    min-width: 44px;
+    min-height: 44px;
+
+    background-color: var(--button-background);
+
+    cursor: pointer;
+}
+
+#saves-loader .create-new div.create-button:hover {
+    background-color: var(--active-button-background);
+    border-color: var(--active-button-border);
+}
+
+#saves-loader .create-new input:placeholder-shown~div.create-button {
+    background-color: var(--disabled-button-background);
+    border-color: var(--border);
+
+    cursor: default;
+}
+
+#saves-loader .create-new input:placeholder-shown~div.create-button svg {
+    fill: var(--disabled-button-foreground);
+}
+
+#saves-loader .create-new div.clear-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 48px;
+
+    fill: var(--foreground);
+
+    border-top: 2px solid var(--border);
+    border-bottom: 2px solid var(--border);
+
+    background-color: var(--background-lv0);
+
+    cursor: pointer;
+}
+
+#saves-loader .create-new div.clear-button:hover {
+    background-color: var(--background-lv1);
+}
+
+#saves-loader .create-new div.clear-button svg {
+    height: 20px;
+}
+
+#saves-loader .create-new input:placeholder-shown~div.clear-button {
+    display: none;
+}
+
+#saves-loader .create-new input {
+    min-width: 0;
 }
