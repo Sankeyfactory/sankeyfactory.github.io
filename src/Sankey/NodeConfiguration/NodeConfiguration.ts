@@ -59,6 +59,15 @@ export class NodeConfiguration extends EventTarget
                 {
                     NodeConfiguration._restoreButton.classList.add("disabled");
                 }
+
+                if (this.machinesAmount !== 1 || this.overclockRatio !== 1)
+                {
+                    NodeConfiguration._resetButton.classList.remove("disabled");
+                }
+                else
+                {
+                    NodeConfiguration._resetButton.classList.add("disabled");
+                }
             }
         };
 
@@ -71,6 +80,15 @@ export class NodeConfiguration extends EventTarget
             {
                 this.machinesAmount = this._openingMachinesAmount;
                 this.overclockRatio = this._openingOverclockRatio;
+            }
+        });
+
+        NodeConfiguration._resetButton.addEventListener("click", () =>
+        {
+            if (this._isOpened)
+            {
+                this.machinesAmount = 1;
+                this.overclockRatio = 1;
             }
         });
 
@@ -376,6 +394,8 @@ export class NodeConfiguration extends EventTarget
     private static readonly _overclockOutputsColumn = NodeConfiguration.getColumn("overclock", "outputs");
     private static readonly _overclockPowerColumn = NodeConfiguration.getColumn("overclock", "power");
 
+    private static readonly _resetButton =
+        NodeConfiguration.queryModalSuccessor(".reset-button") as HTMLDivElement;
     private static readonly _restoreButton =
         NodeConfiguration.queryModalSuccessor(".restore-button") as HTMLDivElement;
     private static readonly _applyButton =
