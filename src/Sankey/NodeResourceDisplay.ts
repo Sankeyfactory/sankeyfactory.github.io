@@ -19,7 +19,12 @@ export class NodeResourceDisplay
         this.createOverclockDisplay(recipeContainer);
         this.createInputsDisplay(recipeContainer, recipe);
         this.createOutputsDisplay(recipeContainer, recipe);
-        this.createPowerDisplay(recipeContainer, machine.powerConsumption);
+
+        // Recipes with id beginning with "Power_" are created by parsing tool for power production.
+        if (!recipe.id.startsWith("Power_"))
+        {
+            this.createPowerDisplay(recipeContainer, machine.powerConsumption);
+        }
 
         this._displayContainer.appendChild(recipeContainer);
 

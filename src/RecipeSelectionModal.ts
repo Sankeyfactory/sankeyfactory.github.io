@@ -350,7 +350,17 @@ export class RecipeSelectionModal extends EventTarget
             this._selectedRecipe.recipe.products
         );
 
-        this._selectedRecipePower.innerText = `${this._selectedRecipe.madeIn.powerConsumption} MW`;
+        this._selectedRecipePowerText.innerText = `${this._selectedRecipe.madeIn.powerConsumption} MW`;
+
+        // Power generators showing "0 MW" is not intuitive.
+        if (this._selectedRecipe.recipe.id.startsWith("Power_"))
+        {
+            this._selectedRecipePower.classList.add("hidden");
+        }
+        else
+        {
+            this._selectedRecipePower.classList.remove("hidden");
+        }
 
         this._selectedRecipeDisplay.classList.remove("hidden");
 
@@ -632,7 +642,8 @@ export class RecipeSelectionModal extends EventTarget
     private _selectedRecipeMachine = this._selectedRecipeDisplay.querySelector("#selected-recipe-machine>.machine>img.icon") as HTMLImageElement;
     private _selectedRecipeInput = this._selectedRecipeDisplay.querySelector("#selected-recipe-input") as HTMLDivElement;
     private _selectedRecipeOutput = this._selectedRecipeDisplay.querySelector("#selected-recipe-output") as HTMLDivElement;
-    private _selectedRecipePower = this._selectedRecipeDisplay.querySelector("#selected-recipe-power>.text") as HTMLDivElement;
+    private _selectedRecipePower = this._selectedRecipeDisplay.querySelector("#selected-recipe-power") as HTMLDivElement;
+    private _selectedRecipePowerText = this._selectedRecipePower.querySelector(".text") as HTMLDivElement;
 
     private _confirmRecipeButton = this._modalContainer.querySelector("#confirm-recipe") as HTMLDivElement;
     private _discardRecipeButton = this._modalContainer.querySelector("#discard-recipe") as HTMLDivElement;

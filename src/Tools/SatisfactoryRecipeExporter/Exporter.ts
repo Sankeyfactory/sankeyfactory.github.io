@@ -342,8 +342,12 @@ let powerGenerators: Building[] = satisfactory
                 fixCubicMeters(byproduct, byproductDescriptor);
             }
 
+            let resourceForm = docsPowerGenerator.mFuelResourceForm.replace("RF_", "") as ResourceForm;
+
             for (const fuelType of fuelTypes)
             {
+                if (fuelType.energyValue === 0 || fuelType.form !== resourceForm) continue;
+
                 let productionDuration = fuelType.energyValue / powerProduct.amount;
 
                 if (fuelType.form === "LIQUID" || fuelType.form === "GAS")
@@ -356,11 +360,15 @@ let powerGenerators: Building[] = satisfactory
                     amount: 1,
                 };
 
+                // Crutches to make the recipe more universal and compatible with others when
+                // displaying amounts.
+                let powerProduction = powerProduct.amount / (60 / productionDuration);
+
                 let recipe: BuildingRecipe = {
                     id: `Power_${docsPowerGenerator.ClassName}_${fuelType.id}`,
-                    displayName: `Power ${docsPowerGenerator.mDisplayName} with ${fuelType.displayName}`,
+                    displayName: `${fuelType.displayName} (burning)`,
                     ingredients: [fuelIngredient],
-                    products: [powerProduct],
+                    products: [{ id: powerProduct.id, amount: powerProduction }],
                     manufacturingDuration: productionDuration,
                 };
 
@@ -378,7 +386,7 @@ let powerGenerators: Building[] = satisfactory
 
                 if (byproduct != undefined)
                 {
-                    recipe.ingredients.push(byproduct);
+                    recipe.products.push(byproduct);
                 }
 
                 recipes.push(recipe);
