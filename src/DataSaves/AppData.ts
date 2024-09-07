@@ -1,4 +1,4 @@
-import { SankeyNode } from "./Sankey/SankeyNode";
+import { SankeyNode } from "../Sankey/SankeyNode";
 
 export class AppData extends EventTarget
 {

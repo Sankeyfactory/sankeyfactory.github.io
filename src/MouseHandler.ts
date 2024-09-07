@@ -9,7 +9,7 @@ import { Curve } from "./Geometry/Curve";
 import { SvgPathBuilder } from "./SVG/SvgPathBuilder";
 import { PanZoomConfiguration } from "./PanZoomConfiguration";
 import { Settings } from "./Settings";
-import { AppData } from "./AppData";
+import { AppData } from "./DataSaves/AppData";
 
 export class MouseHandler extends EventTarget
 {

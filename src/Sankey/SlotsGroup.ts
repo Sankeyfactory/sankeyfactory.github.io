@@ -6,7 +6,7 @@ import { SankeySlotMissing } from "./Slots/SankeySlotMissing";
 import { SvgFactory } from "../SVG/SvgFactory";
 import { InputSankeySlot } from "./Slots/InputSankeySlot";
 import { OutputSankeySlot } from "./Slots/OutputSankeySlot";
-import { AppData } from "../AppData";
+import { AppData } from "../DataSaves/AppData";
 
 export type SlotsGroupType = "input" | "output";
 

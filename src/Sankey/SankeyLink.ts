@@ -7,7 +7,7 @@ import { SankeySlot } from "./Slots/SankeySlot";
 import { Point } from '../Geometry/Point';
 import { loadSatisfactoryResource, satisfactoryIconPath } from '../GameData/GameData';
 import { LinkContextMenu } from '../ContextMenu/LinkContextMenu';
-import { AppData } from "../AppData";
+import { AppData } from "../DataSaves/AppData";
 import { PanZoomConfiguration } from "../PanZoomConfiguration";
 
 export class SankeyLink

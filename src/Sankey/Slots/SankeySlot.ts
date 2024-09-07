@@ -1,4 +1,4 @@
-import { AppData } from "../../AppData";
+import { AppData } from "../../DataSaves/AppData";
 import { Rectangle } from "../../Geometry/Rectangle";
 import { SvgFactory } from "../../SVG/SvgFactory";
 import { SlotsGroup } from "../SlotsGroup";

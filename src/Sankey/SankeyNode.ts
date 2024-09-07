@@ -10,7 +10,7 @@ import { loadSatisfactoryRecipe, overclockPower, overclockToShards, toItemsInMin
 import { NodeResourceDisplay } from './NodeResourceDisplay';
 import { CanvasGrid } from "../CanvasGrid";
 import { Settings } from "../Settings";
-import { AppData } from "../AppData";
+import { AppData } from "../DataSaves/AppData";
 import { SankeyLink } from "./SankeyLink";
 
 export class SankeyNode extends EventTarget

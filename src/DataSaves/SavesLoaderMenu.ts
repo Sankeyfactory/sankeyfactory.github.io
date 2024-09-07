@@ -1,5 +1,5 @@
 import { AppData } from "./AppData";
-import { SvgIcons } from "./SVG/SvgIcons";
+import { SvgIcons } from "../SVG/SvgIcons";
 
 export class SavesLoaderMenu
 {

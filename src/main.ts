@@ -11,11 +11,11 @@ import { SvgIcons } from './SVG/SvgIcons';
 import { HelpModal } from './HelpWindow/HelpModal';
 import { RecipeSelectionModal } from './RecipeSelectionModal';
 import { CanvasGrid } from "./CanvasGrid";
-import { AppData } from "./AppData";
+import { AppData } from "./DataSaves/AppData";
 import { loadSatisfactoryResource, loadSingleSatisfactoryRecipe } from "./GameData/GameData";
 import { SankeyLink } from "./Sankey/SankeyLink";
 import { SlotsGroup } from "./Sankey/SlotsGroup";
-import { SavesLoaderMenu } from "./SavesLoaderMenu";
+import { SavesLoaderMenu } from "./DataSaves/SavesLoaderMenu";
 
 async function main()
 {
