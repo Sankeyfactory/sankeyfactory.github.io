@@ -26,7 +26,6 @@ type Building = {
 
     iconPath: string;
     displayName: string;
-    description: string;
 
     powerConsumption: number;
     powerConsumptionExponent: number;
@@ -40,7 +39,6 @@ type Descriptor = {
     id: string;
 
     displayName: string;
-    description: string;
 
     iconPath: string;
 

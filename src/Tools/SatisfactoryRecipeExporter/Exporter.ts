@@ -117,12 +117,11 @@ let descriptorsMap = new Map<string, Descriptor>(satisfactory
 
         let form = docsDescriptor.mForm.replace("RF_", "") as ResourceForm;
 
-        // mDisplayName and mDescription are empty here for buildings and should be filled by
+        // mDisplayName is empty here for buildings and should be filled by
         // building class later.
         return {
             id: docsDescriptor.ClassName,
             displayName: docsDescriptor.mDisplayName,
-            description: docsDescriptor.mDescription.replaceAll("\r\n", "\n"),
             iconPath: `${iconPath}${iconName}.png`,
             isResourceInUse: false, // Will be set after parsing recipes.
             resourceSinkPoints: +docsDescriptor.mResourceSinkPoints,
@@ -226,7 +225,6 @@ let machines: Building[] = satisfactory
         return {
             id: docsBuilding.ClassName,
             displayName: docsBuilding.mDisplayName,
-            description: docsBuilding.mDescription.replaceAll("\r\n", "\n"),
             iconPath: descriptor.iconPath,
             powerConsumption: +docsBuilding.mPowerConsumption,
             powerConsumptionExponent: +docsBuilding.mPowerConsumptionExponent,
