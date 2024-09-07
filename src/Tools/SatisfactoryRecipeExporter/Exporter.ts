@@ -76,10 +76,47 @@ function getMachineDescriptorId(machineId: string): string
     return `Desc_${machineName}_C`;
 }
 
+function parseNativeClass(docsNativeClass: string): string
+{
+
+    let idRegex = /.+\.([a-zA-Z]+)'/;
+    let match = idRegex.exec(docsNativeClass);
+
+    if (match == null)
+    {
+        throw Error(`Couldn't parse native class: ${docsNativeClass}`);
+    }
+
+    let nativeClass = match[1];
+
+    return nativeClass;
+}
+
+let mapClassList = (classList: typeof satisfactory[0]) =>
+{
+    let classes = classList.Classes;
+
+    for (const docsClass of classes)
+    {
+        docsClass.NativeClass = parseNativeClass(classList.NativeClass);
+    }
+
+    return classes;
+};
+
+let fixCubicMeters = (resource: RecipeResource, descriptor: Descriptor | undefined) =>
+{
+    if (descriptor?.form == "LIQUID" || descriptor?.form == "GAS")
+    {
+        // Because liquids and gas are in cubic meters
+        resource.amount /= 1000;
+    }
+};
+
 let formFrequency = new Map<string, number>();
 
 let descriptorsMap = new Map<string, Descriptor>(satisfactory
-    .flatMap((classList) => classList.Classes)
+    .flatMap(mapClassList)
     .filter((descriptorClass) =>
     {
         return descriptorClass.ClassName.startsWith("Desc_")
@@ -121,17 +158,19 @@ let descriptorsMap = new Map<string, Descriptor>(satisfactory
         // building class later.
         return {
             id: docsDescriptor.ClassName,
+            nativeClass: docsDescriptor.NativeClass,
             displayName: docsDescriptor.mDisplayName,
             iconPath: `${iconPath}${iconName}.png`,
             isResourceInUse: false, // Will be set after parsing recipes.
             resourceSinkPoints: +docsDescriptor.mResourceSinkPoints,
             form: form,
+            energyValue: +docsDescriptor.mEnergyValue,
         };
     })
     .map(descriptor => [descriptor.id, descriptor]));
 
 let recipes: Recipe[] = satisfactory
-    .flatMap((classList) => classList.Classes)
+    .flatMap(mapClassList)
     .filter((recipeClass) => recipeClass.ClassName.startsWith("Recipe_"))
     .map(docsRecipe => docsRecipe as DocsRecipe)
     .filter(docsRecipe =>
@@ -164,11 +203,7 @@ let recipes: Recipe[] = satisfactory
 
             ingredientsComplexity = Math.max(ingredientsComplexity, resource?.resourceSinkPoints ?? 0);
 
-            if (resource?.form == "LIQUID" || resource?.form == "GAS")
-            {
-                // Because liquids are in cubic meters, I guess.
-                ingredient.amount /= 1000;
-            }
+            fixCubicMeters(ingredient, resource);
         }
 
         for (const product of products)
@@ -177,11 +212,7 @@ let recipes: Recipe[] = satisfactory
 
             productsComplexity = Math.max(productsComplexity, resource?.resourceSinkPoints ?? 0);
 
-            if (resource?.form == "LIQUID" || resource?.form == "GAS")
-            {
-                // Because liquids are in cubic meters, I guess.
-                product.amount /= 1000;
-            }
+            fixCubicMeters(product, resource);
         }
 
         // Products which can't be sinked are usually very late-game ones or just should be together.
@@ -201,7 +232,7 @@ let recipes: Recipe[] = satisfactory
     .filter((docsRecipe) => docsRecipe.producedIn.length > 0);
 
 let machines: Building[] = satisfactory
-    .flatMap(classList => classList.Classes)
+    .flatMap(mapClassList)
     .filter(recipeClass => recipeClass.ClassName.startsWith("Build_"))
     .map(docsRecipe => docsRecipe as DocsBuilding)
     .filter(docsBuilding =>
@@ -232,6 +263,140 @@ let machines: Building[] = satisfactory
             alternateRecipes: getMachinesRecipe(docsBuilding.ClassName, recipes, true),
         };
     });
+
+let powerGenerators: Building[] = satisfactory
+    .flatMap(mapClassList)
+    .filter(recipeClass =>
+    {
+        return recipeClass.ClassName.startsWith("Build_Generator")
+            && recipeClass.ClassName !== "Build_GeneratorGeoThermal_C";
+    })
+    .map(docsRecipe => docsRecipe as DocsPowerGenerator)
+    .map(docsPowerGenerator =>
+    {
+        let descriptorId = getMachineDescriptorId(docsPowerGenerator.ClassName);
+
+        let descriptor = descriptorsMap.get(descriptorId);
+
+        if (descriptor == undefined)
+        {
+            throw Error(`Couldn't find machine descriptor: ${descriptorId}`);
+        }
+
+        let recipes: BuildingRecipe[] = [];
+
+        for (const fuel of docsPowerGenerator.mFuel)
+        {
+            let fuelTypes = [...descriptorsMap.values()].filter(descriptor =>
+            {
+                let isSuitable = descriptor.id === fuel.mFuelClass || descriptor.nativeClass === fuel.mFuelClass;
+
+                if (isSuitable)
+                {
+                    descriptor.isResourceInUse = true;
+                }
+
+                return isSuitable;
+            });
+
+            let powerProduct: RecipeResource = {
+                id: "Power",
+                amount: +docsPowerGenerator.mPowerProduction,
+            };
+
+            let supplementId = fuel.mSupplementalResourceClass;
+            let supplement: Descriptor | undefined;
+
+            if (supplementId !== "")
+            {
+                supplement = descriptorsMap.get(supplementId);
+
+                if (supplement == undefined)
+                {
+                    throw Error(`Couldn't find supplement descriptor: ${supplementId}`);
+                }
+
+                supplement.isResourceInUse = true;
+            }
+
+            let supplementAmountInSecond = powerProduct.amount * +docsPowerGenerator.mSupplementalToPowerRatio;
+
+            let byproduct: RecipeResource | undefined;
+
+            if (fuel.mByproduct != "")
+            {
+                let byproductDescriptor = descriptorsMap.get(fuel.mByproduct);
+
+                if (byproductDescriptor == undefined)
+                {
+                    throw Error(`Couldn't find byproduct descriptor: ${fuel.mByproduct}`);
+                }
+
+                byproductDescriptor.isResourceInUse = true;
+
+                byproduct = {
+                    id: byproductDescriptor.id,
+                    amount: +fuel.mByproductAmount,
+                };
+
+                fixCubicMeters(byproduct, byproductDescriptor);
+            }
+
+            for (const fuelType of fuelTypes)
+            {
+                let productionDuration = fuelType.energyValue / powerProduct.amount;
+
+                if (fuelType.form === "LIQUID" || fuelType.form === "GAS")
+                {
+                    productionDuration *= 1000;
+                }
+
+                let fuelIngredient: RecipeResource = {
+                    id: fuelType.id,
+                    amount: 1,
+                };
+
+                let recipe: BuildingRecipe = {
+                    id: `Power_${docsPowerGenerator.ClassName}_${fuelType.id}`,
+                    displayName: `Power ${docsPowerGenerator.mDisplayName} with ${fuelType.displayName}`,
+                    ingredients: [fuelIngredient],
+                    products: [powerProduct],
+                    manufacturingDuration: productionDuration,
+                };
+
+                if (supplement != undefined)
+                {
+                    let supplementalIngredient: RecipeResource = {
+                        id: supplement.id,
+                        amount: supplementAmountInSecond * productionDuration,
+                    };
+
+                    fixCubicMeters(supplementalIngredient, supplement);
+
+                    recipe.ingredients.push(supplementalIngredient);
+                }
+
+                if (byproduct != undefined)
+                {
+                    recipe.ingredients.push(byproduct);
+                }
+
+                recipes.push(recipe);
+            }
+        }
+
+        return {
+            id: docsPowerGenerator.ClassName,
+            displayName: docsPowerGenerator.mDisplayName,
+            iconPath: descriptor.iconPath,
+            powerConsumption: +docsPowerGenerator.mPowerConsumption,
+            powerConsumptionExponent: +docsPowerGenerator.mPowerConsumptionExponent,
+            recipes: recipes,
+            alternateRecipes: [],
+        };
+    });
+
+machines.push(...powerGenerators);
 
 for (const recipe of recipes)
 {
@@ -310,6 +475,18 @@ let machinesSorter = (first: Building, second: Building): number =>
     return firstOrder - secondOrder;
 };
 
+descriptorsMap.set("Power", {
+    id: "Power",
+    displayName: "Power",
+    iconPath: "Resource/Power.png",
+
+    isResourceInUse: true,
+
+    energyValue: 0,
+    form: 'INVALID',
+    resourceSinkPoints: 0,
+});
+
 let destinationDir = "dist/GameData";
 fs.mkdirSync(destinationDir, { recursive: true });
 fs.writeFileSync(
@@ -321,7 +498,7 @@ fs.writeFileSync(
             .filter(descriptor => descriptor.isResourceInUse)
             .map<Resource>(descriptor =>
             {
-                let { isResourceInUse, resourceSinkPoints, form, ...resource } = descriptor;
+                let { nativeClass, isResourceInUse, resourceSinkPoints, form, energyValue, ...resource } = descriptor;
                 return resource;
             })
     })

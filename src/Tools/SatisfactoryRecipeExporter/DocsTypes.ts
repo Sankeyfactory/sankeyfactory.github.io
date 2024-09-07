@@ -4,13 +4,12 @@ type Docs = {
 }[];
 
 type DocsClass = {
+    NativeClass?: string;
     ClassName: string;
 };
 
 // Holds general properties of items and machines.
-type DocsDescriptor = {
-    ClassName: string;
-
+type DocsDescriptor = DocsClass & {
     mForm: string;
 
     mDisplayName: string;
@@ -19,11 +18,11 @@ type DocsDescriptor = {
     mPersistentBigIcon: string;
 
     mResourceSinkPoints: string;
+
+    mEnergyValue: string;
 };
 
-type DocsRecipe = {
-    ClassName: string;
-
+type DocsRecipe = DocsClass & {
     mDisplayName: string;
 
     mIngredients: string;
@@ -33,12 +32,25 @@ type DocsRecipe = {
     mManufactoringDuration: string;
 };
 
-type DocsBuilding = {
-    ClassName: string;
-
+type DocsBuilding = DocsClass & {
     mDisplayName: string;
     mDescription: string;
 
     mPowerConsumption: string;
     mPowerConsumptionExponent: string;
+};
+
+type DocsPowerGenerator = DocsBuilding & {
+    mFuel: DocsFuel[];
+    mSupplementalToPowerRatio: string;
+    mPowerProduction: string;
+};
+
+type DocsFuel = {
+    mFuelClass: string;
+
+    mSupplementalResourceClass: string;
+
+    mByproduct: string;
+    mByproductAmount: string;
 };

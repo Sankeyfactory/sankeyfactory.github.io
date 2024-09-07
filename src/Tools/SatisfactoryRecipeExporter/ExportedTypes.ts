@@ -37,6 +37,7 @@ type Building = {
 // Holds general properties of items and machines.
 type Descriptor = {
     id: string;
+    nativeClass?: string;
 
     displayName: string;
 
@@ -49,8 +50,10 @@ type Descriptor = {
     resourceSinkPoints: number;
 
     form: ResourceForm;
+
+    energyValue: number;
 };
 
-type Resource = Omit<Descriptor, "isResourceInUse" | "resourceSinkPoints" | "form">;
+type Resource = Omit<Descriptor, "nativeClass" | "isResourceInUse" | "resourceSinkPoints" | "form" | "energyValue">;
 
 type ResourceForm = "INVALID" | "SOLID" | "LIQUID" | "GAS";
