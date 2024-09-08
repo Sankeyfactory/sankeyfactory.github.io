@@ -3,6 +3,7 @@ import { Point } from "./Geometry/Point";
 import { MouseHandler } from "./MouseHandler";
 import { GameRecipe } from "./GameData/GameRecipe";
 import { GameMachine } from "./GameData/GameMachine";
+import { Recipe } from './Recipe';
 import { Settings } from "./Settings";
 import { CanvasContextMenu } from "./ContextMenu/CanvasContextMenu";
 import { ResourcesSummary } from "./ResourcesSummary";
@@ -16,6 +17,8 @@ import { loadSatisfactoryResource, loadSingleSatisfactoryRecipe } from "./GameDa
 import { SankeyLink } from "./Sankey/SankeyLink";
 import { SlotsGroup } from "./Sankey/SlotsGroup";
 import { SavesLoaderMenu } from "./SavesLoaderMenu";
+import { FactoryImporter } from "./FactoryImporter";
+import { Machine } from "./Machine";
 
 async function main()
 {
@@ -85,9 +88,15 @@ async function main()
 
     let onceNodeCreated: ((node: SankeyNode) => void) | undefined;
 
-    function createNode(recipe: GameRecipe, machine: GameMachine): SankeyNode
+    function createNode(recipe: Recipe, machine: GameMachine): SankeyNode
     {
-        const node = new SankeyNode(nodeCreationPosition, recipe, machine);
+        let pageCenter = {
+            x: document.documentElement.clientWidth / 2,
+            y: document.documentElement.clientHeight / 2
+        };
+
+        let creationPosition = nodeCreationPosition || MouseHandler.clientToCanvasPosition(pageCenter);
+        const node = new SankeyNode(creationPosition, recipe, machine);
 
         registerNode(node);
 
@@ -400,6 +409,11 @@ async function main()
             registerNode(node);
         }
     });
+
+    FactoryImporter.instance.addEventListener(FactoryImporter.factoryImportedEvent, ((event: CustomEvent<{recipe: Recipe, machine: Machine}>) =>
+    {        
+        createNode(event.detail.recipe, event.detail.machine);
+    }) as EventListener);
 
     AppData.instance.loadFromUrl();
 

@@ -1638,6 +1638,7 @@ div#resources-summary div.content {
 #saves-loader div.loaded-plan:hover,
 #saves-loader .plan-selector div.plan-name:hover,
 #saves-loader .plan-selector div.delete-button:hover,
+#saves-loader .plan-selector div.import-button:hover,
 #saves-loader .plan-selector.selected div.plan-name {
     background-color: var(--background-lv2);
 }
@@ -1657,6 +1658,15 @@ div#resources-summary div.content {
 
 #saves-loader .loaded-plan div.icon-container,
 #saves-loader .plan-selector div.delete-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 48px;
+    min-height: 48px;
+}
+
+#saves-loader .plan-selector div.import-button {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1706,6 +1716,10 @@ div#resources-summary div.content {
 }
 
 #saves-loader .plan-selector div.delete-button {
+    cursor: pointer;
+}
+
+#saves-loader .plan-selector div.import-button {
     cursor: pointer;
 }
 

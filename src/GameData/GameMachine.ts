@@ -1,4 +1,6 @@
-export class GameMachine
+import { Machine } from "../Machine";
+
+export class GameMachine implements Machine
 {
     public constructor(
         public iconPath: string,
