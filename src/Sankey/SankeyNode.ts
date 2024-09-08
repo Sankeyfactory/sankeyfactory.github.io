@@ -2,8 +2,9 @@ import { Point } from "../Geometry/Point";
 import { SankeySlot } from "./Slots/SankeySlot";
 import { SlotsGroup, SlotsGroupType } from "./SlotsGroup";
 import { SvgFactory } from "../SVG/SvgFactory";
-import { GameRecipe } from "../GameData/GameRecipe";
-import { GameMachine } from "../GameData/GameMachine";
+import { LinkedFactory } from "../CustomData/LinkedFactory";
+import { Recipe } from "../Recipe";
+import { Machine } from "../Machine";
 import { NodeContextMenu } from '../ContextMenu/NodeContextMenu';
 import { NodeConfiguration } from './NodeConfiguration/NodeConfiguration';
 import { loadSatisfactoryRecipe, overclockPower, overclockToShards, toItemsInMinute } from '../GameData/GameData';
@@ -27,15 +28,15 @@ export class SankeyNode extends EventTarget
 
     public constructor(
         position: Point,
-        recipe: GameRecipe,
-        machine: GameMachine,
+        recipe: Recipe,
+        machine: Machine,
     )
     {
         super();
 
         this.id = SankeyNode.acquireId();
-        this._recipe = { ...recipe };
-        this._machine = { ...machine };
+        this._recipe = recipe;
+        this._machine = machine;
         this._height = SankeyNode._nodeHeight;
 
         let sumResources = (sum: number, product: RecipeResource) =>
@@ -121,6 +122,9 @@ export class SankeyNode extends EventTarget
             positionX: position.x,
             positionY: position.y,
             outputsGroups: outputGroups,
+            recipeType: this._recipe.getRecipeType(),
+            customRecipe: this._recipe.toSerializable(),
+            customPower: this.powerConsumption / this.machinesAmount
         };
 
         return serializable;
@@ -128,8 +132,21 @@ export class SankeyNode extends EventTarget
 
     public static fromSerializable(serializable: AppData.SerializableNode): SankeyNode
     {
-        let recipe = loadSatisfactoryRecipe(serializable.recipeId);
-
+        let recipe: {recipe: Recipe, machine: Machine}
+        switch (serializable.recipeType)
+        {
+            case "":
+            case undefined:
+            case "GameRecipe":
+                recipe = loadSatisfactoryRecipe(serializable.recipeId);
+                break;
+            case "LinkedFactory":
+                let deserializedRecipe = LinkedFactory.fromSerializable(serializable.recipeId, serializable.customRecipe, serializable.customPower);
+                recipe = {recipe: deserializedRecipe, machine: deserializedRecipe.getMachine()};
+                break;
+            default:
+                throw Error("Unknown RecipeType [" + serializable.recipeType + "]");
+        }
         let node = new SankeyNode(
             { x: serializable.positionX, y: serializable.positionY },
             recipe.recipe,
@@ -324,7 +341,7 @@ export class SankeyNode extends EventTarget
         this.dispatchEvent(new Event(SankeyNode.resourcesAmountChangedEvent));
     }
 
-    private configureContextMenu(recipe: GameRecipe, machine: GameMachine): void
+    private configureContextMenu(recipe: Recipe, machine: Machine): void
     {
         let nodeContextMenu = new NodeContextMenu(this.nodeSvg);
 
@@ -337,7 +354,7 @@ export class SankeyNode extends EventTarget
 
         let openConfigurator = (event: Event) =>
         {
-            configurator.openConfigurationWindow(this.machinesAmount, this.overclockRatio);
+            configurator.openConfigurationWindow(this.machinesAmount, this.overclockRatio, this._recipe);
             event.stopPropagation();
         };
 
@@ -438,8 +455,8 @@ export class SankeyNode extends EventTarget
         SankeyNode._nextId = nextId;
     }
 
-    private _recipe: GameRecipe;
-    private _machine: GameMachine;
+    private _recipe: Recipe;
+    private _machine: Machine;
 
     private _inputResourcesAmount: number;
     private _outputResourcesAmount: number;

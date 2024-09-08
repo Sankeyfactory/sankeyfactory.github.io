@@ -1,4 +1,5 @@
 import { AppData } from "./AppData";
+import { FactoryImporter } from "./FactoryImporter";
 import { SvgIcons } from "./SVG/SvgIcons";
 
 export class SavesLoaderMenu
@@ -195,18 +196,27 @@ export class SavesLoaderMenu
 
         let planSelector = createHtmlElement("div", "plan-selector") as HTMLDivElement;
         let planNameElement = createHtmlElement("div", "plan-name");
+        let importButton = createHtmlElement("div", "import-button");
         let deleteButton = createHtmlElement("div", "delete-button");
 
         planNameElement.innerText = name;
+        importButton.appendChild(SvgIcons.createIcon("plus"));
         deleteButton.appendChild(SvgIcons.createIcon("delete"));
 
         planSelector.appendChild(planNameElement);
+        planSelector.appendChild(importButton);
         planSelector.appendChild(deleteButton);
 
         planNameElement.addEventListener("click", (event) =>
         {
             event.stopPropagation();
             AppData.instance.loadDatabasePlan(name);
+            this.close();
+        });
+
+        importButton.addEventListener("click", (event) =>
+        {
+            FactoryImporter.importSavedFactory(name);
             this.close();
         });
 
@@ -230,10 +240,12 @@ export class SavesLoaderMenu
             if (name === AppData.instance.currentPlanName)
             {
                 planSelector.classList.add("selected");
+                importButton.classList.add("hidden");
             }
             else
             {
                 planSelector.classList.remove("selected");
+                importButton.classList.remove("hidden");
             }
         };
 

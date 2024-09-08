@@ -377,7 +377,7 @@ export class RecipeSelectionModal extends EventTarget
 
         recipeSelector.classList.remove("animate-progress");
 
-        this._selectedRecipe = { recipe: recipe, madeIn: madeIn };
+        this._selectedRecipe = { recipe: GameRecipe.fromRawData(recipe, madeIn), madeIn: madeIn };
 
         this.dispatchEvent(new Event(RecipeSelectionModal.recipeSelectedEvent));
 
@@ -392,7 +392,7 @@ export class RecipeSelectionModal extends EventTarget
 
         let progressBarTimerId = setTimeout(() =>
         {
-            this._selectedRecipe = { recipe: recipe, madeIn: madeIn };
+            this._selectedRecipe = { recipe: GameRecipe.fromRawData(recipe, madeIn), madeIn: madeIn };
 
             this.dispatchEvent(new Event(RecipeSelectionModal.recipeSelectedEvent));
 

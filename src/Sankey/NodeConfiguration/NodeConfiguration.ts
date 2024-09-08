@@ -1,6 +1,7 @@
+import { LinkedFactory } from '../../CustomData/LinkedFactory';
 import { loadSatisfactoryResource, overclockPower, toItemsInMinute } from '../../GameData/GameData';
-import { GameMachine } from "../../GameData/GameMachine";
-import { GameRecipe } from "../../GameData/GameRecipe";
+import { Machine } from "../../Machine";
+import { Recipe } from "../../Recipe";
 import { Configurators } from './Configurator';
 import { ConfiguratorBuilder } from './ConfiguratorBuilder';
 
@@ -11,7 +12,7 @@ export class NodeConfiguration extends EventTarget
 
     public static readonly configurationUpdatedEvent = "configuration-updated";
 
-    public constructor(recipe: GameRecipe, machine: GameMachine)
+    public constructor(recipe: Recipe, machine: Machine)
     {
         super();
 
@@ -96,7 +97,7 @@ export class NodeConfiguration extends EventTarget
         });
     }
 
-    public openConfigurationWindow(openingMachinesAmount: number, openingOverclockRatio: number): void
+    public openConfigurationWindow(openingMachinesAmount: number, openingOverclockRatio: number, recipe: Recipe): void
     {
         this._openingMachinesAmount = openingMachinesAmount;
         this._openingOverclockRatio = openingOverclockRatio;
@@ -138,6 +139,18 @@ export class NodeConfiguration extends EventTarget
             this._overclockConfigurators.powerConfigurator!
         );
 
+        // Don't show overclock section for LinkedFactories
+        if (recipe instanceof LinkedFactory)
+        {
+            NodeConfiguration._overclockLabel.classList.add("hidden");
+            NodeConfiguration._overclockData.classList.add("hidden");
+        }
+        else
+        {
+            NodeConfiguration._overclockLabel.classList.remove("hidden");
+            NodeConfiguration._overclockData.classList.remove("hidden");
+        }
+
         /* Modal window */
 
         NodeConfiguration._modalContainer.classList.remove("hidden");
@@ -166,7 +179,7 @@ export class NodeConfiguration extends EventTarget
         this.closeConfigurationWindow();
     }
 
-    private setupTableElements(recipe: GameRecipe, machine: GameMachine)
+    private setupTableElements(recipe: Recipe, machine: Machine)
     {
         let minOverclockRatio = NodeConfiguration._minOverclockRatio;
         let maxOverclockRatio = NodeConfiguration._maxOverclockRatio;
@@ -409,6 +422,9 @@ export class NodeConfiguration extends EventTarget
     private static readonly _overclockInputsColumn = NodeConfiguration.getColumn("overclock", "inputs");
     private static readonly _overclockOutputsColumn = NodeConfiguration.getColumn("overclock", "outputs");
     private static readonly _overclockPowerColumn = NodeConfiguration.getColumn("overclock", "power");
+
+    private static readonly _overclockLabel = document.querySelector("#overclock-label") as HTMLDivElement;
+    private static readonly _overclockData = document.querySelector("#overclock-config") as HTMLDivElement;
 
     private static readonly _resetButton =
         NodeConfiguration.queryModalSuccessor(".reset-button") as HTMLDivElement;

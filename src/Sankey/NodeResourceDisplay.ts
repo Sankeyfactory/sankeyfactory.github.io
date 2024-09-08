@@ -1,13 +1,14 @@
-import { GameRecipe } from "../GameData/GameRecipe";
+import { Machine } from "../Machine";
+import { Recipe } from "../Recipe";
 import { Rectangle } from "../Geometry/Rectangle";
 import { SvgFactory } from "../SVG/SvgFactory";
 import { loadSatisfactoryResource, overclockPower, satisfactoryIconPath, toItemsInMinute } from '../GameData/GameData';
-import { GameMachine } from '../GameData/GameMachine';
 import { SankeyNode } from './SankeyNode';
+import { GameRecipe } from "../GameData/GameRecipe";
 
 export class NodeResourceDisplay
 {
-    public constructor(associatedNode: SankeyNode, recipe: GameRecipe, machine: GameMachine)
+    public constructor(associatedNode: SankeyNode, recipe: Recipe, machine: Machine)
     {
         this._recipe = recipe;
         this._machine = machine;
@@ -16,7 +17,10 @@ export class NodeResourceDisplay
         let recipeContainer = this.createHtmlElement("div", "recipe-container") as HTMLDivElement;
 
         this.createMachineDisplay(recipeContainer, machine);
-        this.createOverclockDisplay(recipeContainer);
+        if (recipe instanceof GameRecipe)
+        {
+            this.createOverclockDisplay(recipeContainer);
+        }
         this.createInputsDisplay(recipeContainer, recipe);
         this.createOutputsDisplay(recipeContainer, recipe);
         this.createPowerDisplay(recipeContainer, machine.powerConsumption);
@@ -42,7 +46,7 @@ export class NodeResourceDisplay
         element.appendChild(this._displayContainer);
     }
 
-    private createMachineDisplay(parent: HTMLDivElement, machine: GameMachine)
+    private createMachineDisplay(parent: HTMLDivElement, machine: Machine)
     {
         let machineDisplay = this.createHtmlElement("div", "property") as HTMLDivElement;
 
@@ -61,7 +65,7 @@ export class NodeResourceDisplay
         parent.appendChild(machineDisplay);
     }
 
-    private createInputsDisplay(parent: HTMLDivElement, recipe: GameRecipe)
+    private createInputsDisplay(parent: HTMLDivElement, recipe: Recipe)
     {
         let inputsDisplay = this.createHtmlElement("div", "property") as HTMLDivElement;
 
@@ -81,7 +85,7 @@ export class NodeResourceDisplay
         parent.appendChild(inputsDisplay);
     }
 
-    private createOutputsDisplay(parent: HTMLDivElement, recipe: GameRecipe)
+    private createOutputsDisplay(parent: HTMLDivElement, recipe: Recipe)
     {
         let outputsDisplay = this.createHtmlElement("div", "property") as HTMLDivElement;
 
@@ -109,7 +113,7 @@ export class NodeResourceDisplay
         title.innerText = "Power";
 
         this._powerDisplay = this.createHtmlElement("div", "text") as HTMLDivElement;
-        this._powerDisplay.innerText = `${powerConsumption} MW`;
+        this._powerDisplay.innerText = `${powerConsumption.toFixed(1)} MW`;
 
         powerDisplay.appendChild(title);
         powerDisplay.appendChild(this._powerDisplay);
@@ -181,7 +185,10 @@ export class NodeResourceDisplay
         let toFixed = (value: number) => +value.toFixed(2);
 
         this._machinesAmountDisplay.innerText = `${toFixed(associatedNode.machinesAmount)}`;
-        this._overclockDisplay.innerText = `${toFixed(associatedNode.overclockRatio * 100)}%`;
+        if (associatedNode.recipe instanceof GameRecipe)
+        {
+            this._overclockDisplay.innerText = `${toFixed(associatedNode.overclockRatio * 100)}%`;
+        }
 
         for (const inputDisplay of this._inputDisplays)
         {
@@ -210,8 +217,8 @@ export class NodeResourceDisplay
         this._powerDisplay.innerText = `${toFixed(overclockedPower * associatedNode.machinesAmount)} MW`;
     }
 
-    private readonly _recipe: GameRecipe;
-    private readonly _machine: GameMachine;
+    private readonly _recipe: Recipe;
+    private readonly _machine: Machine;
 
     private readonly _displayContainer: SVGForeignObjectElement;
 

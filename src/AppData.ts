@@ -1,3 +1,4 @@
+import { GameRecipe } from "./GameData/GameRecipe";
 import { SankeyNode } from "./Sankey/SankeyNode";
 
 export class AppData extends EventTarget
@@ -90,16 +91,11 @@ export class AppData extends EventTarget
     public loadDatabasePlan(planName: string): void
     {
         this.currentPlanName = planName;
-
-        for (const dbPlanName in this._database.plans)
+        let dataEncoded = this.getEncodedPlanFromDatabase(planName);
+        if (dataEncoded !== "")
         {
-            let dataEncoded = this._database.plans[planName];
-
-            if (dbPlanName === planName)
-            {
-                this.loadFromEncoded(dataEncoded);
-                return;
-            }
+            this.loadFromEncoded(dataEncoded);
+            return;
         }
 
         if (planName !== "")
@@ -107,6 +103,20 @@ export class AppData extends EventTarget
             // If suitable plan wasn't found, load the "None" one.
             this.loadDatabasePlan("");
         }
+    }
+
+    public getEncodedPlanFromDatabase(planName: string): string
+    {
+        for (const dbPlanName in this._database.plans)
+        {
+            let dataEncoded = this._database.plans[planName];
+
+            if (dbPlanName === planName)
+            {
+                return dataEncoded;
+            }
+        }
+        return "";
     }
 
     public deleteDatabasePlan(planName: string)
@@ -157,6 +167,14 @@ export class AppData extends EventTarget
         return JSON.stringify(AppData.objToArray(data));
     }
 
+
+    public static getSerializableData(json: string): AppData.SerializableData
+    {
+        let parsedJson: any[] = JSON.parse(json);
+
+        return this.dataFromArray(parsedJson);
+    }
+
     private saveToUrl(dataEncoded: string): void
     {
         location.hash = dataEncoded;
@@ -164,9 +182,7 @@ export class AppData extends EventTarget
 
     private loadFromJson(json: string)
     {
-        let parsedJson: any[] = JSON.parse(json);
-
-        let data = AppData.dataFromArray(parsedJson);
+        let data = AppData.getSerializableData(json)
 
         let nodeIds = new Map<number, SankeyNode>();
 
@@ -277,6 +293,16 @@ export class AppData extends EventTarget
             nodes: [],
         };
 
+        let defaultRecipe: AppData.SerializableCustomRecipe = {
+            ingredients: [],
+            products: []
+        };
+
+        let defaultResources: AppData.SerializableRecipeResource = {
+            id: "",
+            amount: 0
+        };
+
         let defaultNode: AppData.SerializableNode = {
             id: 0,
             recipeId: "",
@@ -285,6 +311,9 @@ export class AppData extends EventTarget
             positionX: 0,
             positionY: 0,
             outputsGroups: [],
+            recipeType: "",
+            customRecipe: defaultRecipe,
+            customPower: 0
         };
 
         let defaultGroup: AppData.SerializableSlotsGroup = {
@@ -313,6 +342,24 @@ export class AppData extends EventTarget
                 {
                     data.nodes[nodeIndex].outputsGroups[groupIndex].connectedOutputs[slotIndex]
                         = this.objFromArray(data.nodes[nodeIndex].outputsGroups[groupIndex].connectedOutputs[slotIndex] as unknown as any[], defaultSlot);
+                }
+            }
+
+            // Custom recipes
+            if (data.nodes[nodeIndex].recipeType === "LinkedFactory")
+            {
+                data.nodes[nodeIndex].customRecipe
+                    = this.objFromArray(data.nodes[nodeIndex].customRecipe as unknown as any[], defaultRecipe);
+
+                for (let ingredIndex = 0; ingredIndex < data.nodes[nodeIndex].customRecipe.ingredients.length; ++ingredIndex)
+                {
+                    data.nodes[nodeIndex].customRecipe.ingredients[ingredIndex]
+                        = this.objFromArray(data.nodes[nodeIndex].customRecipe.ingredients[ingredIndex] as unknown as any[], defaultResources);
+                }
+                for (let productIdx = 0; productIdx < data.nodes[nodeIndex].customRecipe.products.length; ++productIdx)
+                {
+                    data.nodes[nodeIndex].customRecipe.products[productIdx]
+                        = this.objFromArray(data.nodes[nodeIndex].customRecipe.products[productIdx] as unknown as any[], defaultResources);
                 }
             }
         }
@@ -380,6 +427,16 @@ export namespace AppData
         connectedOutputs: SerializableConnectedSlot[],
     };
 
+    export type SerializableRecipeResource = {
+        id: string,
+        amount: number,
+    }
+
+    export type SerializableCustomRecipe = {
+        ingredients: SerializableRecipeResource[],
+        products: SerializableRecipeResource[],
+    }
+
     export type SerializableNode = {
         id: number,
 
@@ -392,6 +449,14 @@ export namespace AppData
         positionY: number,
 
         outputsGroups: SerializableSlotsGroup[],
+
+        // The type of recipe that is being saved (GameRecipe, LinkedFactory)
+        recipeType: string,
+
+        // These fields are populated for arbitrary nodes that aren't represented by any "real" recipe or factory.
+        // These are also populated in addition to the "linkedFactory" to allow URL sharing even when the canvas includes a linkedFactory
+        customRecipe: SerializableCustomRecipe,
+        customPower: number,
     };
 };
 

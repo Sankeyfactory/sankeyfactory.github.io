@@ -51,18 +51,18 @@ export function loadSatisfactoryRecipe(recipeId: string): { recipe: GameRecipe, 
 {
     for (const machine of satisfactoryData.machines)
     {
-        let result = machine.recipes.find((recipe: GameRecipe) => recipe.id === recipeId);
+        let result = machine.recipes.find((recipe) => recipe.id === recipeId);
 
         if (result != undefined)
         {
-            return { recipe: result, machine: machine };
+            return { recipe: GameRecipe.fromRawData(result, machine), machine: machine };
         }
 
-        let alternate = machine.alternateRecipes.find((recipe: GameRecipe) => recipe.id === recipeId);
+        let alternate = machine.alternateRecipes.find((recipe) => recipe.id === recipeId);
 
         if (alternate != undefined)
         {
-            return { recipe: alternate, machine: machine };
+            return { recipe: GameRecipe.fromRawData(alternate, machine), machine: machine };
         }
     }
 
@@ -92,7 +92,7 @@ export function loadSingleSatisfactoryRecipe(requiredItem: { id: string; type: "
                     return false;
                 }
 
-                suitableRecipe = recipe;
+                suitableRecipe = GameRecipe.fromRawData(recipe, machine);
                 suitableMachine = machine;
                 resourceAmount = foundResource.amount;
             }
