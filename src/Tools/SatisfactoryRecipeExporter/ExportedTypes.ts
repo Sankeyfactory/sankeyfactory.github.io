@@ -14,6 +14,7 @@ type Recipe = {
 
     ingredients: RecipeResource[];
     products: RecipeResource[];
+    producedPower?: number;
 
     producedIn: string[];
     manufacturingDuration: number;

@@ -243,26 +243,17 @@ export class RecipeSelectionModal extends EventTarget
 
         let isEventRecipe = false;
 
+        let progressBar = this.createHtmlElement("div", "progress-bar");
+        recipeSelector.appendChild(progressBar);
+
+        if (recipe.producedPower != undefined)
+        {
+            this.addSelectorIcon(recipeSelector, "Power");
+        }
+
         for (const product of recipe.products)
         {
-            let progressBar = this.createHtmlElement("div", "progress-bar");
-
-            let itemIcon = document.createElement("img");
-            itemIcon.classList.add("item-icon");
-
-            let resource = loadSatisfactoryResource(product.id);
-
-            itemIcon.src = satisfactoryIconPath(resource.iconPath);
-            if (!isEventRecipe)
-            {
-                isEventRecipe = resource.iconPath.startsWith("Events");
-            }
-
-            itemIcon.alt = recipe.displayName;
-            itemIcon.loading = "lazy";
-
-            recipeSelector.appendChild(progressBar);
-            recipeSelector.appendChild(itemIcon);
+            this.addSelectorIcon(recipeSelector, product.id, () => isEventRecipe = true);
         }
 
         recipeSelector.addEventListener("click", (event) =>
@@ -300,6 +291,32 @@ export class RecipeSelectionModal extends EventTarget
         {
             recipesGroup.appendChild(recipeSelector);
         }
+    }
+
+    private addSelectorIcon(
+        recipeSelector: HTMLDivElement,
+        resourceId: string,
+        onEventRecipe?: () => void)
+    {
+        let itemIcon = document.createElement("img");
+        itemIcon.classList.add("item-icon");
+
+        let resource = loadSatisfactoryResource(resourceId);
+
+        itemIcon.src = satisfactoryIconPath(resource.iconPath);
+
+        if (resource.iconPath.startsWith("Events"))
+        {
+            if (onEventRecipe != undefined)
+            {
+                onEventRecipe();
+            }
+        }
+
+        itemIcon.alt = resource.displayName;
+        itemIcon.loading = "lazy";
+
+        recipeSelector.appendChild(itemIcon);
     }
 
     private createResourceDisplay(
@@ -352,14 +369,42 @@ export class RecipeSelectionModal extends EventTarget
 
         this._selectedRecipePowerText.innerText = `${this._selectedRecipe.madeIn.powerConsumption} MW`;
 
-        // Power generators showing "0 MW" is not intuitive.
-        if (this._selectedRecipe.recipe.id.startsWith("Power_"))
+        if (this._selectedRecipe.madeIn.powerConsumption === 0)
         {
             this._selectedRecipePower.classList.add("hidden");
         }
         else
         {
             this._selectedRecipePower.classList.remove("hidden");
+        }
+
+        if (this._selectedRecipe.recipe.producedPower != undefined)
+        {
+            this._selectedRecipeProducedPower.classList.remove("hidden");
+
+            this._selectedRecipeProducedPowerText.innerText = `${this._selectedRecipe.recipe.producedPower}`;
+        }
+        else
+        {
+            this._selectedRecipeProducedPower.classList.add("hidden");
+        }
+
+        if (this._selectedRecipe.recipe.ingredients.length === 0)
+        {
+            this._selectedRecipeInput.classList.add("hidden");
+        }
+        else
+        {
+            this._selectedRecipeInput.classList.remove("hidden");
+        }
+
+        if (this._selectedRecipe.recipe.products.length === 0)
+        {
+            this._selectedRecipeOutput.classList.add("hidden");
+        }
+        else
+        {
+            this._selectedRecipeOutput.classList.remove("hidden");
         }
 
         this._selectedRecipeDisplay.classList.remove("hidden");
@@ -644,6 +689,8 @@ export class RecipeSelectionModal extends EventTarget
     private _selectedRecipeOutput = this._selectedRecipeDisplay.querySelector("#selected-recipe-output") as HTMLDivElement;
     private _selectedRecipePower = this._selectedRecipeDisplay.querySelector("#selected-recipe-power") as HTMLDivElement;
     private _selectedRecipePowerText = this._selectedRecipePower.querySelector(".text") as HTMLDivElement;
+    private _selectedRecipeProducedPower = this._selectedRecipeDisplay.querySelector("#selected-recipe-produced-power") as HTMLDivElement;
+    private _selectedRecipeProducedPowerText = this._selectedRecipeProducedPower.querySelector(".amount") as HTMLParagraphElement;
 
     private _confirmRecipeButton = this._modalContainer.querySelector("#confirm-recipe") as HTMLDivElement;
     private _discardRecipeButton = this._modalContainer.querySelector("#discard-recipe") as HTMLDivElement;

@@ -121,6 +121,15 @@ export class NodeConfiguration extends EventTarget
             this._amountConfigurators.powerConfigurator!
         );
 
+        if (this._amountConfigurators.outputsConfigurators.length === 0)
+        {
+            NodeConfiguration._amountOutputsColumn.classList.add("hidden");
+        }
+        else
+        {
+            NodeConfiguration._amountOutputsColumn.classList.remove("hidden");
+        }
+
         /* Overclock group */
 
         NodeConfiguration._multipliersColumn.appendChild(this._overclockConfigurator!);
@@ -137,6 +146,15 @@ export class NodeConfiguration extends EventTarget
         NodeConfiguration._overclockPowerColumn.appendChild(
             this._overclockConfigurators.powerConfigurator!
         );
+
+        if (this._overclockConfigurators.outputsConfigurators.length === 0)
+        {
+            NodeConfiguration._overclockOutputsColumn.classList.add("hidden");
+        }
+        else
+        {
+            NodeConfiguration._overclockOutputsColumn.classList.remove("hidden");
+        }
 
         /* Modal window */
 

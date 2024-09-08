@@ -19,12 +19,8 @@ export class NodeResourceDisplay
         this.createOverclockDisplay(recipeContainer);
         this.createInputsDisplay(recipeContainer, recipe);
         this.createOutputsDisplay(recipeContainer, recipe);
-
-        // Recipes with id beginning with "Power_" are created by parsing tool for power production.
-        if (!recipe.id.startsWith("Power_"))
-        {
-            this.createPowerDisplay(recipeContainer, machine.powerConsumption);
-        }
+        this.createPowerDisplay(recipeContainer, machine.powerConsumption);
+        this.createPowerProductionDisplay(recipeContainer, recipe.producedPower);
 
         this._displayContainer.appendChild(recipeContainer);
 
@@ -68,6 +64,8 @@ export class NodeResourceDisplay
 
     private createInputsDisplay(parent: HTMLDivElement, recipe: GameRecipe)
     {
+        if (recipe.ingredients.length === 0) return;
+
         let inputsDisplay = this.createHtmlElement("div", "property") as HTMLDivElement;
 
         let title = this.createHtmlElement("div", "title");
@@ -88,6 +86,8 @@ export class NodeResourceDisplay
 
     private createOutputsDisplay(parent: HTMLDivElement, recipe: GameRecipe)
     {
+        if (recipe.products.length === 0) return;
+
         let outputsDisplay = this.createHtmlElement("div", "property") as HTMLDivElement;
 
         let title = this.createHtmlElement("div", "title");
@@ -108,6 +108,8 @@ export class NodeResourceDisplay
 
     private createPowerDisplay(parent: HTMLDivElement, powerConsumption: number)
     {
+        if (powerConsumption === 0) return;
+
         let powerDisplay = this.createHtmlElement("div", "property");
 
         let title = this.createHtmlElement("div", "title");
@@ -120,6 +122,27 @@ export class NodeResourceDisplay
         powerDisplay.appendChild(this._powerDisplay);
 
         parent.appendChild(powerDisplay);
+    }
+
+    private createPowerProductionDisplay(parent: HTMLDivElement, powerProduction: number | undefined)
+    {
+        if (powerProduction == undefined) return;
+
+        let powerProductionDisplay = this.createHtmlElement("div", "property", "power") as HTMLDivElement;
+
+        let title = this.createHtmlElement("div", "title");
+        title.innerText = "Output (MW)";
+
+        powerProductionDisplay.appendChild(title);
+
+        this._powerProductionDisplay = this.createAmountDisplay(
+            powerProductionDisplay,
+            "Power",
+            powerProduction,
+            "Resource/Power.png",
+        );
+
+        parent.appendChild(powerProductionDisplay);
     }
 
     private createOverclockDisplay(parent: HTMLDivElement)
@@ -206,13 +229,25 @@ export class NodeResourceDisplay
             outputDisplay.htmlElement.innerText = `${toFixed(this.toItemsInMinute(amount))}`;
         }
 
-        let overclockedPower = overclockPower(
-            this._machine.powerConsumption,
-            associatedNode.overclockRatio,
-            this._machine.powerConsumptionExponent
-        );
+        if (this._powerDisplay != undefined)
+        {
+            let overclockedPower = overclockPower(
+                this._machine.powerConsumption,
+                associatedNode.overclockRatio,
+                this._machine.powerConsumptionExponent
+            );
 
-        this._powerDisplay.innerText = `${toFixed(overclockedPower * associatedNode.machinesAmount)} MW`;
+            this._powerDisplay.innerText = `${toFixed(overclockedPower * associatedNode.machinesAmount)} MW`;
+        }
+
+        if (this._powerProductionDisplay != undefined)
+        {
+            let powerProduction = this._recipe.producedPower ?? 0
+                * associatedNode.machinesAmount
+                * associatedNode.overclockRatio;
+
+            this._powerProductionDisplay.innerText = `${toFixed(powerProduction)}`;
+        }
     }
 
     private readonly _recipe: GameRecipe;
@@ -224,5 +259,6 @@ export class NodeResourceDisplay
     private _overclockDisplay!: HTMLParagraphElement;
     private _inputDisplays: { htmlElement: HTMLParagraphElement; initialAmount: number; }[] = [];
     private _outputDisplays: { htmlElement: HTMLParagraphElement; initialAmount: number; }[] = [];
-    private _powerDisplay!: HTMLParagraphElement;
+    private _powerDisplay?: HTMLParagraphElement;
+    private _powerProductionDisplay?: HTMLParagraphElement;
 }

@@ -7,7 +7,8 @@ export class GameRecipe
         public displayName: string,
         public ingredients: RecipeResource[],
         public products: RecipeResource[],
-        public manufacturingDuration: number
+        public manufacturingDuration: number,
+        public producedPower?: number
     ) { }
 }
 

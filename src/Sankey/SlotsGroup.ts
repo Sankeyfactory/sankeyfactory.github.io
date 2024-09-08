@@ -7,6 +7,7 @@ import { SvgFactory } from "../SVG/SvgFactory";
 import { InputSankeySlot } from "./Slots/InputSankeySlot";
 import { OutputSankeySlot } from "./Slots/OutputSankeySlot";
 import { AppData } from "../DataSaves/AppData";
+import { PowerProductionSlot } from "./Slots/PowerProductionSlot";
 
 export type SlotsGroupType = "input" | "output";
 
@@ -125,6 +126,18 @@ export class SlotsGroup extends EventTarget
 
     public get height(): number
     {
+        if (this._lastSlot instanceof PowerProductionSlot)
+        {
+            if (this._parentNode.recipe.products.length === 0)
+            {
+                return this._parentNode.height;
+            }
+            else
+            {
+                return 30;
+            }
+        }
+
         let parentResourcesAmount: number;
 
         if (this._type == "input")
@@ -136,7 +149,14 @@ export class SlotsGroup extends EventTarget
             parentResourcesAmount = this._parentNode.outputResourcesAmount;
         }
 
-        return this._parentNode.height * (this.resourcesAmount / parentResourcesAmount);
+        let availableHeight = this._parentNode.height;
+
+        if (this._type === "output" && this.parentNode.recipe.producedPower != undefined)
+        {
+            availableHeight -= 30;
+        }
+
+        return availableHeight * (this.resourcesAmount / parentResourcesAmount);
     }
 
     public get resourcesAmount(): number
@@ -215,8 +235,13 @@ export class SlotsGroup extends EventTarget
     }
 
     /** Should be called only once. */
-    private initializeLastSlot(resource: RecipeResource): SankeySlotMissing | SankeySlotExceeding
+    private initializeLastSlot(resource: RecipeResource): typeof this._lastSlot
     {
+        if (this.resourceId === "Power")
+        {
+            return new PowerProductionSlot(this, this._groupSvg, { ...resource });
+        }
+
         if (this._type === "input")
         {
             return new SankeySlotMissing(this, this._groupSvg, { ...resource });
@@ -236,7 +261,7 @@ export class SlotsGroup extends EventTarget
     private _resource: RecipeResource;
 
     private _slots: SankeySlot[] = [];
-    private _lastSlot: SankeySlotExceeding | SankeySlotMissing;
+    private _lastSlot: SankeySlotExceeding | SankeySlotMissing | PowerProductionSlot;
 
     private _groupSvg: SVGGElement;
 

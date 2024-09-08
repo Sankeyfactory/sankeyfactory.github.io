@@ -119,6 +119,16 @@ export class ResourcesSummary
             isAnyAdded = true;
         }
 
+        let power = resources.get("Power");
+        if (power != undefined)
+        {
+            column.appendChild(this.createResourceDisplay("Power", power, " MW"));
+
+            resources.delete("Power");
+
+            isAnyAdded = true;
+        }
+
         for (const [id, amount] of resources)
         {
             column.appendChild(this.createResourceDisplay(id, amount, "/min"));

@@ -299,10 +299,7 @@ let powerGenerators: Building[] = satisfactory
                 return isSuitable;
             });
 
-            let powerProduct: RecipeResource = {
-                id: "Power",
-                amount: +docsPowerGenerator.mPowerProduction,
-            };
+            let producedPower = +docsPowerGenerator.mPowerProduction;
 
             let supplementId = fuel.mSupplementalResourceClass;
             let supplement: Descriptor | undefined;
@@ -319,7 +316,7 @@ let powerGenerators: Building[] = satisfactory
                 supplement.isResourceInUse = true;
             }
 
-            let supplementAmountInSecond = powerProduct.amount * +docsPowerGenerator.mSupplementalToPowerRatio;
+            let supplementAmountInSecond = producedPower * +docsPowerGenerator.mSupplementalToPowerRatio;
 
             let byproduct: RecipeResource | undefined;
 
@@ -348,7 +345,7 @@ let powerGenerators: Building[] = satisfactory
             {
                 if (fuelType.energyValue === 0 || fuelType.form !== resourceForm) continue;
 
-                let productionDuration = fuelType.energyValue / powerProduct.amount;
+                let productionDuration = fuelType.energyValue / producedPower;
 
                 if (fuelType.form === "LIQUID" || fuelType.form === "GAS")
                 {
@@ -360,15 +357,12 @@ let powerGenerators: Building[] = satisfactory
                     amount: 1,
                 };
 
-                // Crutches to make the recipe more universal and compatible with others when
-                // displaying amounts.
-                let powerProduction = powerProduct.amount / (60 / productionDuration);
-
                 let recipe: BuildingRecipe = {
                     id: `Power_${docsPowerGenerator.ClassName}_${fuelType.id}`,
                     displayName: `${fuelType.displayName} (burning)`,
                     ingredients: [fuelIngredient],
-                    products: [{ id: powerProduct.id, amount: powerProduction }],
+                    products: [],
+                    producedPower: producedPower,
                     manufacturingDuration: productionDuration,
                 };
 

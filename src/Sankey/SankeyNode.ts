@@ -358,22 +358,36 @@ export class SankeyNode extends EventTarget
         let result: SlotsGroup[] = [];
         let nextGroupY = 0;
 
+        let addGroup = (group: SlotsGroup) =>
+        {
+            result.push(group);
+
+            console.log(group.height);
+            nextGroupY += group.height;
+
+            group.addEventListener(SlotsGroup.changedVacantResourcesAmountEvent, () =>
+                this.dispatchEvent(new Event(SankeyNode.changedVacantResourcesAmountEvent))
+            );
+        };
+
+        if (type === "output" && this.recipe.producedPower != undefined)
+        {
+            addGroup(new SlotsGroup(
+                this,
+                type,
+                { id: "Power", amount: this.recipe.producedPower },
+                nextGroupY
+            ));
+        }
+
         for (const resource of resources)
         {
-            let newGroup = new SlotsGroup(
+            addGroup(new SlotsGroup(
                 this,
                 type,
                 { id: resource.id, amount: this.toItemsInMinute(resource.amount) },
                 nextGroupY
-            );
-
-            result.push(newGroup);
-
-            nextGroupY += newGroup.height;
-
-            newGroup.addEventListener(SlotsGroup.changedVacantResourcesAmountEvent, () =>
-                this.dispatchEvent(new Event(SankeyNode.changedVacantResourcesAmountEvent))
-            );
+            ));
         }
 
         return result;
