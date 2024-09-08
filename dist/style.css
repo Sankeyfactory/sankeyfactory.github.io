@@ -766,6 +766,7 @@ div#node-creation-modal .title span.game-version {
 
 #node-creation-modal div.recipe {
     display: flex;
+    flex-direction: column;
 
     position: relative;
 
@@ -777,12 +778,28 @@ div#node-creation-modal .title span.game-version {
     width: 64px;
 
     padding: 8px;
-    gap: 4px;
+    gap: 2px;
 
     border-radius: 0px;
 
     transition-property: border-radius, border-color;
     transition-duration: 0.2s;
+}
+
+#node-creation-modal .recipe div.ingredient-icons {
+    display: flex;
+
+    height: 12px;
+
+    gap: 1px;
+}
+
+#node-creation-modal .recipe div.product-icons {
+    display: flex;
+
+    height: 34px;
+
+    gap: 2px;
 }
 
 #node-creation-modal .recipe div.progress-bar {

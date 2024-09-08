@@ -246,15 +246,27 @@ export class RecipeSelectionModal extends EventTarget
         let progressBar = this.createHtmlElement("div", "progress-bar");
         recipeSelector.appendChild(progressBar);
 
+        let ingredientIcons = this.createHtmlElement<HTMLDivElement>("div", "ingredient-icons");
+
+        for (const ingredient of recipe.ingredients)
+        {
+            this.addSelectorIcon(ingredientIcons, ingredient.id, () => isEventRecipe = true);
+        }
+
+        let productIcons = this.createHtmlElement<HTMLDivElement>("div", "product-icons");
+
         if (recipe.producedPower != undefined)
         {
-            this.addSelectorIcon(recipeSelector, "Power");
+            this.addSelectorIcon(productIcons, "Power");
         }
 
         for (const product of recipe.products)
         {
-            this.addSelectorIcon(recipeSelector, product.id, () => isEventRecipe = true);
+            this.addSelectorIcon(productIcons, product.id, () => isEventRecipe = true);
         }
+
+        recipeSelector.appendChild(ingredientIcons);
+        recipeSelector.appendChild(productIcons);
 
         recipeSelector.addEventListener("click", (event) =>
         {
@@ -294,7 +306,7 @@ export class RecipeSelectionModal extends EventTarget
     }
 
     private addSelectorIcon(
-        recipeSelector: HTMLDivElement,
+        iconsContainer: HTMLDivElement,
         resourceId: string,
         onEventRecipe?: () => void)
     {
@@ -316,7 +328,7 @@ export class RecipeSelectionModal extends EventTarget
         itemIcon.alt = resource.displayName;
         itemIcon.loading = "lazy";
 
-        recipeSelector.appendChild(itemIcon);
+        iconsContainer.appendChild(itemIcon);
     }
 
     private createResourceDisplay(
