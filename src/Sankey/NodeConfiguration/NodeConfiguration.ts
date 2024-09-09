@@ -36,7 +36,7 @@ export class NodeConfiguration extends EventTarget
                 this.closeConfigurationWindow();
             }
 
-            if (event.key === "Enter")
+            if (this._isOpened && event.key === "Enter")
             {
                 event.preventDefault();
                 event.stopPropagation();

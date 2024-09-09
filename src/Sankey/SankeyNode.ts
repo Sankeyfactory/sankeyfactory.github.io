@@ -362,7 +362,6 @@ export class SankeyNode extends EventTarget
         {
             result.push(group);
 
-            console.log(group.height);
             nextGroupY += group.height;
 
             group.addEventListener(SlotsGroup.changedVacantResourcesAmountEvent, () =>
