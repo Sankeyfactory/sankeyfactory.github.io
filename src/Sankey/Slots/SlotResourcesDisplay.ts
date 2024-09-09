@@ -65,16 +65,11 @@ export class SlotResourcesDisplay
 
             if (resource != undefined)
             {
-                if (resource.id === this._relatedSlot.resourceId && resource.type !== this._type)
-                {
-                    this._resourcesDisplay.classList.add("correct");
-                    this._resourcesDisplay.classList.remove("wrong");
-                }
-                else 
-                {
-                    this._resourcesDisplay.classList.add("wrong");
-                    this._resourcesDisplay.classList.remove("correct");
-                }
+                const isThisResourceSuitable =
+                    resource.id === this._relatedSlot.resourceId && resource.type !== this._type;
+
+                HtmlUtils.toggleClass(this._resourcesDisplay, "correct", isThisResourceSuitable);
+                HtmlUtils.toggleClass(this._resourcesDisplay, "wrong", !isThisResourceSuitable);
             }
         });
     }
@@ -83,14 +78,10 @@ export class SlotResourcesDisplay
     {
         let resourcesAmount = +this._relatedSlot.resourcesAmount.toFixed(3);
 
-        if (resourcesAmount === 0)
-        {
-            this._resourcesDisplay.classList.add("hidden");
-        }
-        else
-        {
-            this._resourcesDisplay.classList.remove("hidden");
+        HtmlUtils.toggleClass(this._resourcesDisplay, "hidden", resourcesAmount === 0);
 
+        if (resourcesAmount > 0)
+        {
             let zoomScale = Math.max(
                 SlotResourcesDisplay._minZoomMultiplier,
                 Math.min(SlotResourcesDisplay._maxZoomMultiplier, Settings.instance.zoom)

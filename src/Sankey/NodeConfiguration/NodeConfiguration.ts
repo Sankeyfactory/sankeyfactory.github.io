@@ -1,3 +1,4 @@
+import { HtmlUtils } from '../../DomUtils/HtmlUtils';
 import { loadSatisfactoryResource, overclockPower, toItemsInMinute } from '../../GameData/GameData';
 import { GameMachine } from "../../GameData/GameMachine";
 import { GameRecipe } from "../../GameData/GameRecipe";
@@ -121,14 +122,11 @@ export class NodeConfiguration extends EventTarget
             this._amountConfigurators.powerConfigurator!
         );
 
-        if (this._amountConfigurators.outputsConfigurators.length === 0)
-        {
-            NodeConfiguration._amountOutputsColumn.classList.add("hidden");
-        }
-        else
-        {
-            NodeConfiguration._amountOutputsColumn.classList.remove("hidden");
-        }
+        HtmlUtils.toggleClass(
+            NodeConfiguration._amountOutputsColumn,
+            "hidden",
+            this._amountConfigurators.outputsConfigurators.length === 0
+        );
 
         /* Overclock group */
 
@@ -147,14 +145,11 @@ export class NodeConfiguration extends EventTarget
             this._overclockConfigurators.powerConfigurator!
         );
 
-        if (this._overclockConfigurators.outputsConfigurators.length === 0)
-        {
-            NodeConfiguration._overclockOutputsColumn.classList.add("hidden");
-        }
-        else
-        {
-            NodeConfiguration._overclockOutputsColumn.classList.remove("hidden");
-        }
+        HtmlUtils.toggleClass(
+            NodeConfiguration._overclockOutputsColumn,
+            "hidden",
+            this._overclockConfigurators.outputsConfigurators.length === 0
+        );
 
         /* Modal window */
 
@@ -320,15 +315,12 @@ export class NodeConfiguration extends EventTarget
     {
         if (this._isOpened)
         {
-            if (this.machinesAmount !== this._openingMachinesAmount
-                || this.overclockRatio !== this._openingOverclockRatio)
-            {
-                NodeConfiguration._restoreButton.classList.remove("disabled");
-            }
-            else
-            {
-                NodeConfiguration._restoreButton.classList.add("disabled");
-            }
+            HtmlUtils.toggleClass(
+                NodeConfiguration._restoreButton,
+                "disabled",
+                this.machinesAmount === this._openingMachinesAmount
+                && this.overclockRatio === this._openingOverclockRatio
+            );
         }
     }
 
@@ -336,14 +328,11 @@ export class NodeConfiguration extends EventTarget
     {
         if (this._isOpened)
         {
-            if (this.machinesAmount !== 1 || this.overclockRatio !== 1)
-            {
-                NodeConfiguration._resetButton.classList.remove("disabled");
-            }
-            else
-            {
-                NodeConfiguration._resetButton.classList.add("disabled");
-            }
+            HtmlUtils.toggleClass(
+                NodeConfiguration._resetButton,
+                "disabled",
+                this.machinesAmount === 1 && this.overclockRatio === 1
+            );
         }
     }
 

@@ -82,18 +82,9 @@ export class SankeyLink
         {
             if (!contextMenu.isMenuOpened)
             {
-                if (select)
-                {
-                    this._svgPath.classList.add("selected");
-                    firstSlot.slotSvgRect.classList.add("selected");
-                    secondSlot.slotSvgRect.classList.add("selected");
-                }
-                else
-                {
-                    this._svgPath.classList.remove("selected");
-                    firstSlot.slotSvgRect.classList.remove("selected");
-                    secondSlot.slotSvgRect.classList.remove("selected");
-                }
+                HtmlUtils.toggleClass(this._svgPath, "selected", select);
+                HtmlUtils.toggleClass(firstSlot.slotSvgRect, "selected", select);
+                HtmlUtils.toggleClass(secondSlot.slotSvgRect, "selected", select);
             }
         };
 

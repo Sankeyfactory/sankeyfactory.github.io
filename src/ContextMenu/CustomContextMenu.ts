@@ -1,3 +1,4 @@
+import { HtmlUtils } from "../DomUtils/HtmlUtils";
 import { Point } from "../Geometry/Point";
 
 export abstract class CustomContextMenu extends EventTarget
@@ -119,14 +120,7 @@ export abstract class CustomContextMenu extends EventTarget
 
     protected static setSwitchState(switchNode: HTMLElement, enabled: boolean)
     {
-        if (enabled)
-        {
-            switchNode.classList.add("enabled");
-        }
-        else
-        {
-            switchNode.classList.remove("enabled");
-        }
+        HtmlUtils.toggleClass(switchNode, "enabled", enabled);
     }
 
     private _menuContainer: HTMLDivElement;

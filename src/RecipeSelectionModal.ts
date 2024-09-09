@@ -380,43 +380,34 @@ export class RecipeSelectionModal extends EventTarget
 
         this._selectedRecipePowerText.innerText = `${this._selectedRecipe.madeIn.powerConsumption} MW`;
 
-        if (this._selectedRecipe.madeIn.powerConsumption === 0)
-        {
-            this._selectedRecipePower.classList.add("hidden");
-        }
-        else
-        {
-            this._selectedRecipePower.classList.remove("hidden");
-        }
+        HtmlUtils.toggleClass(
+            this._selectedRecipePower,
+            "hidden",
+            this._selectedRecipe.madeIn.powerConsumption === 0
+        );
+
+        HtmlUtils.toggleClass(
+            this._selectedRecipeProducedPower,
+            "hidden",
+            this._selectedRecipe.recipe.producedPower == undefined
+        );
 
         if (this._selectedRecipe.recipe.producedPower != undefined)
         {
-            this._selectedRecipeProducedPower.classList.remove("hidden");
-
             this._selectedRecipeProducedPowerText.innerText = `${this._selectedRecipe.recipe.producedPower}`;
         }
-        else
-        {
-            this._selectedRecipeProducedPower.classList.add("hidden");
-        }
 
-        if (this._selectedRecipe.recipe.ingredients.length === 0)
-        {
-            this._selectedRecipeInput.classList.add("hidden");
-        }
-        else
-        {
-            this._selectedRecipeInput.classList.remove("hidden");
-        }
+        HtmlUtils.toggleClass(
+            this._selectedRecipeInput,
+            "hidden",
+            this._selectedRecipe.recipe.ingredients.length === 0
+        );
 
-        if (this._selectedRecipe.recipe.products.length === 0)
-        {
-            this._selectedRecipeOutput.classList.add("hidden");
-        }
-        else
-        {
-            this._selectedRecipeOutput.classList.remove("hidden");
-        }
+        HtmlUtils.toggleClass(
+            this._selectedRecipeOutput,
+            "hidden",
+            this._selectedRecipe.recipe.products.length === 0
+        );
 
         this._selectedRecipeDisplay.classList.remove("hidden");
 
@@ -515,14 +506,7 @@ export class RecipeSelectionModal extends EventTarget
         flagElement: HTMLDivElement
     ): void
     {
-        if (this._searchFlags[flag])
-        {
-            flagElement.classList.add("checked");
-        }
-        else
-        {
-            flagElement.classList.remove("checked");
-        }
+        HtmlUtils.toggleClass(flagElement, "checked", this._searchFlags[flag]);
 
         this.searchRecipes(this._searchInputField.value);
     };

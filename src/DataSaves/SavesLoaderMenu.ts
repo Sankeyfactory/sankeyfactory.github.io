@@ -34,14 +34,11 @@ export class SavesLoaderMenu
 
         let updateSelectedState = () =>
         {
-            if (AppData.instance.currentPlanName === "")
-            {
-                this._nonePlanSelector.classList.add("selected");
-            }
-            else
-            {
-                this._nonePlanSelector.classList.remove("selected");
-            }
+            HtmlUtils.toggleClass(
+                this._nonePlanSelector,
+                "selected",
+                AppData.instance.currentPlanName === ""
+            );
         };
 
         updateSelectedState();
@@ -165,15 +162,15 @@ export class SavesLoaderMenu
         {
             let planName = AppData.instance.currentPlanName;
 
+            HtmlUtils.toggleClass(loadedPlanNameElement, "placeholder", planName === "");
+
             if (planName === "")
             {
                 loadedPlanNameElement.innerText = "Load plan";
-                loadedPlanNameElement.classList.add("placeholder");
             }
             else
             {
                 loadedPlanNameElement.innerText = planName;
-                loadedPlanNameElement.classList.remove("placeholder");
             }
         };
 
@@ -221,14 +218,7 @@ export class SavesLoaderMenu
 
         let updateSelectedState = () =>
         {
-            if (name === AppData.instance.currentPlanName)
-            {
-                planSelector.classList.add("selected");
-            }
-            else
-            {
-                planSelector.classList.remove("selected");
-            }
+            HtmlUtils.toggleClass(planSelector, "selected", name === AppData.instance.currentPlanName);
         };
 
         updateSelectedState();

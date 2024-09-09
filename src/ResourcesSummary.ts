@@ -230,14 +230,7 @@ export class ResourcesSummary
 
     private static setCollapsingAnimationEnabled(enabled: boolean)
     {
-        if (enabled)
-        {
-            this._summaryContainer.classList.add("animate-collapsing");
-        }
-        else
-        {
-            this._summaryContainer.classList.remove("animate-collapsing");
-        }
+        HtmlUtils.toggleClass(this._summaryContainer, "animate-collapsing", enabled);
     }
 
     private _isCollapsed = false;

@@ -12,5 +12,17 @@ export class HtmlUtils
         return element;
     }
 
+    public static toggleClass(element: Element, className: string, toggleOn: boolean)
+    {
+        if (toggleOn)
+        {
+            element.classList.add(className);
+        }
+        else
+        {
+            element.classList.remove(className);
+        }
+    }
+
     private constructor() { }
 }

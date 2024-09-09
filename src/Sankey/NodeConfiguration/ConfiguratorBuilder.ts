@@ -48,15 +48,13 @@ export class ConfiguratorBuilder
         {
             let value = ConfiguratorBuilder.numberParser(this._inputElement.value);
 
-            if (value != undefined && meetsTheMinimum(value) && meetsTheMaximum(value))
-            {
-                this._inputElement.classList.remove("error");
+            let isInputWrong = value == undefined || !meetsTheMinimum(value) || !meetsTheMaximum(value);
 
-                this._relatedPropertySetter!(toFixed(value));
-            }
-            else
+            HtmlUtils.toggleClass(this._inputElement, "error", isInputWrong);
+
+            if (!isInputWrong)
             {
-                this._inputElement.classList.add("error");
+                this._relatedPropertySetter!(toFixed(value!));
             }
         });
 

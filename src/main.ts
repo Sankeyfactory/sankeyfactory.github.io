@@ -16,6 +16,7 @@ import { loadSatisfactoryResource, loadSingleSatisfactoryRecipe } from "./GameDa
 import { SankeyLink } from "./Sankey/SankeyLink";
 import { SlotsGroup } from "./Sankey/SlotsGroup";
 import { SavesLoaderMenu } from "./DataSaves/SavesLoaderMenu";
+import { HtmlUtils } from "./DomUtils/HtmlUtils";
 
 async function main()
 {
@@ -163,16 +164,8 @@ async function main()
 
     Settings.instance.addEventListener(Settings.isCanvasLockedChangedEvent, () =>
     {
-        if (Settings.instance.isCanvasLocked)
-        {
-            lockButton.classList.add("on");
-            lockButton.classList.remove("off");
-        }
-        else
-        {
-            lockButton.classList.remove("on");
-            lockButton.classList.add("off");
-        }
+        HtmlUtils.toggleClass(lockButton, "on", Settings.instance.isCanvasLocked);
+        HtmlUtils.toggleClass(lockButton, "off", !Settings.instance.isCanvasLocked);
     });
 
     let gridToggle = document.querySelector("#container div.controls #grid-toggle") as HTMLDivElement;
@@ -184,16 +177,8 @@ async function main()
 
     Settings.instance.addEventListener(Settings.isGridEnabledChangedEvent, () =>
     {
-        if (Settings.instance.isGridEnabled)
-        {
-            gridToggle.classList.add("on");
-            gridToggle.classList.remove("off");
-        }
-        else
-        {
-            gridToggle.classList.remove("on");
-            gridToggle.classList.add("off");
-        }
+        HtmlUtils.toggleClass(gridToggle, "on", Settings.instance.isGridEnabled);
+        HtmlUtils.toggleClass(gridToggle, "off", !Settings.instance.isGridEnabled);
     });
 
     window.addEventListener("keydown", (event) =>
