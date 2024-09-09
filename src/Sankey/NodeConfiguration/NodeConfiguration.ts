@@ -16,6 +16,8 @@ export class NodeConfiguration extends EventTarget
     {
         super();
 
+        this._recipe = recipe;
+
         let closeSelector = `#${NodeConfiguration._modalContainer.id} .title-row .close`;
         let closeButton = document.querySelector(closeSelector) as HTMLDivElement;
 
@@ -151,6 +153,20 @@ export class NodeConfiguration extends EventTarget
             this._overclockConfigurators.outputsConfigurators.length === 0
         );
 
+        /* Power production/consumption */
+
+        HtmlUtils.toggleClass(
+            NodeConfiguration._amountPowerColumn,
+            "hidden",
+            this._recipe.producedPower !== undefined
+        );
+
+        HtmlUtils.toggleClass(
+            NodeConfiguration._overclockPowerColumn,
+            "hidden",
+            this._recipe.producedPower !== undefined
+        );
+
         /* Modal window */
 
         NodeConfiguration._modalContainer.classList.remove("hidden");
@@ -261,6 +277,36 @@ export class NodeConfiguration extends EventTarget
             this._amountConfigurators.inputsConfigurators,
             this._overclockConfigurators.inputsConfigurators
         ));
+
+        if (recipe.producedPower != undefined)
+        {
+            this._amountConfigurators.outputsConfigurators.push(new ConfiguratorBuilder(this)
+                .setPowerSvgIcon()
+                .setInitialValue(recipe.producedPower)
+                .setUnits("MW")
+                .setMinimum(() => 0.0001)
+                .setMaximum(() => undefined)
+                .setRelatedProperty(
+                    () => recipe.producedPower! * this.overclockRatio * this.machinesAmount,
+                    (value) => this.machinesAmount = value / recipe.producedPower! / this.overclockRatio
+                )
+                .subscribeToMachinesAmount()
+                .subscribeToOverclock()
+                .build());
+
+            this._overclockConfigurators.outputsConfigurators.push(new ConfiguratorBuilder(this)
+                .setPowerSvgIcon()
+                .setInitialValue(recipe.producedPower)
+                .setUnits("MW")
+                .setMinimum(() => recipe.producedPower! * minOverclockRatio)
+                .setMaximum(() => recipe.producedPower! * maxOverclockRatio)
+                .setRelatedProperty(
+                    () => recipe.producedPower! * this.overclockRatio,
+                    (value) => this.overclockRatio = value / recipe.producedPower!
+                )
+                .subscribeToOverclock()
+                .build());
+        }
 
         recipe.products.forEach(resource => createResourceConfigurators(
             resource,
@@ -389,6 +435,7 @@ export class NodeConfiguration extends EventTarget
     }
 
     private _isOpened = false;
+    private _recipe: GameRecipe;
 
     private _machinesAmount = 1;
     private _overclockRatio = 1;
