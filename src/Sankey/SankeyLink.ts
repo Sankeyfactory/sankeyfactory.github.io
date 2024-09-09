@@ -1,14 +1,15 @@
 import { PanZoom } from "panzoom";
 import { Curve } from "../Geometry/Curve";
 import { Rectangle } from "../Geometry/Rectangle";
-import { SvgFactory } from "../SVG/SvgFactory";
-import { SvgPathBuilder } from "../SVG/SvgPathBuilder";
+import { SvgFactory } from "../DomUtils/SvgFactory";
+import { SvgPathBuilder } from "../DomUtils/SvgPathBuilder";
 import { SankeySlot } from "./Slots/SankeySlot";
 import { Point } from '../Geometry/Point';
 import { loadSatisfactoryResource, satisfactoryIconPath } from '../GameData/GameData';
 import { LinkContextMenu } from '../ContextMenu/LinkContextMenu';
 import { AppData } from "../DataSaves/AppData";
 import { PanZoomConfiguration } from "../PanZoomConfiguration";
+import { HtmlUtils } from "../DomUtils/HtmlUtils";
 
 export class SankeyLink
 {
@@ -170,19 +171,15 @@ export class SankeyLink
     {
         let foreignObject = SvgFactory.createSvgForeignObject("resource-display");
 
-        let container = document.createElement("div");
-        container.classList.add("container");
-
-        let icon = document.createElement("img");
-        icon.classList.add("icon");
+        let container = HtmlUtils.createHtmlElement("div", "container");
+        let icon = HtmlUtils.createHtmlElement("img", "icon");
 
         let resourceDesc = loadSatisfactoryResource(resource.id);
 
         icon.src = satisfactoryIconPath(resourceDesc.iconPath);
         icon.alt = resourceDesc.displayName;
 
-        this._resourceAmountDisplay = document.createElement("div");
-        this._resourceAmountDisplay.classList.add("resource-amount");
+        this._resourceAmountDisplay = HtmlUtils.createHtmlElement("div", "resource-amount");
         this._resourceAmountDisplay.innerText = `${+resource.amount.toFixed(3)}/min`;
 
         container.appendChild(icon);

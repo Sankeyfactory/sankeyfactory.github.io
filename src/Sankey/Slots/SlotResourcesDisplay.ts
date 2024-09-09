@@ -1,5 +1,6 @@
 import { loadSatisfactoryResource, satisfactoryIconPath } from "../../GameData/GameData";
-import { SvgFactory } from "../../SVG/SvgFactory";
+import { HtmlUtils } from "../../DomUtils/HtmlUtils";
+import { SvgFactory } from "../../DomUtils/SvgFactory";
 import { Settings } from "../../Settings";
 import { SankeySlot } from "./SankeySlot";
 
@@ -12,7 +13,7 @@ export class SlotResourcesDisplay
         this._type = type;
 
         this._resourcesDisplay = SvgFactory.createSvgForeignObject("resources-display");
-        this._resourcesAmountDisplay = document.createElement("div");
+        this._resourcesAmountDisplay = HtmlUtils.createHtmlElement("div");
 
         this.createResourceDisplay();
 
@@ -21,12 +22,11 @@ export class SlotResourcesDisplay
 
     private createResourceDisplay(): void
     {
-        let displayContainer = document.createElement("div");
+        let displayContainer = HtmlUtils.createHtmlElement("div");
 
         let resource = loadSatisfactoryResource(this._relatedSlot.resourceId);
 
-        let icon = document.createElement("img");
-        icon.classList.add("icon");
+        let icon = HtmlUtils.createHtmlElement("img", "icon");
         icon.src = satisfactoryIconPath(resource.iconPath);
         icon.title = resource.displayName;
         icon.alt = resource.displayName;

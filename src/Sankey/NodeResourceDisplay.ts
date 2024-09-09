@@ -1,9 +1,10 @@
 import { GameRecipe } from "../GameData/GameRecipe";
 import { Rectangle } from "../Geometry/Rectangle";
-import { SvgFactory } from "../SVG/SvgFactory";
+import { SvgFactory } from "../DomUtils/SvgFactory";
 import { loadSatisfactoryResource, overclockPower, satisfactoryIconPath, toItemsInMinute } from '../GameData/GameData';
 import { GameMachine } from '../GameData/GameMachine';
 import { SankeyNode } from './SankeyNode';
+import { HtmlUtils } from "../DomUtils/HtmlUtils";
 
 export class NodeResourceDisplay
 {
@@ -13,7 +14,7 @@ export class NodeResourceDisplay
         this._machine = machine;
 
         this._displayContainer = SvgFactory.createSvgForeignObject();
-        let recipeContainer = this.createHtmlElement("div", "recipe-container") as HTMLDivElement;
+        let recipeContainer = HtmlUtils.createHtmlElement("div", "recipe-container");
 
         this.createMachineDisplay(recipeContainer, machine);
         this.createOverclockDisplay(recipeContainer);
@@ -45,9 +46,9 @@ export class NodeResourceDisplay
 
     private createMachineDisplay(parent: HTMLDivElement, machine: GameMachine)
     {
-        let machineDisplay = this.createHtmlElement("div", "property") as HTMLDivElement;
+        let machineDisplay = HtmlUtils.createHtmlElement("div", "property");
 
-        let title = this.createHtmlElement("div", "title");
+        let title = HtmlUtils.createHtmlElement("div", "title");
         title.innerText = "Machines";
 
         machineDisplay.appendChild(title);
@@ -66,9 +67,9 @@ export class NodeResourceDisplay
     {
         if (recipe.ingredients.length === 0) return;
 
-        let inputsDisplay = this.createHtmlElement("div", "property") as HTMLDivElement;
+        let inputsDisplay = HtmlUtils.createHtmlElement("div", "property");
 
-        let title = this.createHtmlElement("div", "title");
+        let title = HtmlUtils.createHtmlElement("div", "title");
         title.innerText = "Input/min";
 
         inputsDisplay.appendChild(title);
@@ -88,9 +89,9 @@ export class NodeResourceDisplay
     {
         if (recipe.products.length === 0) return;
 
-        let outputsDisplay = this.createHtmlElement("div", "property") as HTMLDivElement;
+        let outputsDisplay = HtmlUtils.createHtmlElement("div", "property");
 
-        let title = this.createHtmlElement("div", "title");
+        let title = HtmlUtils.createHtmlElement("div", "title");
         title.innerText = "Output/min";
 
         outputsDisplay.appendChild(title);
@@ -110,12 +111,12 @@ export class NodeResourceDisplay
     {
         if (powerConsumption === 0) return;
 
-        let powerDisplay = this.createHtmlElement("div", "property");
+        let powerDisplay = HtmlUtils.createHtmlElement("div", "property");
 
-        let title = this.createHtmlElement("div", "title");
+        let title = HtmlUtils.createHtmlElement("div", "title");
         title.innerText = "Power";
 
-        this._powerDisplay = this.createHtmlElement("div", "text") as HTMLDivElement;
+        this._powerDisplay = HtmlUtils.createHtmlElement("div", "text");
         this._powerDisplay.innerText = `${powerConsumption} MW`;
 
         powerDisplay.appendChild(title);
@@ -128,9 +129,9 @@ export class NodeResourceDisplay
     {
         if (powerProduction == undefined) return;
 
-        let powerProductionDisplay = this.createHtmlElement("div", "property", "power") as HTMLDivElement;
+        let powerProductionDisplay = HtmlUtils.createHtmlElement("div", "property", "power");
 
-        let title = this.createHtmlElement("div", "title");
+        let title = HtmlUtils.createHtmlElement("div", "title");
         title.innerText = "Output (MW)";
 
         powerProductionDisplay.appendChild(title);
@@ -147,12 +148,12 @@ export class NodeResourceDisplay
 
     private createOverclockDisplay(parent: HTMLDivElement)
     {
-        let overclockDisplay = this.createHtmlElement("div", "property");
+        let overclockDisplay = HtmlUtils.createHtmlElement("div", "property");
 
-        let title = this.createHtmlElement("div", "title");
+        let title = HtmlUtils.createHtmlElement("div", "title");
         title.innerText = "Overclock";
 
-        this._overclockDisplay = this.createHtmlElement("div", "text") as HTMLDivElement;
+        this._overclockDisplay = HtmlUtils.createHtmlElement("div", "text");
         this._overclockDisplay.innerText = `100%`;
 
         overclockDisplay.appendChild(title);
@@ -172,16 +173,15 @@ export class NodeResourceDisplay
 
     private createAmountDisplay(parentDiv: HTMLDivElement, name: string, amount: number, iconPath: string)
     {
-        let resourceDiv = document.createElement("div");
-        resourceDiv.classList.add("resource");
+        let resourceDiv = HtmlUtils.createHtmlElement("div", "resource");
 
-        let icon = this.createHtmlElement("img", "icon") as HTMLImageElement;
+        let icon = HtmlUtils.createHtmlElement("img", "icon");
         icon.loading = "lazy";
         icon.src = satisfactoryIconPath(iconPath);
         icon.title = name;
         icon.alt = name;
 
-        let amountText = this.createHtmlElement("p", "amount") as HTMLParagraphElement;
+        let amountText = HtmlUtils.createHtmlElement("p", "amount");
         amountText.classList.add("amount");
         amountText.innerText = `${amount}`;
 
@@ -195,13 +195,6 @@ export class NodeResourceDisplay
     private toItemsInMinute(amount: number)
     {
         return toItemsInMinute(amount, this._recipe.manufacturingDuration);
-    }
-
-    private createHtmlElement(tag: string, ...classes: string[])
-    {
-        let element = document.createElement(tag);
-        element.classList.add(...classes);
-        return element;
     }
 
     private updateDisplays(associatedNode: SankeyNode): void

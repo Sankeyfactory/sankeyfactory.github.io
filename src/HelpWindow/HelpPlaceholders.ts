@@ -1,4 +1,5 @@
-import { SvgIcons } from "../SVG/SvgIcons";
+import { HtmlUtils } from "../DomUtils/HtmlUtils";
+import { SvgIcons } from "../DomUtils/SvgIcons";
 
 export class HelpPlaceholders
 {
@@ -49,11 +50,9 @@ export class HelpPlaceholders
 
     private static createControls(content: string): Node
     {
-        let cell = document.createElement("td");
+        let cell = HtmlUtils.createHtmlElement("td");
 
-        let controls = document.createElement("div");
-        controls.classList.add("controls");
-
+        let controls = HtmlUtils.createHtmlElement("div", "controls");
         controls.append(...this.parsePlaceholder(content));
 
         cell.appendChild(controls);
@@ -63,9 +62,7 @@ export class HelpPlaceholders
 
     private static createButton(content: string): Node
     {
-        let buttonTip = document.createElement("div");
-        buttonTip.classList.add("button-tip");
-
+        let buttonTip = HtmlUtils.createHtmlElement("div", "button-tip");
         buttonTip.append(...this.parsePlaceholder(content));
 
         return buttonTip;
@@ -78,8 +75,7 @@ export class HelpPlaceholders
 
     private static createDescription(content: string): Node
     {
-        let cell = document.createElement("td");
-
+        let cell = HtmlUtils.createHtmlElement("td");
         cell.append(...this.parsePlaceholder(content));
 
         return cell;

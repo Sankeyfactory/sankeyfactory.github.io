@@ -1,7 +1,7 @@
 import { Point } from "../Geometry/Point";
 import { SankeySlot } from "./Slots/SankeySlot";
 import { SlotsGroup, SlotsGroupType } from "./SlotsGroup";
-import { SvgFactory } from "../SVG/SvgFactory";
+import { SvgFactory } from "../DomUtils/SvgFactory";
 import { GameRecipe } from "../GameData/GameRecipe";
 import { GameMachine } from "../GameData/GameMachine";
 import { NodeContextMenu } from '../ContextMenu/NodeContextMenu';

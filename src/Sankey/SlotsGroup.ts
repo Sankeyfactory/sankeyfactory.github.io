@@ -3,7 +3,7 @@ import { SankeyNode } from "./SankeyNode";
 import { SankeySlot } from "./Slots/SankeySlot";
 import { SankeySlotExceeding } from "./Slots/SankeySlotExceeding";
 import { SankeySlotMissing } from "./Slots/SankeySlotMissing";
-import { SvgFactory } from "../SVG/SvgFactory";
+import { SvgFactory } from "../DomUtils/SvgFactory";
 import { InputSankeySlot } from "./Slots/InputSankeySlot";
 import { OutputSankeySlot } from "./Slots/OutputSankeySlot";
 import { AppData } from "../DataSaves/AppData";

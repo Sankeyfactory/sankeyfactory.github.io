@@ -7,7 +7,7 @@ import { Settings } from "./Settings";
 import { CanvasContextMenu } from "./ContextMenu/CanvasContextMenu";
 import { ResourcesSummary } from "./ResourcesSummary";
 import { PanZoomConfiguration } from "./PanZoomConfiguration";
-import { SvgIcons } from './SVG/SvgIcons';
+import { SvgIcons } from './DomUtils/SvgIcons';
 import { HelpModal } from './HelpWindow/HelpModal';
 import { RecipeSelectionModal } from './RecipeSelectionModal';
 import { CanvasGrid } from "./CanvasGrid";

@@ -1,6 +1,7 @@
 import { SankeyNode } from "./Sankey/SankeyNode";
 import { loadSatisfactoryResource, satisfactoryIconPath } from './GameData/GameData';
-import { SvgIcons } from './SVG/SvgIcons';
+import { SvgIcons } from './DomUtils/SvgIcons';
+import { HtmlUtils } from "./DomUtils/HtmlUtils";
 
 export class ResourcesSummary
 {
@@ -138,8 +139,7 @@ export class ResourcesSummary
 
         if (!isAnyAdded)
         {
-            let noneText = document.createElement("div");
-            noneText.classList.add("resource", "none");
+            let noneText = HtmlUtils.createHtmlElement("div", "resource", "none");
             noneText.innerText = "None";
 
             column.appendChild(noneText);
@@ -181,18 +181,15 @@ export class ResourcesSummary
     {
         let resource = loadSatisfactoryResource(id);
 
-        let resourceDisplay = document.createElement("div");
-        resourceDisplay.classList.add("resource");
+        let resourceDisplay = HtmlUtils.createHtmlElement("div", "resource");
 
-        let icon = document.createElement("img");
-        icon.classList.add("icon");
+        let icon = HtmlUtils.createHtmlElement("img", "icon");
 
         icon.src = satisfactoryIconPath(resource.iconPath);
         icon.title = resource.displayName;
         icon.alt = resource.displayName;
 
-        let amountDisplay = document.createElement("div");
-        amountDisplay.classList.add("amount");
+        let amountDisplay = HtmlUtils.createHtmlElement("div", "amount");
 
         amountDisplay.innerText = `${+amount.toFixed(3)}${suffix}`;
 
@@ -204,14 +201,12 @@ export class ResourcesSummary
 
     private createPowerDisplay(powerConsumption: number): HTMLDivElement
     {
-        let powerDisplay = document.createElement("div");
-        powerDisplay.classList.add("resource");
+        let powerDisplay = HtmlUtils.createHtmlElement("div", "resource");
 
         let icon = SvgIcons.createIcon("power");
         icon.classList.add("icon");
 
-        let amountDisplay = document.createElement("div");
-        amountDisplay.classList.add("amount");
+        let amountDisplay = HtmlUtils.createHtmlElement("div", "amount");
 
         amountDisplay.innerText = `${+powerConsumption.toFixed(3)} MW`;
 

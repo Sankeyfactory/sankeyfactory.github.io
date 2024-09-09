@@ -1,5 +1,6 @@
 import { AppData } from "./AppData";
-import { SvgIcons } from "../SVG/SvgIcons";
+import { SvgIcons } from "../DomUtils/SvgIcons";
+import { HtmlUtils } from "../DomUtils/HtmlUtils";
 
 export class SavesLoaderMenu
 {
@@ -186,16 +187,9 @@ export class SavesLoaderMenu
 
     private createPlanSelector(name: string): HTMLDivElement
     {
-        let createHtmlElement = (tag: string, ...classList: string[]) =>
-        {
-            let element = document.createElement(tag);
-            element.classList.add(...classList);
-            return element;
-        };
-
-        let planSelector = createHtmlElement("div", "plan-selector") as HTMLDivElement;
-        let planNameElement = createHtmlElement("div", "plan-name");
-        let deleteButton = createHtmlElement("div", "delete-button");
+        let planSelector = HtmlUtils.createHtmlElement("div", "plan-selector");
+        let planNameElement = HtmlUtils.createHtmlElement("div", "plan-name");
+        let deleteButton = HtmlUtils.createHtmlElement("div", "delete-button");
 
         planNameElement.innerText = name;
         deleteButton.appendChild(SvgIcons.createIcon("delete"));

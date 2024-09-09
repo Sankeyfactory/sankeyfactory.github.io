@@ -1,6 +1,6 @@
 import { AppData } from "../../DataSaves/AppData";
 import { Rectangle } from "../../Geometry/Rectangle";
-import { SvgFactory } from "../../SVG/SvgFactory";
+import { SvgFactory } from "../../DomUtils/SvgFactory";
 import { SlotsGroup } from "../SlotsGroup";
 
 export abstract class SankeySlot extends EventTarget

@@ -1,5 +1,6 @@
 import { satisfactoryIconPath } from "../../GameData/GameData";
-import { SvgIcons } from "../../SVG/SvgIcons";
+import { HtmlUtils } from "../../DomUtils/HtmlUtils";
+import { SvgIcons } from "../../DomUtils/SvgIcons";
 import { NodeConfiguration } from "./NodeConfiguration";
 
 export class ConfiguratorBuilder
@@ -8,16 +9,10 @@ export class ConfiguratorBuilder
     {
         this._nodeConfig = nodeConfig;
 
-        this._editElement = document.createElement("div");
-        this._editElement.classList.add("edit");
-
-        this._iconContainer = document.createElement("div");
-        this._iconContainer.classList.add("icon-container");
-
-        this._inputElement = document.createElement("input");
-
-        this._unitsElement = document.createElement("div");
-        this._unitsElement.classList.add("units");
+        this._editElement = HtmlUtils.createHtmlElement("div", "edit");
+        this._iconContainer = HtmlUtils.createHtmlElement("div", "icon-container");
+        this._inputElement = HtmlUtils.createHtmlElement("input");
+        this._unitsElement = HtmlUtils.createHtmlElement("div", "units");
 
         this._editElement.appendChild(this._iconContainer);
         this._editElement.appendChild(this._inputElement);
@@ -160,7 +155,7 @@ export class ConfiguratorBuilder
 
     public setIconImage(name: string, iconPath: string): this
     {
-        let icon = document.createElement("img");
+        let icon = HtmlUtils.createHtmlElement("img");
 
         icon.src = satisfactoryIconPath(iconPath);
         icon.alt = name;

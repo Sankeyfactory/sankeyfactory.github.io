@@ -1,12 +1,12 @@
 import { Point } from "./Geometry/Point";
 import { SankeyNode } from "./Sankey/SankeyNode";
-import { SvgFactory } from "./SVG/SvgFactory";
+import { SvgFactory } from "./DomUtils/SvgFactory";
 import { Rectangle } from "./Geometry/Rectangle";
 import { SankeyLink } from "./Sankey/SankeyLink";
 import { SankeySlotMissing } from "./Sankey/Slots/SankeySlotMissing";
 import { SankeySlotExceeding } from "./Sankey/Slots/SankeySlotExceeding";
 import { Curve } from "./Geometry/Curve";
-import { SvgPathBuilder } from "./SVG/SvgPathBuilder";
+import { SvgPathBuilder } from "./DomUtils/SvgPathBuilder";
 import { PanZoomConfiguration } from "./PanZoomConfiguration";
 import { Settings } from "./Settings";
 import { AppData } from "./DataSaves/AppData";

@@ -5,7 +5,8 @@ import satisfactoryData from '../dist/GameData/Satisfactory.json';
 import { loadSatisfactoryRecipe, loadSatisfactoryResource, satisfactoryIconPath, toItemsInMinute } from './GameData/GameData';
 import { GameMachine } from './GameData/GameMachine';
 import { GameRecipe } from './GameData/GameRecipe';
-import { SvgIcons } from './SVG/SvgIcons';
+import { HtmlUtils } from './DomUtils/HtmlUtils';
+import { SvgIcons } from './DomUtils/SvgIcons';
 
 export class RecipeSelectionModal extends EventTarget
 {
@@ -107,13 +108,13 @@ export class RecipeSelectionModal extends EventTarget
 
     private setupTabs(): void
     {
-        let allTabSelector = this.createHtmlElement<HTMLDivElement>("div", "tab-selector");
+        let allTabSelector = HtmlUtils.createHtmlElement("div", "tab-selector");
 
         allTabSelector.title = "All";
 
         let allIcon = SvgIcons.createIcon("three-dots");
 
-        let allRecipesTab = this.createHtmlElement<HTMLDivElement>("div", "recipes-tab");
+        let allRecipesTab = HtmlUtils.createHtmlElement("div", "recipes-tab");
 
         let allTabBasicRecipesGroup = this.createRecipesGroup("Basic recipes");
         let allTabAlternateRecipesGroup = this.createRecipesGroup("Alternate recipes");
@@ -137,17 +138,17 @@ export class RecipeSelectionModal extends EventTarget
 
         for (const machine of satisfactoryData.machines)
         {
-            let tabSelector = this.createHtmlElement<HTMLDivElement>("div", "tab-selector");
+            let tabSelector = HtmlUtils.createHtmlElement("div", "tab-selector");
 
             tabSelector.title = machine.displayName;
 
-            let machineIcon = this.createHtmlElement<HTMLImageElement>("img", "machine-icon");
+            let machineIcon = HtmlUtils.createHtmlElement("img", "machine-icon");
 
             machineIcon.src = satisfactoryIconPath(machine.iconPath);
             machineIcon.alt = machine.displayName;
             machineIcon.loading = "lazy";
 
-            let recipesTab = this.createHtmlElement<HTMLDivElement>("div", "recipes-tab");
+            let recipesTab = HtmlUtils.createHtmlElement("div", "recipes-tab");
 
             let basicRecipesGroup = this.createRecipesGroup("Basic recipes");
             let alternateRecipesGroup = this.createRecipesGroup("Alternate recipes");
@@ -222,10 +223,10 @@ export class RecipeSelectionModal extends EventTarget
 
     private createRecipesGroup(name: string): { div: HTMLDivElement, title: HTMLHeadingElement; }
     {
-        let groupTitle = this.createHtmlElement<HTMLHeadingElement>("h3", "group-title");
+        let groupTitle = HtmlUtils.createHtmlElement("h3", "group-title");
         groupTitle.innerText = name;
 
-        let groupDiv = this.createHtmlElement<HTMLDivElement>("div", "group");
+        let groupDiv = HtmlUtils.createHtmlElement("div", "group");
 
         return { div: groupDiv, title: groupTitle };
     };
@@ -236,24 +237,23 @@ export class RecipeSelectionModal extends EventTarget
         recipe: BuildingRecipe,
         machine: Building): void 
     {
-        let recipeSelector = document.createElement("div");
-        recipeSelector.classList.add("recipe");
+        let recipeSelector = HtmlUtils.createHtmlElement("div", "recipe");
         recipeSelector.title = recipe.displayName;
         recipeSelector.dataset.recipeId = recipe.id;
 
         let isEventRecipe = false;
 
-        let progressBar = this.createHtmlElement("div", "progress-bar");
+        let progressBar = HtmlUtils.createHtmlElement("div", "progress-bar");
         recipeSelector.appendChild(progressBar);
 
-        let ingredientIcons = this.createHtmlElement<HTMLDivElement>("div", "ingredient-icons");
+        let ingredientIcons = HtmlUtils.createHtmlElement("div", "ingredient-icons");
 
         for (const ingredient of recipe.ingredients)
         {
             this.addSelectorIcon(ingredientIcons, ingredient.id, () => isEventRecipe = true);
         }
 
-        let productIcons = this.createHtmlElement<HTMLDivElement>("div", "product-icons");
+        let productIcons = HtmlUtils.createHtmlElement("div", "product-icons");
 
         if (recipe.producedPower != undefined)
         {
@@ -310,8 +310,7 @@ export class RecipeSelectionModal extends EventTarget
         resourceId: string,
         onEventRecipe?: () => void)
     {
-        let itemIcon = document.createElement("img");
-        itemIcon.classList.add("item-icon");
+        let itemIcon = HtmlUtils.createHtmlElement("img", "item-icon");
 
         let resource = loadSatisfactoryResource(resourceId);
 
@@ -339,16 +338,16 @@ export class RecipeSelectionModal extends EventTarget
     {
         let descriptor = loadSatisfactoryResource(recipeResource.id);
 
-        let resourceDiv = this.createHtmlElement<HTMLDivElement>("div", "resource");
+        let resourceDiv = HtmlUtils.createHtmlElement("div", "resource");
 
-        let icon = this.createHtmlElement<HTMLImageElement>("img", "icon");
+        let icon = HtmlUtils.createHtmlElement("img", "icon");
 
         icon.src = satisfactoryIconPath(descriptor.iconPath);
         icon.title = descriptor.displayName;
         icon.alt = descriptor.displayName;
         icon.loading = "lazy";
 
-        let amount = this.createHtmlElement<HTMLParagraphElement>("p", "amount");
+        let amount = HtmlUtils.createHtmlElement("p", "amount");
 
         amount.innerText = `${+toItemsInMinute(recipeResource.amount, craftingTime).toFixed(3)}`;
 
@@ -672,15 +671,6 @@ export class RecipeSelectionModal extends EventTarget
         }
 
         this.dispatchEvent(new Event(RecipeSelectionModal.modalClosedEvent));
-    }
-
-    private createHtmlElement<T = Element>(tag: string, ...classList: string[]): T
-    {
-        let element = document.createElement(tag);
-
-        element.classList.add(...classList);
-
-        return element as T;
     }
 
     private _isOpened = false;
