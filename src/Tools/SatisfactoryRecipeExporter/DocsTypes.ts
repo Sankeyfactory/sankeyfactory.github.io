@@ -44,7 +44,7 @@ type DocsPowerGenerator = DocsBuilding & {
     mFuel: DocsFuel[];
     mSupplementalToPowerRatio: string;
     mPowerProduction: string;
-    mFuelResourceForm: string;
+    mAllowedResourceForms: string;
 };
 
 type DocsFuel = {

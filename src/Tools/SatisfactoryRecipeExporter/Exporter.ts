@@ -4,7 +4,7 @@ import fs from 'fs';
 // "Satisfactory/CommunityResources/Docs/Docs.json"
 let docsPath = "src/Tools/SatisfactoryRecipeExporter/Docs.json";
 let satisfactory = JSON.parse(fs.readFileSync(docsPath, "utf-8")) as Docs;
-let gameVersion = "0.8.3.3";
+let gameVersion = "1.0";
 
 function parseMachinesList(docsMachines: string): string[]
 {
@@ -24,7 +24,7 @@ function parseResourcesList(docsResources: string): RecipeResource[]
 {
     let result: RecipeResource[] = [];
 
-    let resourcesRegex = /\(ItemClass=.+?'\\?".+?\.(.+?)\\?"',Amount=(\d+)\)/g;
+    let resourcesRegex = /\(ItemClass=".+?'\\?.+?\.(.+?)\\?'",Amount=(\d+)\)/g;
 
     let match: RegExpExecArray;
     while (match = resourcesRegex.exec(docsResources)!)
@@ -63,7 +63,7 @@ function getMachinesRecipe(machineName: string, allRecipes: Recipe[], alternate:
 
 function getMachineDescriptorId(machineId: string): string
 {
-    let idRegex = /Build_(.+?)_/;
+    let idRegex = /Build_(.+?)_C/;
     let match = idRegex.exec(machineId);
 
     if (match == null)
@@ -339,11 +339,9 @@ let powerGenerators: Building[] = satisfactory
                 fixCubicMeters(byproduct, byproductDescriptor);
             }
 
-            let resourceForm = docsPowerGenerator.mFuelResourceForm.replace("RF_", "") as ResourceForm;
-
             for (const fuelType of fuelTypes)
             {
-                if (fuelType.energyValue === 0 || fuelType.form !== resourceForm) continue;
+                if (fuelType.energyValue === 0) continue;
 
                 let productionDuration = fuelType.energyValue / producedPower;
 

@@ -3,7 +3,7 @@ A tool for planning Satisfactory production chains with convenient sankey diagra
 
 The tool: [https://sankeyfactory.github.io](https://sankeyfactory.github.io).
 
-The recipes are up-to-date with Satisfactory version `0.8.3.3` (Update 8 latest patch).
+The recipes are up-to-date with Satisfactory version `1.0` (The first version of the released game).
 
 [![Static Badge](https://img.shields.io/badge/Buy%20me%20a%20coffee-Donate-green?style=for-the-badge&logo=buymeacoffee&logoColor=green)](https://buymeacoffee.com/andev0)
 
