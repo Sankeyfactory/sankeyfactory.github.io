@@ -146,7 +146,8 @@ let descriptorsMap = new Map<string, Descriptor>(satisfactory
                     + `Id: ${docsDescriptor.ClassName}`);
             }
 
-            iconPath = match.groups!.path.replace("UI/", "");
+            iconPath = match.groups!.path.replace("_UI/", "");
+            iconPath = iconPath.replace("UI/", "");
             iconName = match.groups!.name;
         }
 
