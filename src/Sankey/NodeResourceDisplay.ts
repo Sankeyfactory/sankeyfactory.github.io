@@ -235,7 +235,7 @@ export class NodeResourceDisplay
 
         if (this._powerProductionDisplay != undefined)
         {
-            let powerProduction = this._recipe.producedPower ?? 0
+            let powerProduction = (this._recipe.producedPower ?? 0)
                 * associatedNode.machinesAmount
                 * associatedNode.overclockRatio;
 
