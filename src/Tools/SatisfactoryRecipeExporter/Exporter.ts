@@ -4,7 +4,7 @@ import fs from 'fs';
 // "Satisfactory/CommunityResources/Docs/Docs.json"
 let docsPath = "src/Tools/SatisfactoryRecipeExporter/Docs.json";
 let satisfactory = JSON.parse(fs.readFileSync(docsPath, "utf-8")) as Docs;
-let gameVersion = "1.0";
+let gameVersion = "1.0.1.0";
 
 function parseMachinesList(docsMachines: string): string[]
 {
