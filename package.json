@@ -1,7 +1,7 @@
 {
   "devDependencies": {
     "@types/node": "^22.2.0",
-    "esbuild": "^0.23.0",
+    "esbuild": "^0.25.0",
     "gh-pages": "^6.1.1",
     "typescript": "^5.5.4"
   },
