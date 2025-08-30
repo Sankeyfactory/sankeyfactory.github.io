@@ -470,4 +470,8 @@ export class SankeyNode extends EventTarget
     private static _nextId = 0;
 
     private static readonly _nodeHeight = 300;
+
+    public get machine(): GameMachine {
+        return this._machine;
+    }
 }

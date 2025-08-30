@@ -2,6 +2,7 @@ import { SankeyNode } from "./Sankey/SankeyNode";
 import { loadSatisfactoryResource, satisfactoryIconPath } from './GameData/GameData';
 import { SvgIcons } from './DomUtils/SvgIcons';
 import { HtmlUtils } from "./DomUtils/HtmlUtils";
+import { GameMachine } from "./GameData/GameMachine";
 
 export class ResourcesSummary
 {
@@ -21,6 +22,7 @@ export class ResourcesSummary
 
         this.recalculateInputs();
         this.recalculateOutputs();
+        this.recalculateBuildings();
     }
 
     public registerNode(node: SankeyNode)
@@ -29,11 +31,13 @@ export class ResourcesSummary
 
         this.recalculateInputs();
         this.recalculateOutputs();
+        this.recalculateBuildings();
 
         node.addEventListener(SankeyNode.changedVacantResourcesAmountEvent, () =>
         {
             this.recalculateInputs();
             this.recalculateOutputs();
+            this.recalculateBuildings();
         });
 
         node.addEventListener(SankeyNode.deletionEvent, () =>
@@ -44,6 +48,7 @@ export class ResourcesSummary
 
             this.recalculateInputs();
             this.recalculateOutputs();
+            this.recalculateBuildings();
         });
     }
 
@@ -71,7 +76,7 @@ export class ResourcesSummary
             requiredPowerShards += node.requiredPowerShards;
         }
 
-        this.recalculate(ResourcesSummary._inputsColumn, resources, powerConsumption, requiredPowerShards);
+        this.recalculateResourceColumn(ResourcesSummary._inputsColumn, resources, powerConsumption, requiredPowerShards);
     }
 
     private recalculateOutputs(): void
@@ -89,10 +94,47 @@ export class ResourcesSummary
             }
         }
 
-        this.recalculate(ResourcesSummary._outputsColumn, resources, 0, 0);
+        this.recalculateResourceColumn(ResourcesSummary._outputsColumn, resources, 0, 0);
     }
 
-    private recalculate(
+    private recalculateBuildings(): void
+    {
+        // Clear old entries
+        ResourcesSummary._buildingsColumn.querySelectorAll(".resource").forEach(r => r.remove());
+
+        let isAnyAdded = false;
+        let buildings = new Map<string, { machine: GameMachine, amount: number }>();
+
+        for (const node of this._nodes) {
+            let key = node.machine.displayName;
+            if (!buildings.has(key)) {
+                buildings.set(key, { machine: node.machine, amount: 0 });
+            }
+            buildings.get(key)!.amount += Math.ceil(node.machinesAmount);
+        }
+
+        for (const [, { machine, amount }] of buildings) {
+            ResourcesSummary._buildingsColumn.appendChild(this.createBuildingDisplay(machine, amount));
+            isAnyAdded = true;
+        }
+
+        if (!isAnyAdded)
+        {
+            let noneText = HtmlUtils.createHtmlElement("div", "resource", "none");
+            noneText.innerText = "None";
+            ResourcesSummary._buildingsColumn.appendChild(noneText);
+        }
+
+        // Respect collapse state
+        if (this._isCollapsed)
+        {
+            ResourcesSummary.setCollapsingAnimationEnabled(false);
+            this.hideContent();
+            ResourcesSummary.setCollapsingAnimationEnabled(true);
+        }
+    }
+
+    private recalculateResourceColumn(
         column: HTMLDivElement,
         resources: Map<string, number>,
         powerConsumption: number,
@@ -216,6 +258,24 @@ export class ResourcesSummary
         return powerDisplay;
     }
 
+    private createBuildingDisplay(building: GameMachine, amount: number): HTMLDivElement
+    {
+        let buildingDisplay = HtmlUtils.createHtmlElement("div", "resource");
+
+        let iconPath = satisfactoryIconPath(building.iconPath);
+        let icon = HtmlUtils.createHtmlElement("img", "icon");
+        icon.src = iconPath;
+        icon.title = building.displayName;
+        icon.alt = building.displayName;
+
+        let amountDisplay = HtmlUtils.createHtmlElement("div", "amount");
+        amountDisplay.innerText = `${amount}x`;
+
+        buildingDisplay.appendChild(icon);
+        buildingDisplay.appendChild(amountDisplay);
+        return buildingDisplay;
+    }
+
     private static querySuccessor(query: string): Element
     {
         let element = ResourcesSummary._summaryContainer.querySelector(`${query}`);
@@ -244,6 +304,8 @@ export class ResourcesSummary
         ResourcesSummary.querySuccessor(".column.inputs") as HTMLDivElement;
     private static readonly _outputsColumn =
         ResourcesSummary.querySuccessor(".column.outputs") as HTMLDivElement;
+    private static readonly _buildingsColumn =
+        ResourcesSummary.querySuccessor(".column.buildings") as HTMLDivElement;
 
     private static readonly _collapseButton =
         ResourcesSummary.querySuccessor(".collapse-button") as HTMLDivElement;
