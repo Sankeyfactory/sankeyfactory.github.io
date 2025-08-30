@@ -542,6 +542,11 @@ div.modal-window {
     font-weight: 500;
 }
 
+.modal-window .title-row span.subtitle {
+    font-weight: 100;
+    color: var(--dim-foreground-light);
+}
+
 .modal-window .title-row div.close {
     display: flex;
     align-items: center;

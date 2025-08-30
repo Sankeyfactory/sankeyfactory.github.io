@@ -99,7 +99,7 @@ export class NodeConfiguration extends EventTarget
         });
     }
 
-    public openConfigurationWindow(openingMachinesAmount: number, openingOverclockRatio: number): void
+    public openConfigurationWindow(recipeName: string, openingMachinesAmount: number, openingOverclockRatio: number): void
     {
         this._openingMachinesAmount = openingMachinesAmount;
         this._openingOverclockRatio = openingOverclockRatio;
@@ -168,6 +168,8 @@ export class NodeConfiguration extends EventTarget
         );
 
         /* Modal window */
+
+        NodeConfiguration._machineConfigurationTitle.innerText = recipeName;
 
         NodeConfiguration._modalContainer.classList.remove("hidden");
 
@@ -453,6 +455,8 @@ export class NodeConfiguration extends EventTarget
 
     private static readonly _modalContainer =
         document.querySelector("#machine-configuration-container") as HTMLDivElement;
+    private static readonly _machineConfigurationTitle =
+        document.querySelector("#machine-configuration-title") as HTMLDivElement;
 
     private static readonly _machinesColumn = NodeConfiguration.getColumn("amount", "machines");
     private static readonly _amountInputsColumn = NodeConfiguration.getColumn("amount", "inputs");
