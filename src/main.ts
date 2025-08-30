@@ -14,9 +14,19 @@ import { CanvasGrid } from "./CanvasGrid";
 import { AppData } from "./DataSaves/AppData";
 import { loadSatisfactoryResource, loadSingleSatisfactoryRecipe } from "./GameData/GameData";
 import { SankeyLink } from "./Sankey/SankeyLink";
-import { SlotsGroup } from "./Sankey/SlotsGroup";
 import { SavesLoaderMenu } from "./DataSaves/SavesLoaderMenu";
 import { HtmlUtils } from "./DomUtils/HtmlUtils";
+import { SankeySlotMissing } from "./Sankey/Slots/SankeySlotMissing";
+import { SankeySlotExceeding } from "./Sankey/Slots/SankeySlotExceeding";
+
+function checkIfConnecting() {
+    // Helper to check if a connection is being created
+    const mouseHandler = MouseHandler.getInstance();
+
+    return mouseHandler.firstConnectingSlot !== undefined &&
+        (mouseHandler.mouseStatus === MouseHandler.MouseStatus.ConnectingInputSlot ||
+            mouseHandler.mouseStatus === MouseHandler.MouseStatus.ConnectingOutputSlot);
+}
 
 async function main()
 {
@@ -52,6 +62,8 @@ async function main()
 
     let recipeSelectionModal = new RecipeSelectionModal();
     let nodeCreationPosition: Point;
+
+    let lastMousePos: Point = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
 
     let registerNode = (node: SankeyNode) =>
     {
@@ -101,7 +113,7 @@ async function main()
         }
 
         return node;
-    };
+    }
 
     recipeSelectionModal.addEventListener(RecipeSelectionModal.recipeConfirmedEvent, () =>
     {
@@ -122,7 +134,10 @@ async function main()
             y: document.documentElement.clientHeight / 2
         };
 
-        nodeCreationPosition = nodePosition ?? MouseHandler.clientToCanvasPosition(pageCenter);
+        // Prefer mouse pos over center
+        let preferredPosition = nodePosition ?? lastMousePos ?? pageCenter;
+
+        nodeCreationPosition = MouseHandler.clientToCanvasPosition(preferredPosition);
 
         recipeSelectionModal.openModal();
     }
@@ -192,10 +207,84 @@ async function main()
         }
     });
 
+    function createSuitableNode(
+        slot: SankeySlotMissing | SankeySlotExceeding | undefined,
+        position: Point,
+        mouseStatus: MouseHandler.MouseStatus
+    ) {
+        // Helper to open the recipe selection modal with only options that make sense for the currently creating connection
+
+        if (!slot) return;
+
+        let type: "input" | "output";
+        if (mouseStatus === MouseHandler.MouseStatus.ConnectingInputSlot) {
+            type = "output";
+        } else if (mouseStatus === MouseHandler.MouseStatus.ConnectingOutputSlot) {
+            type = "input";
+        } else {
+            return; // Not linking
+        }
+
+        nodeCreationPosition = position;
+
+        let suitableRecipe = loadSingleSatisfactoryRecipe({ id: slot.resourceId, type });
+
+        onceNodeCreated = (node: SankeyNode) => {
+            let resourcesAmount = slot.resourcesAmount;
+            let group = type === "input"
+                ? node.inputSlotGroups.find(g => g.resourceId === slot.resourceId)
+                : node.outputSlotGroups.find(g => g.resourceId === slot.resourceId);
+
+            if (!group) return;
+
+            node.machinesAmount = resourcesAmount / group.resourcesAmount;
+
+            let newSlot1 = slot.splitOffSlot(resourcesAmount);
+
+            if (type === "input") {
+                let newSlot2 = node.addInputSlot(slot.resourceId, resourcesAmount);
+                SankeyLink.connect(newSlot1, newSlot2);
+            } else {
+                let newSlot2 = node.addOutputSlot(slot.resourceId, resourcesAmount);
+                SankeyLink.connect(newSlot1, newSlot2);
+            }
+        };
+
+        if (suitableRecipe) {
+            createNode(suitableRecipe.recipe, suitableRecipe.machine);
+        } else {
+            recipeSelectionModal.openWithSearch(
+                loadSatisfactoryResource(slot.resourceId).displayName,
+                {
+                    ingredients: type === "input",
+                    products: type === "output",
+                    recipeNames: false,
+                    exactMatch: true,
+                }
+            );
+        }
+
+        MouseHandler.getInstance().cancelConnectingSlots();
+    }
+
     canvas.addEventListener("dblclick", (event) =>
     {
-        let nodePosition = { x: event.clientX, y: event.clientY };
-        openNodeCreation(MouseHandler.clientToCanvasPosition(nodePosition));
+        const mouseHandler = MouseHandler.getInstance();
+        let canvasPos = MouseHandler.clientToCanvasPosition({ x: event.clientX, y: event.clientY });
+
+        if (checkIfConnecting())
+        {
+            // Creating a connection, so use the menu that's only the valid options
+            createSuitableNode(
+                mouseHandler.firstConnectingSlot,
+                canvasPos,
+                mouseHandler.mouseStatus
+            );
+        }
+        else {
+            // Not connecting, use normal node creation thing with all options
+            openNodeCreation(canvasPos);
+        }
     });
 
     let canvasContextMenu = new CanvasContextMenu(canvas);
@@ -250,121 +339,55 @@ async function main()
     canvasContextMenu.addEventListener(CanvasContextMenu.nodeFromLinkOptionClickedEvent, () =>
     {
         let slot = MouseHandler.getInstance().firstConnectingSlot;
+        let pos = canvasContextMenu.openingPosition;
 
-        if (slot == undefined)
-        {
-            return;
-        }
+        if (!pos) throw Error("Context menu position undefined");
 
-        let contextMenuPos = canvasContextMenu.openingPosition;
-
-        if (contextMenuPos == undefined)
-        {
-            throw Error("Context menu position undefined");
-        }
-
-        contextMenuPos = MouseHandler.clientToCanvasPosition(contextMenuPos);
-
-        let type: "input" | "output";
-
-        if (MouseHandler.getInstance().mouseStatus === MouseHandler.MouseStatus.ConnectingInputSlot)
-        {
-            type = "output";
-        }
-        else if (MouseHandler.getInstance().mouseStatus === MouseHandler.MouseStatus.ConnectingOutputSlot)
-        {
-            type = "input";
-        }
-        else
-        {
-            return;
-        }
-
-        nodeCreationPosition = contextMenuPos;
-
-        let suitableRecipe = loadSingleSatisfactoryRecipe({ id: slot.resourceId, type: type });
-
-        onceNodeCreated = (node: SankeyNode) =>
-        {
-            let resourcesAmount = slot.resourcesAmount;
-
-            let group: SlotsGroup | undefined;
-
-            if (type === "input")
-            {
-                group = node.inputSlotGroups.find(group => group.resourceId === slot.resourceId);
-            }
-            else
-            {
-                group = node.outputSlotGroups.find(group => group.resourceId === slot.resourceId);
-            }
-
-            if (group == undefined)
-            {
-                return;
-            }
-
-            let resourcesMultiplier = resourcesAmount / group.resourcesAmount;
-
-            node.machinesAmount = resourcesMultiplier;
-
-            let newSlot1 = slot.splitOffSlot(resourcesAmount);
-
-            if (type === "input")
-            {
-                let newSlot2 = node.addInputSlot(slot.resourceId, resourcesAmount);
-                SankeyLink.connect(newSlot1, newSlot2);
-            }
-            else
-            {
-                let newSlot2 = node.addOutputSlot(slot.resourceId, resourcesAmount);
-                SankeyLink.connect(newSlot1, newSlot2);
-            }
-        };
-
-        if (suitableRecipe != undefined)
-        {
-            createNode(suitableRecipe.recipe, suitableRecipe.machine);
-        }
-        else
-        {
-            recipeSelectionModal.openWithSearch(
-                loadSatisfactoryResource(slot.resourceId).displayName,
-                {
-                    ingredients: type === "input",
-                    products: type === "output",
-                    recipeNames: false,
-                    exactMatch: true,
-                }
-            );
-        }
-
-        MouseHandler.getInstance().cancelConnectingSlots();
+        createSuitableNode(
+            slot,
+            MouseHandler.clientToCanvasPosition(pos),
+            MouseHandler.getInstance().mouseStatus
+        );
     });
+
+    function checkIfInModal() {
+        let anyOverlayOpened = false; // Modal window or context menu.
+
+        document.querySelectorAll(".modal-window-container").forEach((modal) => {
+            if (!modal.classList.contains("hidden")) {
+                anyOverlayOpened = true;
+            }
+        });
+
+        document.querySelectorAll(".context-menu-container").forEach((modal) => {
+            if (!modal.classList.contains("hidden")) {
+                anyOverlayOpened = true;
+            }
+        });
+        return anyOverlayOpened;
+    }
 
     window.addEventListener("keypress", (event) =>
     {
-        let anyOverlayOpened = false; // Modal window or context menu.
-
-        document.querySelectorAll(".modal-window-container").forEach((modal) =>
-        {
-            if (!modal.classList.contains("hidden"))
-            {
-                anyOverlayOpened = true;
-            }
-        });
-
-        document.querySelectorAll(".context-menu-container").forEach((modal) =>
-        {
-            if (!modal.classList.contains("hidden"))
-            {
-                anyOverlayOpened = true;
-            }
-        });
+        let anyOverlayOpened = checkIfInModal();
 
         if (event.code === "KeyN" && !anyOverlayOpened)
         {
-            openNodeCreation();
+            const mouseHandler = MouseHandler.getInstance();
+
+            if (checkIfConnecting())
+            {
+                // Creating a connection, so use the menu that's only the valid options
+                createSuitableNode(
+                    mouseHandler.firstConnectingSlot,
+                    lastMousePos,
+                    mouseHandler.mouseStatus
+                );
+            }
+            else {
+                // Not connecting, use normal node creation thing with all options
+                openNodeCreation(lastMousePos);
+            }
         }
 
         if (event.code === "KeyL")
@@ -376,6 +399,12 @@ async function main()
     window.addEventListener("mouseup", () => MouseHandler.getInstance().handleMouseUp());
     window.addEventListener("touchend", () => MouseHandler.getInstance().handleMouseUp());
     window.addEventListener("mousemove", e => MouseHandler.getInstance().handleMouseMove(e));
+    window.addEventListener("mousemove", (event) => {
+        if (!checkIfInModal()) {
+            lastMousePos.x = event.clientX;
+            lastMousePos.y = event.clientY;
+        }
+    });
     window.addEventListener("touchmove", e => MouseHandler.getInstance().handleTouchMove(e));
 
     AppData.instance.addEventListener(AppData.dataLoadedEvent, () =>
