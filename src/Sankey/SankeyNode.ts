@@ -12,6 +12,7 @@ import { CanvasGrid } from "../CanvasGrid";
 import { Settings } from "../Settings";
 import { AppData } from "../DataSaves/AppData";
 import { SankeyLink } from "./SankeyLink";
+import { MouseHandler } from "../MouseHandler";
 
 export class SankeyNode extends EventTarget
 {
@@ -343,6 +344,9 @@ export class SankeyNode extends EventTarget
 
         nodeContextMenu.addEventListener(NodeContextMenu.configureNodeOptionClickedEvent, openConfigurator);
         this.nodeSvg.addEventListener("dblclick", openConfigurator);
+        this.nodeSvg.addEventListener("click", (e) => {
+            MouseHandler.getInstance().nodeClicked(e, this)
+        });
 
         configurator.addEventListener(NodeConfiguration.configurationUpdatedEvent, () =>
         {

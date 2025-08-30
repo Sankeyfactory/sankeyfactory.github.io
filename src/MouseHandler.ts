@@ -178,6 +178,48 @@ export class MouseHandler extends EventTarget
         }
     }
 
+    public nodeClicked(event: MouseEvent, node: SankeyNode)
+    {
+        if (this._mouseStatus === MouseHandler.MouseStatus.ConnectingInputSlot) {
+            if (this._firstConnectingSlot == undefined)
+                throw Error("First connecting slot wasn't saved.");
+
+            // Find a group of output slots in the target node matching the resource
+            const matchingOutputGroup = node.outputSlotGroups.find(
+                g => g.resourceId === this._firstConnectingSlot!.resourceId
+            );
+            if (!matchingOutputGroup) return;
+
+            const targetSlot = matchingOutputGroup.getOrCreateConnectableOutputSlot(
+                Math.min(
+                    this._firstConnectingSlot.resourcesAmount,
+                    matchingOutputGroup.vacantResourcesAmount
+                )
+            );
+
+            this.outputSlotClicked(event, targetSlot);
+        }
+        else if (this._mouseStatus === MouseHandler.MouseStatus.ConnectingOutputSlot) {
+            if (this._firstConnectingSlot == undefined)
+                throw Error("First connecting slot wasn't saved.");
+
+            // Find a group of input slots in the target node matching the resource
+            const matchingInputGroup = node.inputSlotGroups.find(
+                g => g.resourceId === this._firstConnectingSlot!.resourceId
+            );
+            if (!matchingInputGroup) return;
+
+            const targetSlot = matchingInputGroup.getOrCreateConnectableInputSlot(
+                Math.min(
+                    this._firstConnectingSlot.resourcesAmount,
+                    matchingInputGroup.vacantResourcesAmount
+                )
+            );
+
+            this.inputSlotClicked(event, targetSlot);
+        }
+    }
+
     private dragNodeTo(position: Point)
     {
         if (this._draggedNode == undefined)

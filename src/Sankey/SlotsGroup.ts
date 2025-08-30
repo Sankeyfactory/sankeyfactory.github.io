@@ -95,6 +95,45 @@ export class SlotsGroup extends EventTarget
         return newSlot;
     }
 
+    public getOrCreateConnectableSlot(
+        resourcesAmount: number,
+        expectedType: "input",
+        SlotClass: typeof SankeySlotMissing
+    ): SankeySlotMissing;
+    public getOrCreateConnectableSlot(
+        resourcesAmount: number,
+        expectedType: "output",
+        SlotClass: typeof SankeySlotExceeding
+    ): SankeySlotExceeding;
+    public getOrCreateConnectableSlot(
+        resourcesAmount: number,
+        expectedType: "input" | "output",
+        SlotClass: typeof SankeySlotMissing | typeof SankeySlotExceeding
+    ): SankeySlotMissing | SankeySlotExceeding {
+        if (this._type !== expectedType) {
+            throw new Error("Mismatched slots group type");
+        }
+
+        resourcesAmount = Math.min(resourcesAmount, this._lastSlot.resourcesAmount);
+
+        if (this._lastSlot instanceof SlotClass) {
+            return this._lastSlot;
+        }
+
+        return new SlotClass(this, this._groupSvg, {
+            id: this.resourceId,
+            amount: resourcesAmount,
+        });
+    }
+
+    public getOrCreateConnectableInputSlot(resourcesAmount: number): SankeySlotMissing {
+        return this.getOrCreateConnectableSlot(resourcesAmount, "input", SankeySlotMissing);
+    }
+
+    public getOrCreateConnectableOutputSlot(resourcesAmount: number): SankeySlotExceeding {
+        return this.getOrCreateConnectableSlot(resourcesAmount, "output", SankeySlotExceeding);
+    }
+
     public delete()
     {
         AppData.instance.lockSaving();
