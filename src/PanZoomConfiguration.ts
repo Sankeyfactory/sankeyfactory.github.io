@@ -10,8 +10,13 @@ export class PanZoomConfiguration
             zoomDoubleClickSpeed: 1, // disables double click zoom
             minZoom: 0.05,
             maxZoom: 25,
-            beforeMouseDown: () =>
+            beforeMouseDown: (e) =>
             {
+                // Middle click drag
+                if (e.button === 1) {
+                    return false;
+                }
+
                 let shouldIgnore = !this._isPanning;
                 return shouldIgnore;
             },
